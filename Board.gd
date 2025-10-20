@@ -167,7 +167,7 @@ func update_selected_tiles(tile: Tile, selected: bool) -> void:
 				tile.post_Spread()
 				return
 		else:
-			if(is_in_River(tile) && tiles_discarded < 5*(1+times_drained)):
+			if(is_in_River(tile) && tiles_discarded < DT_multiplier*(1+times_drained)):
 				tile.post_Spread()
 				return
 			if(selected_tiles.is_empty()):
@@ -295,7 +295,7 @@ func discard() -> void:
 		Discard_River.append(tile)
 		Board_Tiles[index_Y][index_X] = null
 		tile.post_Spread()
-	var drain_threshold: int = 5*(1+times_drained)
+	var drain_threshold: int = DT_multiplier*(1+times_drained)
 	var new_text: String = "[font_size=12]Drain[/font_size] [font_size=8]("
 	new_text += str(tiles_discarded) + "/"
 	new_text += str(drain_threshold) + ")[/font_size]"
@@ -508,11 +508,30 @@ func Spread() -> void:
 	Add_Spread_Score()
 	selected_tiles.clear()
 
+var DT_multiplier: int = 5
+
+func Beaver():
+	DT_multiplier = 3
+	var drain_threshold: int = DT_multiplier*(1+times_drained)
+	var new_text: String = "[font_size=12]Drain[/font_size] [font_size=8]("
+	new_text += str(tiles_discarded) + "/"
+	new_text += str(drain_threshold) + ")[/font_size]"
+	$Drain_Counter/Control/RichTextLabel.text = new_text
+	if(tiles_discarded < drain_threshold):
+		$Drain_Counter/Control/RichTextLabel.self_modulate = Color(1, 0, 0, 1)
+		$Drain_Counter.self_modulate = Color(0, 0, 0, 1)
+		$Drain_Counter/Locked.visible = true
+	else:
+		$Drain_Counter/Control/RichTextLabel.self_modulate = Color(0, 1, 0, 1)
+		$Drain_Counter.self_modulate = Color(1, 1, 1, 1)
+		$Drain_Counter/Locked.visible = false
+
 func Drain_River(Drain_Start: int) -> void:
 	if(Drain_Start >= 0):
-		var drain_threshold: int = 5*(1+times_drained)
+		var drain_threshold: int = DT_multiplier*(1+times_drained)
 		tiles_discarded -= drain_threshold
 		times_drained += 1
+		drain_threshold += DT_multiplier
 		
 		var new_text: String = "[font_size=12]Drain[/font_size] [font_size=8]("
 		new_text += str(tiles_discarded) + "/"

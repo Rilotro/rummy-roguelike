@@ -56,7 +56,10 @@ func REgenerate_selection(new_item: Item = null) -> void:
 	var id: int
 	
 	if(new_item == null):
-		id = randi_range(0, 3)
+		id = randi_range(0, 4)
+		if(Item.flags["Beaver Teeth"]):
+			while(id == 4 && cost):
+				id = randi_range(0, 4)
 		item_info = Item.new(id)
 	else:
 		id = new_item.id

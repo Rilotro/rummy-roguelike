@@ -63,5 +63,5 @@ func useItem(Game: Node2D) -> bool:
 		3:
 			pass
 		4:
-			pass
+			Game.Beaver()
 	return true

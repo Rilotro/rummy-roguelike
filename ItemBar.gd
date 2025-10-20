@@ -16,9 +16,19 @@ func add_item(new_item: Item):
 			Item.flags["Wrench"] += 1
 		3:
 			Item.flags["Midas Touch"] += new_item.uses
+		4:
+			Item.flags["Beaver Teeth"] = true
 	if(new_item.instant):
-		for i in range(new_item.uses):
+		if(new_item.uses >= 0):
+			for i in range(new_item.uses):
+				new_item.useItem(get_parent())
+		else:
 			new_item.useItem(get_parent())
+			for i in range(end_point):
+				if($Slots.get_child(end_point - i - 1).item_info == null):
+					#items[i] = new_item
+					$Slots.get_child(end_point - i - 1).REgenerate_selection(new_item)
+					break
 	else:
 		for i in range(end_point):
 			if($Slots.get_child(end_point - i - 1).item_info == null):
