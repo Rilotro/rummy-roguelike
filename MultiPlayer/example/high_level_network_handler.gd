@@ -14,6 +14,7 @@ func start_server():
 	peer = ENetMultiplayerPeer.new()
 	var error = peer.create_server(PORT)
 	if error:
+		print(error)
 		return error
 	multiplayer.multiplayer_peer = peer
 	
@@ -37,6 +38,7 @@ func start_client(Server_IP: String, Server_PORT: int):
 	
 	var error = peer.create_client(Server_IP, Server_PORT)
 	if error:
+		print(error)
 		return error
 	server_IP = Server_IP
 	
