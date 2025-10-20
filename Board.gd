@@ -122,6 +122,9 @@ func draw_tile():
 	#var test_Tile: Tile = Tile.new()
 	#add_child(test_Tile)
 	#test_Tile.global_position = Vector2(500, 500)
+	if(Item.flags["Midas Touch"] > 0):
+		if(Tile_Deck[0].Rarify("gold")):
+			$ItemBar.used_PassiveItem(3)
 	new_Tile.change_info(Tile_Deck[0])
 	Tile_Deck.remove_at(0)
 	$Deck_Counter.text = str(Tile_Deck.size())

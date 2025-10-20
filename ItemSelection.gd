@@ -12,7 +12,7 @@ var tip_timer: float = 0
 var tip_openned: bool = false
 var tip_UI: Control
 
-@export var id: int = 0
+#@export var id: int = 0
 
 func _process(delta: float) -> void:
 	if(mouse_inside):
@@ -53,9 +53,13 @@ func REgenerate_selection(new_item: Item = null) -> void:
 	$SOLD.visible = false
 	disabled = false
 	
+	var id: int
+	
 	if(new_item == null):
+		id = randi_range(0, 3)
 		item_info = Item.new(id)
 	else:
+		id = new_item.id
 		item_info = new_item
 	
 	$ItemSprite.texture = item_info.item_image
@@ -63,11 +67,13 @@ func REgenerate_selection(new_item: Item = null) -> void:
 	if(cost):
 		match id:
 			0:
-				item_cost = randi_range(10, 25)
+				item_cost = randi_range(40, 65)
 			1:
 				item_cost = randi_range(20, 50)
 			2:
 				item_cost = randi_range(75, 100)
+			3:
+				item_cost = randi_range(75, 110)
 		$Cost_Text.text = str(item_cost)
 
 

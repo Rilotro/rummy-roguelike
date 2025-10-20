@@ -60,9 +60,11 @@ func REgenerate_selection() -> void:
 		
 		if(rainbow_rng <= 15 + 7*Tile_Info.level - 2*rarity_counter):
 			is_rainbow = true
+			tile_cost += randi_range(4, 13)
 		
 		if(duplicate_rng <= 10 + 6*Tile_Info.level - 3*rarity_counter):
 			is_duplicate = true
+			tile_cost += randi_range(6, 17)
 		
 		if(cost):
 			$Cost_Text.text = str(tile_cost)

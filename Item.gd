@@ -9,7 +9,7 @@ var passive: bool
 var instant: bool
 var name: String
 var description: String#written for BBCode text
-static var flags = {"Wrench": 0}
+static var flags = {"Wrench": 0, "Midas Touch": 0, "Beaver Teeth": false}
 
 func _init(new_id: int = 0) -> void:
 	id = new_id
@@ -35,6 +35,20 @@ func _init(new_id: int = 0) -> void:
 			instant = false
 			name = "Workshop Wrench"
 			description = "All [b]Consumable Items[/b] have an extra [b]Use[/b]"
+		3:
+			item_image = load("res://Items/Midas_Touch.png")
+			uses = 2
+			passive = true
+			instant = false
+			name = "Touch of Midas"
+			description = "[b]Rarify[/b] the next [b]non-Gold Tile[/b] you [b]Draw[/b] up to [b]Gold[/b]"
+		4:
+			item_image = load("res://Items/Beaver_Teeth.png")
+			uses = -1
+			passive = true
+			instant = true
+			name = "Beaver Teeth"
+			description = "[b]Draining the River[/b] requires [b]40%[/b] less [b]Tiles[/b] to [b]Discard[/b]"
 	if(uses > 0):
 		uses += flags["Wrench"]
 
@@ -46,4 +60,8 @@ func useItem(Game: Node2D) -> bool:
 			Game.select_tiles(3)
 		1:
 			Game.add_ItemSlot()
+		3:
+			pass
+		4:
+			pass
 	return true

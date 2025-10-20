@@ -40,3 +40,44 @@ func _init(i_number: int = 0, i_color: int = 0, is_joker: bool = false, tile_rar
 		points = 10
 	else:
 		points = 5
+
+func Rarify(set_rarity: String = "") -> bool:
+	if(joker):
+		return false
+	
+	match set_rarity:
+		"":
+			match rarity:
+				"porcelain":
+					rarity = "bronze"
+					points = 10
+				"bronze":
+					rarity = "silver"
+					points = 25
+				"silver":
+					rarity = "gold"
+					points = 50
+				"gold":
+					return false
+		"porcelain":
+			if(rarity == "porcelain"):
+				return false
+			rarity = "porcelain"
+			points = 5
+		"bronze":
+			if(rarity == "bronze"):
+				return false
+			rarity = "bronze"
+			points = 10
+		"silver":
+			if(rarity == "silver"):
+				return false
+			rarity = "silver"
+			points = 25
+		"gold":
+			if(rarity == "gold"):
+				return false
+			rarity = "gold"
+			points = 50
+	
+	return true

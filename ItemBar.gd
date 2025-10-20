@@ -14,6 +14,8 @@ func add_item(new_item: Item):
 	match new_item.id:
 		2:
 			Item.flags["Wrench"] += 1
+		3:
+			Item.flags["Midas Touch"] += new_item.uses
 	if(new_item.instant):
 		for i in range(new_item.uses):
 			new_item.useItem(get_parent())
@@ -32,6 +34,17 @@ func item_select(Item_Slot: Item_Selection, item: Item, _cost: int) -> void:
 			item.uses -= 1
 			if(item.uses <= 0):
 				Item_Slot.remove_item()
+
+func used_PassiveItem(item_id: int):
+	for item in $Slots.get_children():
+		if(item.item_info != null && item.item_info.id == item_id):
+			match item_id:
+				3:
+					item.item_info.uses -= 1
+					if(item.item_info.uses <= 0):
+						item.remove_item()
+					Item.flags["Midas Touch"] -= 1
+					break
 
 func add_ItemSlot() -> void:
 	var new_ItemSlot: Item_Selection = ItemSlot_base.instantiate()

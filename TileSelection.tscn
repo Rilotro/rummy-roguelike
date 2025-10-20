@@ -25,7 +25,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 16
 script = ExtResource("1_e11np")
-joker_tile = null
 
 [node name="Cost_Text" type="RichTextLabel" parent="."]
 layout_mode = 0
