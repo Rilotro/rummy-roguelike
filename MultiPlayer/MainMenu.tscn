@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3 uid="uid://bmdxenf7fsq7d"]
+
+[ext_resource type="Script" uid="uid://ctne3jtaogy5i" path="res://MultiPlayer/MainMenu.gd" id="1_twder"]
+
+[node name="MainMenu" type="Node2D"]
+script = ExtResource("1_twder")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SP_Button" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "SinglePlayer"
+
+[node name="MP_Button" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "MultiPlayer"
+
+[node name="NS_Button" type="Button" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Create New Server"
+
+[node name="JS_Button" type="Button" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Join a Server"
+
+[node name="Cancel_Button" type="Button" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Go Back"
+
+[connection signal="pressed" from="VBoxContainer/SP_Button" to="." method="singleplayer"]
+[connection signal="pressed" from="VBoxContainer/MP_Button" to="." method="multi_player"]
+[connection signal="pressed" from="VBoxContainer/NS_Button" to="." method="new_server"]
+[connection signal="pressed" from="VBoxContainer/JS_Button" to="." method="join_server"]
+[connection signal="pressed" from="VBoxContainer/Cancel_Button" to="." method="_on_cancel_button_pressed"]

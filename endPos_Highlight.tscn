@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3 uid="uid://it7ocvy25mnh"]
+
+[ext_resource type="Shader" uid="uid://d14folb6ytwfp" path="res://endPos_Highlight.gdshader" id="1_26fwq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1o7mc"]
+shader = ExtResource("1_26fwq")
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_ms3ge"]
+
+[node name="endPos_Highlight" type="Sprite2D"]
+material = SubResource("ShaderMaterial_1o7mc")
+scale = Vector2(28, 38)
+texture = SubResource("CanvasTexture_ms3ge")

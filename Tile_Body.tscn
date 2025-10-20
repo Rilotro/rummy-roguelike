@@ -1,0 +1,89 @@
+[gd_scene load_steps=9 format=3 uid="uid://e4j2cwdm1xcb"]
+
+[ext_resource type="Texture2D" uid="uid://bux0j23a0ywry" path="res://Untitled.png" id="1_dm6w4"]
+[ext_resource type="Script" uid="uid://7xep6ybdkwej" path="res://Tile_Body.gd" id="1_ys2m5"]
+[ext_resource type="Shader" uid="uid://decnyweg1gkmx" path="res://RainbowNumber.gdshader" id="2_7f3rd"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_je3b2"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_au6lh"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_icy37"]
+shader = ExtResource("2_7f3rd")
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_ys2m5"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_7f3rd"]
+
+[node name="Body" type="Node2D"]
+script = ExtResource("1_ys2m5")
+
+[node name="HighLight" type="Sprite2D" parent="."]
+visible = false
+modulate = Color(0, 0, 0, 1)
+scale = Vector2(28, 38)
+texture = SubResource("CanvasTexture_je3b2")
+
+[node name="TileBody" type="Sprite2D" parent="."]
+scale = Vector2(25, 35)
+texture = SubResource("CanvasTexture_au6lh")
+
+[node name="TileNumber" type="RichTextLabel" parent="."]
+modulate = Color(0, 0, 0, 1)
+material = SubResource("ShaderMaterial_icy37")
+custom_minimum_size = Vector2(25, 35)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -25.0
+offset_right = 20.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+bbcode_enabled = true
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Control" type="Control" parent="."]
+custom_minimum_size = Vector2(25, 35)
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.5
+offset_top = -17.5
+offset_right = 12.5
+offset_bottom = 17.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="Joker_Face" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("1_dm6w4")
+
+[node name="Duplicate_Icon" type="Node2D" parent="."]
+visible = false
+modulate = Color(0, 0, 0, 1)
+position = Vector2(0, 10)
+
+[node name="Duplicate" type="Sprite2D" parent="Duplicate_Icon"]
+self_modulate = Color(1, 1, 1, 0.60784316)
+position = Vector2(1, -1.5)
+scale = Vector2(5, 7)
+texture = SubResource("CanvasTexture_ys2m5")
+
+[node name="Original" type="Sprite2D" parent="Duplicate_Icon"]
+position = Vector2(-1, -1)
+scale = Vector2(5, 7)
+texture = SubResource("CanvasTexture_7f3rd")
+
+[connection signal="mouse_entered" from="Control" to="." method="_on_control_mouse_entered"]
+[connection signal="mouse_exited" from="Control" to="." method="_on_control_mouse_exited"]

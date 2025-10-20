@@ -1,0 +1,63 @@
+[gd_scene load_steps=5 format=3 uid="uid://bpf1tsatdnbc5"]
+
+[ext_resource type="Script" uid="uid://ddmyml0kjt1im" path="res://TileSelection.gd" id="1_e11np"]
+[ext_resource type="PackedScene" uid="uid://e4j2cwdm1xcb" path="res://Tile_Body.tscn" id="2_eyu0r"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_qgppb"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8xdvp"]
+texture = SubResource("CanvasTexture_qgppb")
+modulate_color = Color(0, 0, 0, 1)
+
+[node name="Test_Add" type="Button"]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(50, 70)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -25.0
+offset_top = -35.0
+offset_right = 25.0
+offset_bottom = 35.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 16
+script = ExtResource("1_e11np")
+joker_tile = null
+
+[node name="Cost_Text" type="RichTextLabel" parent="."]
+layout_mode = 0
+offset_top = 70.0
+offset_right = 50.0
+offset_bottom = 93.0
+mouse_filter = 2
+text = "5"
+horizontal_alignment = 1
+
+[node name="Body" parent="." instance=ExtResource("2_eyu0r")]
+position = Vector2(25, 35)
+scale = Vector2(2, 2)
+
+[node name="SOLD" type="RichTextLabel" parent="."]
+visible = false
+self_modulate = Color(1, 1, 1, 0.78431374)
+custom_minimum_size = Vector2(105.58, 0)
+layout_mode = 0
+offset_left = -20.0
+offset_top = 65.0
+offset_right = 85.58
+offset_bottom = 107.0
+rotation = -0.7853982
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxTexture_8xdvp")
+text = "SOLD"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

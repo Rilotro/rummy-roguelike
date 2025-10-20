@@ -1,0 +1,164 @@
+[gd_scene load_steps=9 format=3 uid="uid://bqo6ci6u6f6fo"]
+
+[ext_resource type="Script" uid="uid://cmbdns06i2xjn" path="res://Shop.gd" id="1_c53l5"]
+[ext_resource type="Shader" uid="uid://6eiuohsvums7" path="res://Exit_Shop.gdshader" id="2_7ae35"]
+[ext_resource type="PackedScene" uid="uid://bpf1tsatdnbc5" path="res://TileSelection.tscn" id="2_f511j"]
+[ext_resource type="PackedScene" uid="uid://dgswt76jwdg63" path="res://ItemSelection.tscn" id="3_c0ofq"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_svtxo"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_7ae35"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_f511j"]
+shader = ExtResource("2_7ae35")
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_c0ofq"]
+
+[node name="Shop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_c53l5")
+
+[node name="Shop_BackGround" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0, 0.39215687)
+position = Vector2(576, 324)
+scale = Vector2(1152, 648)
+texture = SubResource("CanvasTexture_svtxo")
+
+[node name="ShopMain_BackGround" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0.3183701, 0.53577197, 1)
+position = Vector2(576, 324)
+scale = Vector2(1036.8, 583.2)
+texture = SubResource("CanvasTexture_7ae35")
+
+[node name="Tile_Selections" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Tile_Selection_1" parent="Tile_Selections" instance=ExtResource("2_f511j")]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 426.0
+offset_top = 242.0
+offset_right = 476.0
+offset_bottom = 312.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="Tile_Selection_2" parent="Tile_Selections" instance=ExtResource("2_f511j")]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 576.0
+offset_top = 242.0
+offset_right = 626.0
+offset_bottom = 312.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="Tile_Selection_3" parent="Tile_Selections" instance=ExtResource("2_f511j")]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 726.0
+offset_top = 242.0
+offset_right = 776.0
+offset_bottom = 312.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="Joker_Selection" parent="Tile_Selections" instance=ExtResource("2_f511j")]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 300.0
+offset_top = 332.0
+offset_right = 350.0
+offset_bottom = 402.0
+grow_horizontal = 1
+grow_vertical = 1
+joker_tile = true
+
+[node name="ItemSelection" parent="Tile_Selections" instance=ExtResource("3_c0ofq")]
+layout_mode = 0
+offset_left = 431.0
+offset_top = 427.0
+offset_right = 451.0
+offset_bottom = 457.0
+scale = Vector2(2, 2)
+
+[node name="ItemSelection2" parent="Tile_Selections" instance=ExtResource("3_c0ofq")]
+layout_mode = 0
+offset_left = 581.0
+offset_top = 427.0
+offset_right = 601.0
+offset_bottom = 457.0
+scale = Vector2(2, 2)
+id = 1
+
+[node name="ItemSelection3" parent="Tile_Selections" instance=ExtResource("3_c0ofq")]
+layout_mode = 0
+offset_left = 731.0
+offset_top = 427.0
+offset_right = 751.0
+offset_bottom = 457.0
+scale = Vector2(2, 2)
+id = 2
+
+[node name="Exit_Shop" type="Button" parent="."]
+self_modulate = Color(1, 1, 1, 0)
+layout_mode = 0
+offset_left = 1069.4
+offset_top = 32.4
+offset_right = 1094.4
+offset_bottom = 57.4
+
+[node name="Sprite2D" type="Sprite2D" parent="Exit_Shop"]
+material = SubResource("ShaderMaterial_f511j")
+position = Vector2(12.9, 12.9)
+scale = Vector2(25, 25)
+texture = SubResource("CanvasTexture_c0ofq")
+
+[node name="Currency_Text" type="RichTextLabel" parent="."]
+layout_mode = 0
+offset_left = 57.6
+offset_top = 32.4
+offset_right = 357.6
+offset_bottom = 55.4
+text = "Current Funds: 0"
+fit_content = true
+scroll_active = false
+
+[node name="TipText" type="RichTextLabel" parent="."]
+self_modulate = Color(1, 1, 0, 1)
+layout_mode = 0
+offset_left = 57.6
+offset_top = 570.0
+offset_right = 1094.4
+offset_bottom = 593.0
+bbcode_enabled = true
+text = "Tip:"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="Exit_Shop" to="." method="_on_exit_shop_pressed"]

@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://bftt3sh7ylbn2"]
+
+[ext_resource type="Script" uid="uid://co1qse4ge28dp" path="res://ItemBar.gd" id="1_mry7p"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_l5ixw"]
+
+[node name="ItemBar" type="Node2D"]
+script = ExtResource("1_mry7p")
+
+[node name="BarBody" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0.2901961, 0.8666667, 1)
+scale = Vector2(1152, 40)
+texture = SubResource("CanvasTexture_l5ixw")
+
+[node name="Slots" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(560, 30)
+offset_top = -15.0
+offset_right = 560.0
+offset_bottom = 15.0
+theme_override_constants/separation = 10
+alignment = 2

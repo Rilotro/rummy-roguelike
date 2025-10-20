@@ -1,0 +1,73 @@
+[gd_scene load_steps=7 format=3 uid="uid://bjdttpkhlh2xu"]
+
+[ext_resource type="Shader" uid="uid://br3y4jhl760fc" path="res://UI_Banner.gdshader" id="1_2q5ta"]
+[ext_resource type="Script" uid="uid://ct7spev3wvfip" path="res://UI_Tip.gd" id="1_80ruj"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_2q5ta"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_80ruj"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_80ruj"]
+shader = ExtResource("1_2q5ta")
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_yjyl7"]
+
+[node name="UI_Tip" type="Control"]
+custom_minimum_size = Vector2(250, 200)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -902.0
+offset_bottom = -448.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_80ruj")
+
+[node name="Body" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0.39215687, 1)
+position = Vector2(125, 100)
+scale = Vector2(250, 200)
+texture = SubResource("CanvasTexture_2q5ta")
+
+[node name="Separator" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0, 0.5882353)
+position = Vector2(125, 70)
+scale = Vector2(250, 5)
+texture = SubResource("CanvasTexture_80ruj")
+
+[node name="Banner" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_80ruj")
+position = Vector2(125, 15)
+scale = Vector2(250, 30)
+texture = SubResource("CanvasTexture_yjyl7")
+
+[node name="Banner_Text" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(245, 30)
+layout_mode = 0
+offset_left = 5.0
+offset_right = 155.0
+offset_bottom = 30.0
+text = "Bag of Tiles"
+vertical_alignment = 1
+
+[node name="Keyword_Text" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(245, 40)
+layout_mode = 0
+offset_left = 5.0
+offset_top = 30.0
+offset_right = 250.0
+offset_bottom = 70.0
+theme_override_font_sizes/normal_font_size = 12
+text = "Item, Uses - 3"
+vertical_alignment = 1
+
+[node name="Effects_Text" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(245, 122.5)
+layout_mode = 0
+offset_left = 5.0
+offset_top = 77.5
+offset_right = 250.0
+offset_bottom = 200.0
+bbcode_enabled = true
+text = "Choose one of three [b]Tiles[/b] to add to your [b]Deck[/b]"

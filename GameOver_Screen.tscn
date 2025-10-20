@@ -1,0 +1,90 @@
+[gd_scene load_steps=4 format=3 uid="uid://dabyek6g4ed0n"]
+
+[ext_resource type="Script" uid="uid://bgumxusq4xw2w" path="res://GameOver_Screen.gd" id="1_tkelq"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_05mvy"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_tkelq"]
+
+[node name="GameOver_Screen" type="Node2D"]
+script = ExtResource("1_tkelq")
+
+[node name="GameOver_BackGround" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0, 0.39215687)
+scale = Vector2(1152, 648)
+texture = SubResource("CanvasTexture_05mvy")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -576.0
+offset_top = -324.0
+offset_right = 576.0
+offset_bottom = 324.0
+
+[node name="ScreenFace" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0.54063284, 4.813075e-07, 1)
+scale = Vector2(921.6, 518.4)
+texture = SubResource("CanvasTexture_tkelq")
+
+[node name="Title" type="RichTextLabel" parent="."]
+offset_left = -100.0
+offset_top = -251.0
+offset_right = 100.0
+offset_bottom = -201.0
+theme_override_colors/default_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 32
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Stats" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Score" type="RichTextLabel" parent="Stats"]
+layout_mode = 0
+offset_left = -368.64
+offset_top = -80.0
+offset_right = 368.64
+offset_bottom = -40.0
+text = "Score: ......................................................................................................................................... "
+vertical_alignment = 1
+
+[node name="MaxSpreadScore" type="RichTextLabel" parent="Stats"]
+layout_mode = 0
+offset_left = -368.64
+offset_top = -40.0
+offset_right = 368.64
+text = "Biggest Spread: ........................................................................................................................ "
+vertical_alignment = 1
+
+[node name="TimesSpread" type="RichTextLabel" parent="Stats"]
+layout_mode = 0
+offset_left = -368.64
+offset_right = 368.64
+offset_bottom = 40.0
+text = "Times Spread: ........................................................................................................................... "
+vertical_alignment = 1
+
+[node name="TimesBoughtTiles" type="RichTextLabel" parent="Stats"]
+layout_mode = 0
+offset_left = -368.64
+offset_top = 40.0
+offset_right = 368.64
+offset_bottom = 80.0
+text = "Tiles Bought: ............................................................................................................................. "
+vertical_alignment = 1
+
+[node name="Restart" type="Button" parent="."]
+offset_left = -58.0
+offset_top = 190.0
+offset_right = 58.0
+offset_bottom = 232.0
+theme_override_font_sizes/font_size = 24
+disabled = true
+text = "Try Again"
+
+[connection signal="pressed" from="Restart" to="." method="_on_Restart_pressed"]

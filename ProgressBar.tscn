@@ -1,0 +1,83 @@
+[gd_scene load_steps=5 format=3 uid="uid://brxaidy7oal4n"]
+
+[ext_resource type="Shader" uid="uid://btf80t2xyb723" path="res://ProgressBar.gdshader" id="1_dwfyx"]
+[ext_resource type="Script" uid="uid://djcn8vhs35wfn" path="res://ProgressBar.gd" id="2_oad78"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4xpuq"]
+shader = ExtResource("1_dwfyx")
+shader_parameter/progress_alpha = 0.0
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_bvpha"]
+
+[node name="Sprite2D" type="Sprite2D"]
+material = SubResource("ShaderMaterial_4xpuq")
+scale = Vector2(250, 30)
+texture = SubResource("CanvasTexture_bvpha")
+script = ExtResource("2_oad78")
+
+[node name="ScoreControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -1.0
+offset_top = 0.5
+offset_right = 99.0
+offset_bottom = 23.5
+scale = Vector2(0.004, 0.033)
+mouse_filter = 2
+
+[node name="Score" type="RichTextLabel" parent="ScoreControl"]
+layout_mode = 0
+offset_left = 55.0
+offset_top = -40.0
+offset_right = 155.0
+offset_bottom = -17.0
+mouse_filter = 2
+text = "999"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MaxScoreControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_top = 0.5
+offset_right = 100.0
+offset_bottom = 23.5
+scale = Vector2(0.004, 0.033)
+mouse_filter = 2
+
+[node name="MaxScore" type="RichTextLabel" parent="MaxScoreControl"]
+layout_mode = 0
+offset_left = 95.0
+offset_top = -40.0
+offset_right = 195.0
+offset_bottom = -17.0
+mouse_filter = 2
+text = "1000"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 100.0
+offset_bottom = 23.0
+scale = Vector2(0.004, 0.033)
+mouse_filter = 2
+
+[node name="Level" type="RichTextLabel" parent="LevelControl"]
+layout_mode = 0
+offset_left = -73.0
+offset_top = -80.0
+offset_right = 71.2525
+offset_bottom = 18.99997
+mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 20
+text = "4"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1

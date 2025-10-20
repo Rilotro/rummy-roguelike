@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3 uid="uid://dwq2yhspy7q4a"]
+
+[ext_resource type="Script" uid="uid://dksabi5un5bdo" path="res://TileSelect_Screen.gd" id="1_5q40y"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_c3xm7"]
+
+[node name="TileSelect_Screen" type="Node2D"]
+script = ExtResource("1_5q40y")
+
+[node name="TileSelect_BackGround" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0, 0.39215687)
+scale = Vector2(1152, 648)
+texture = SubResource("CanvasTexture_c3xm7")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -576.0
+offset_top = -324.0
+offset_right = 576.0
+offset_bottom = 324.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(1152, 70)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -576.0
+offset_top = -35.0
+offset_right = 576.0
+offset_bottom = 35.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = -50
+alignment = 1

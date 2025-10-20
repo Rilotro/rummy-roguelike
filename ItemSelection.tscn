@@ -1,0 +1,65 @@
+[gd_scene load_steps=5 format=3 uid="uid://dgswt76jwdg63"]
+
+[ext_resource type="Script" uid="uid://sqskv6ak4kdy" path="res://ItemSelection.gd" id="1_j8qva"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_f511j"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_qgppb"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_svtxo"]
+texture = SubResource("CanvasTexture_qgppb")
+modulate_color = Color(0, 0, 0, 1)
+
+[node name="ItemSelection" type="Button"]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(20, 30)
+offset_right = 20.0
+offset_bottom = 30.0
+script = ExtResource("1_j8qva")
+
+[node name="ItemBackGround" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0.54509807, 1)
+position = Vector2(10, 15)
+scale = Vector2(20, 30)
+texture = SubResource("CanvasTexture_f511j")
+
+[node name="Cost_Text" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(20, 23)
+layout_mode = 0
+offset_top = 30.0
+offset_right = 20.0
+offset_bottom = 53.0
+mouse_filter = 2
+text = "15"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ItemSprite" type="Sprite2D" parent="."]
+position = Vector2(10, 15)
+scale = Vector2(0.15, 0.15)
+
+[node name="SOLD" type="RichTextLabel" parent="."]
+visible = false
+self_modulate = Color(1, 1, 1, 0.78431374)
+custom_minimum_size = Vector2(20, 23)
+layout_mode = 0
+offset_left = -20.0
+offset_top = 30.0
+offset_right = 35.0
+offset_bottom = 53.0
+rotation = -0.7853982
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_svtxo")
+text = "SOLD"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
+[connection signal="pressed" from="." to="." method="_on_pressed"]

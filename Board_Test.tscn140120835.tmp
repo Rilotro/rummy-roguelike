@@ -1,0 +1,208 @@
+[gd_scene load_steps=22 format=3 uid="uid://chet0dxnbb2qs"]
+
+[ext_resource type="Script" uid="uid://c7vjdyaj3o0p0" path="res://Board.gd" id="1_n5ooj"]
+[ext_resource type="PackedScene" uid="uid://brxaidy7oal4n" path="res://ProgressBar.tscn" id="2_n5ooj"]
+[ext_resource type="Texture2D" uid="uid://b503hsrjxwcub" path="res://new_Locked_sprite.png" id="3_q3pcv"]
+[ext_resource type="PackedScene" uid="uid://bqo6ci6u6f6fo" path="res://Shop.tscn" id="4_rosgs"]
+[ext_resource type="PackedScene" uid="uid://dabyek6g4ed0n" path="res://GameOver_Screen.tscn" id="5_msxg8"]
+[ext_resource type="PackedScene" uid="uid://dwq2yhspy7q4a" path="res://TileSelect_Screen.tscn" id="6_bid15"]
+[ext_resource type="PackedScene" uid="uid://bftt3sh7ylbn2" path="res://ItemBar.tscn" id="7_yrq8g"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_n5ooj"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_twdor"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_n5ooj"]
+texture = SubResource("CanvasTexture_twdor")
+modulate_color = Color(1, 1, 0, 1)
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_yrq8g"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2k4wd"]
+texture = SubResource("CanvasTexture_yrq8g")
+modulate_color = Color(0.784314, 0.784314, 0, 1)
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_msxg8"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bid15"]
+texture = SubResource("CanvasTexture_msxg8")
+modulate_color = Color(1, 1, 0.588235, 1)
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_bid15"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yrq8g"]
+texture = SubResource("CanvasTexture_bid15")
+modulate_color = Color(1, 1, 0.588235, 1)
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_rosgs"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_msxg8"]
+texture = SubResource("CanvasTexture_rosgs")
+modulate_color = Color(0.588235, 0.588235, 0, 1)
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_q3pcv"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rosgs"]
+texture = SubResource("CanvasTexture_q3pcv")
+modulate_color = Color(1, 0, 0, 1)
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_2k4wd"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_n5ooj")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.588235, 0.431373, 0.294118, 1)
+position = Vector2(530, 628)
+scale = Vector2(300, 40)
+texture = SubResource("CanvasTexture_n5ooj")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+modulate = Color(0.470588, 0.345098, 0.235294, 1)
+position = Vector2(530, 588)
+scale = Vector2(300, 40)
+texture = SubResource("CanvasTexture_n5ooj")
+
+[node name="Deck_Counter" type="RichTextLabel" parent="."]
+offset_left = 267.0
+offset_top = 592.0
+offset_right = 307.0
+offset_bottom = 632.0
+text = "104"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EndTurn_Button" type="Button" parent="."]
+offset_left = 1071.0
+offset_top = 308.0
+offset_right = 1149.0
+offset_bottom = 339.0
+text = "End Turn"
+
+[node name="Shop_Button" type="Button" parent="."]
+offset_left = 1086.5
+offset_top = 340.0
+offset_right = 1133.5
+offset_bottom = 371.0
+text = "Shop"
+
+[node name="Score_Text" type="RichTextLabel" parent="."]
+offset_left = 510.0
+offset_top = 500.0
+offset_right = 550.0
+offset_bottom = 540.0
+bbcode_enabled = true
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Spread_Button" type="Button" parent="."]
+offset_left = 547.0
+offset_top = 504.5
+offset_right = 610.0
+offset_bottom = 535.5
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_disabled_color = Color(0.196078, 0.196078, 0.196078, 1)
+theme_override_styles/normal = SubResource("StyleBoxTexture_n5ooj")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_2k4wd")
+theme_override_styles/hover = SubResource("StyleBoxTexture_bid15")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_yrq8g")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_msxg8")
+text = "Spread"
+
+[node name="Discard_Button" type="Button" parent="."]
+offset_left = 441.0
+offset_top = 504.5
+offset_right = 508.0
+offset_bottom = 535.5
+theme_override_styles/normal = SubResource("StyleBoxTexture_rosgs")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Discard_Button"]
+layout_mode = 0
+offset_right = 67.0
+offset_bottom = 31.0
+mouse_filter = 1
+theme_override_constants/paragraph_separation = -4
+bbcode_enabled = true
+text = "[font_size=12] End Turn [/font_size] [font_size=8](0/1)[/font_size]"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+
+[node name="ProgressBar" parent="." instance=ExtResource("2_n5ooj")]
+position = Vector2(30, 350)
+
+[node name="Discard_Tip" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(40, 40)
+offset_left = 530.0
+offset_top = 280.0
+offset_right = 830.0
+offset_bottom = 320.0
+text = "You can buy more tiles from the shop"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Drain_Counter" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0, 1)
+position = Vector2(346, 608)
+scale = Vector2(40, 60)
+texture = SubResource("CanvasTexture_2k4wd")
+
+[node name="Locked" type="Sprite2D" parent="Drain_Counter"]
+scale = Vector2(0.025, 0.016)
+texture = ExtResource("3_q3pcv")
+
+[node name="Control" type="Control" parent="Drain_Counter"]
+custom_minimum_size = Vector2(40, 62.5)
+layout_mode = 3
+anchors_preset = 0
+offset_left = -0.5
+offset_top = -0.5
+offset_right = 39.5
+offset_bottom = 62.0
+scale = Vector2(0.025, 0.016)
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Drain_Counter/Control"]
+self_modulate = Color(1, 0, 0, 1)
+layout_mode = 0
+offset_left = -20.0
+offset_top = -32.0
+offset_right = 20.0
+offset_bottom = 30.5
+bbcode_enabled = true
+text = "[font_size=12]Drain[/font_size] [font_size=8](0/5)[/font_size]"
+fit_content = true
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Shop" parent="." instance=ExtResource("4_rosgs")]
+visible = false
+top_level = true
+z_index = 1
+
+[node name="GameOver_Screen" parent="." instance=ExtResource("5_msxg8")]
+modulate = Color(1, 1, 1, 0)
+z_index = 2
+position = Vector2(576, 972)
+
+[node name="TileSelect_Screen" parent="." instance=ExtResource("6_bid15")]
+visible = false
+z_index = 2
+position = Vector2(576, 324)
+
+[node name="ItemBar" parent="." instance=ExtResource("7_yrq8g")]
+position = Vector2(576, 20)
+
+[connection signal="pressed" from="EndTurn_Button" to="." method="_on_EndTurn_button_pressed"]
+[connection signal="pressed" from="Shop_Button" to="." method="_on_shop_button_pressed"]
+[connection signal="pressed" from="Spread_Button" to="." method="_on_spread"]
+[connection signal="pressed" from="Discard_Button" to="." method="_on_Discard_Button_pressed"]
