@@ -20,6 +20,10 @@ config/icon="res://icon.svg"
 
 HighLevelNetworkHandler="*res://MultiPlayer/example/high_level_network_handler.gd"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/nodetunnel/plugin.cfg")
+
 [input]
 
 Left_Click={

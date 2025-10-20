@@ -39,14 +39,14 @@ func _on_join_button_pressed() -> void:
 		$PORT_Notice.visible = true
 	
 	if(complete):
-		var error = HighLevelNetworkHandler.start_client(Server_IP, Server_PORT.to_int())
-		if(error):
-			$VBoxContainer/Server_IP/ServerIP_Tip.self_modulate = Color(1, 0, 0, 1)
-			$PORT_Notice.text = "Server IP or PORT are incorect"
-			$PORT_Notice.visible = true
-		else:
-			HighLevelNetworkHandler.username = player_name
-			get_tree().change_scene_to_file("res://MultiPlayer/Multiplayer_Lobby.tscn")
+		HighLevelNetworkHandler.start_client(Server_IP)
+		#if(error):
+			#$VBoxContainer/Server_IP/ServerIP_Tip.self_modulate = Color(1, 0, 0, 1)
+			#$PORT_Notice.text = "Server IP or PORT are incorect"
+			#$PORT_Notice.visible = true
+		#else:
+		HighLevelNetworkHandler.username = player_name
+		get_tree().change_scene_to_file("res://MultiPlayer/Multiplayer_Lobby.tscn")
 
 
 func _on_cancel_button_pressed() -> void:

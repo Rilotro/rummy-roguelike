@@ -1,12 +1,15 @@
 extends Node2D
 
 func _ready() -> void:
+	print("HERE0")
 	multiplayer.peer_connected.connect(player_joined)
 	if(!multiplayer.is_server()):
+		print("HERE1")
+		print(multiplayer.get_peers())
 		$Button.disabled = true
 	else:
 		#HighLevelNetworkHandler.players[str(multiplayer.get_unique_id())] = 
-		$RichTextLabel.text += HighLevelNetworkHandler.server_IP
+		$RichTextLabel.text += HighLevelNetworkHandler.peer.online_id
 		#print("HERE0 - " + str(multiplayer.get_unique_id()))
 		var new_PlayerBanner: Control = preload("res://MultiPlayer/Player_Banner.tscn").instantiate()
 		new_PlayerBanner.name = str(multiplayer.get_unique_id())
@@ -14,6 +17,7 @@ func _ready() -> void:
 		HighLevelNetworkHandler.new_player(1, HighLevelNetworkHandler.username)
 
 func player_joined(id: int) -> void:
+	print("HERE2 - " + str(multiplayer.get_unique_id()) + " - " + str(id))
 	if !multiplayer.is_server(): 
 		if(id == 1):
 			add_player.rpc_id(1, multiplayer.get_unique_id(), HighLevelNetworkHandler.username)
