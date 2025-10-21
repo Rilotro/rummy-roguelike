@@ -10,3 +10,6 @@ func _enter_tree() -> void:
 	set_multiplayer_authority(name.to_int())
 	if(is_multiplayer_authority()):
 		$PlayerName.text = HighLevelNetworkHandler.username
+
+func get_username() -> String:
+	return $PlayerName.text

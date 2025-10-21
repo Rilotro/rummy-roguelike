@@ -5,7 +5,6 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4xpuq"]
 shader = ExtResource("1_dwfyx")
-shader_parameter/progress_alpha = 0.0
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_bvpha"]
 

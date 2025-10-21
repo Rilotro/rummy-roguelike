@@ -27,10 +27,8 @@ func _process(_delta: float) -> void:
 		old_maxScore = maxScore
 		maxScore_index += 1
 		$LevelControl/Level.text = str(maxScore_index+1)
-		if(owner_id == multiplayer.get_unique_id()):
-			#get_parent().get_parent().progressIndex = maxScore_index
-		#else:
-			get_parent().progressIndex = maxScore_index
+		if(HighLevelNetworkHandler.is_singleplayer || owner_id == multiplayer.get_unique_id()):
+			get_parent().progressIndex += 1
 		Tile_Info.level = maxScore_index
 		maxScore = maxScore_list[maxScore_index]
 		$ScoreControl/Score.text = str(currentScore)

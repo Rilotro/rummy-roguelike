@@ -6,6 +6,7 @@
 script = ExtResource("1_q8n7u")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="."]
+visible = false
 custom_minimum_size = Vector2(300, 40)
 offset_left = 20.0
 offset_right = 320.0

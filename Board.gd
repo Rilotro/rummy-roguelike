@@ -32,24 +32,24 @@ var stats: Array[int] = [0, 0, 0, 0]#in order: Score, Biggest Spread (Score-Wise
 var my_turn: bool = false
 
 func _ready() -> void:
-	if(multiplayer.is_server() && HighLevelNetworkHandler.server_openned):
-		#my_turn = true
+	if(HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned):
 		players[str(1)] = 0
-	#else:
-	$EndTurn_Button.text = "Shop"
-	for id in multiplayer.get_peers():
-		if(multiplayer.is_server()):
-			players[str(id)] = 0
-		var new_PB: Sprite2D = preload("res://ProgressBar.tscn").instantiate()
-		new_PB.owner_id = id
-		$MultiplayerControl.add_child(new_PB)
-		match $MultiplayerControl.get_child_count():
-			1:
-				new_PB.global_position = Vector2(100, 320)
-			2:
-				new_PB.global_position = Vector2(530, 100)
 	
-	$ProgressBar.owner_id = multiplayer.get_unique_id()
+	$EndTurn_Button.text = "Shop"
+	if(HighLevelNetworkHandler.is_multiplayer):
+		for id in multiplayer.get_peers():
+			if(HighLevelNetworkHandler.server_openned):
+				players[str(id)] = 0
+			var new_PB: Sprite2D = preload("res://ProgressBar.tscn").instantiate()
+			new_PB.owner_id = id
+			$MultiplayerControl.add_child(new_PB)
+			match $MultiplayerControl.get_child_count():
+				1:
+					new_PB.global_position = Vector2(100, 320)
+				2:
+					new_PB.global_position = Vector2(530, 100)
+		
+		$ProgressBar.owner_id = multiplayer.get_unique_id()
 	#$MultiplayerSpawner.multiplayer.peer_connected.connect(add_player)
 	$Shop.visible = false
 	$Shop.REgenerate_selections()
@@ -82,7 +82,7 @@ func _ready() -> void:
 	var lower_board: Array[Tile] = [null, null, null, null, null, null, null, null, null, null]
 	Board_Tiles.append(upper_board)
 	Board_Tiles.append(lower_board)
-	if(multiplayer.is_server() && HighLevelNetworkHandler.server_openned):
+	if(HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned):
 		$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(1)] + "'s Turn"
 		var tween = get_tree().create_tween()
 		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
@@ -92,7 +92,7 @@ func _ready() -> void:
 	#var first_bonus: int = 0
 	for i in range(14):
 		draw_tile()
-	if(multiplayer.is_server()):
+	if((HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned) || HighLevelNetworkHandler.is_singleplayer):
 		$Deck_Counter/Deck_Highlight.visible = true
 		$Deck_Counter/StartTurn_Draw.disabled = false
 
@@ -208,26 +208,15 @@ func get_actual_size_board(board: int) -> int:
 	return count
 
 func _process(_delta: float) -> void:
-	if(players.size() >= multiplayer.get_peers().size()+1):
-		for Peer_ProgressBoard in $MultiplayerControl.get_children():
-			var acc_score: int = players[str(Peer_ProgressBoard.owner_id)]
-			if(Peer_ProgressBoard.currentScore != acc_score && !Peer_ProgressBoard.is_updating):
-				Peer_ProgressBoard.uodateScore(acc_score)
-		
-	#if(past_active != move_active):
-		#past_active = move_active
-	#if(Input.is_action_just_released("Left_Click")):
-		#mouse_timer = 0
-		#move_active = false
-	#
-	#if(Input.is_action_pressed("Left_Click")):
-		#if(mouse_timer < 1.0):
-			#mouse_timer += delta
-		#else:
-			#move_active = true
+	if(HighLevelNetworkHandler.is_multiplayer):
+		if(players.size() >= multiplayer.get_peers().size()+1):
+			for Peer_ProgressBoard in $MultiplayerControl.get_children():
+				var acc_score: int = players[str(Peer_ProgressBoard.owner_id)]
+				if(Peer_ProgressBoard.currentScore != acc_score && !Peer_ProgressBoard.is_updating):
+					Peer_ProgressBoard.uodateScore(acc_score)
 	
-	if(Input.is_action_just_pressed("Debug_Draw")):
-		$TileSelect_Screen.start_select(5)
+	#if(Input.is_action_just_pressed("Debug_Draw")):
+		#$TileSelect_Screen.start_select(5)
 
 func select_tiles(nr_tiles: int = 3):
 	$TileSelect_Screen.start_select(nr_tiles)
@@ -305,12 +294,13 @@ func discard() -> void:
 		$Drain_Counter.self_modulate = Color(1, 1, 1, 1)
 		$Drain_Counter/Locked.visible = false
 	update_board_tile_positions()
-	if(!multiplayer.is_server()):
-		for tile_info in multiplayer_tiles:
-			client_discard.rpc_id(1, multiplayer.get_unique_id(), inst_to_dict(tile_info))
-	elif(HighLevelNetworkHandler.server_openned):
-		for tile_info in multiplayer_tiles:
-			multiplayer_discard.rpc(1, inst_to_dict(tile_info))
+	if(HighLevelNetworkHandler.is_multiplayer):
+		if(!HighLevelNetworkHandler.server_openned):
+			for tile_info in multiplayer_tiles:
+				client_discard.rpc_id(1, multiplayer.get_unique_id(), inst_to_dict(tile_info))
+		else:
+			for tile_info in multiplayer_tiles:
+				multiplayer_discard.rpc(1, inst_to_dict(tile_info))
 
 @rpc("any_peer", "call_local", "reliable")
 func client_discard(client_id: int, Tile_Discarded) -> void:
@@ -345,10 +335,11 @@ func Add_Spread_Score():
 	#$Score_Text.text = str(Score)
 	$ProgressBar.uodateScore(Score)
 	$Shop.update_currency(currency)
-	if(multiplayer.is_server()):
-		players[str(1)] = Score
-	else:
-		server_get_newScore.rpc_id(1, multiplayer.get_unique_id(), Score)
+	if(HighLevelNetworkHandler.is_multiplayer):
+		if(HighLevelNetworkHandler.server_openned):
+			players[str(1)] = Score
+		else:
+			server_get_newScore.rpc_id(1, multiplayer.get_unique_id(), Score)
 
 @rpc("any_peer", "call_local", "reliable")
 func server_get_newScore(client_id: int, newScore: int) -> void:
@@ -566,10 +557,11 @@ func Drain_River(Drain_Start: int) -> void:
 			new_River.append(Discard_River[i])
 		Discard_River = new_River
 		update_board_tile_positions()
-		if(!multiplayer.is_server()):
-			client_Drain.rpc_id(1, multiplayer.get_unique_id(), Drain_Start)
-		elif(HighLevelNetworkHandler.server_openned):
-			multiplayer_Drain.rpc(1, Drain_Start)
+		if(HighLevelNetworkHandler.is_multiplayer):
+			if(!HighLevelNetworkHandler.server_openned):
+				client_Drain.rpc_id(1, multiplayer.get_unique_id(), Drain_Start)
+			else:
+				multiplayer_Drain.rpc(1, Drain_Start)
 
 @rpc("any_peer", "call_local", "reliable")
 func client_Drain(client_id: int, Drain_Start: int):
@@ -714,8 +706,6 @@ func _on_EndTurn_button_pressed() -> void:
 		$Shop.checkButtons(currency)
 		$Shop.visible = true
 
-
-
 func _on_Discard_Button_pressed() -> void:
 	$EndTurn_Button.text = "Shop"
 	$EndTurn_Button.self_modulate = Color(1, 1, 1, 1)
@@ -730,26 +720,28 @@ func _on_Discard_Button_pressed() -> void:
 	var tween = get_tree().create_tween()
 	tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
 	my_turn = false
-	if(multiplayer.is_server() && HighLevelNetworkHandler.server_openned):
-		var viable_player: int = 1
-		for peer in multiplayer.get_peers():
-			if(players[str(peer)] >= 0):
-				viable_player = peer
-				break
-		
-		$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(viable_player)] + "'s Turn"
-		var new_tween = get_tree().create_tween()
-		new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
-		#await get_tree().create_timer(1).timeout
-		new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
-		new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
-		if(viable_player != 1):
-			next_turn.rpc(viable_player)
-		elif(Score >= 0):
-			next_turn(1)
-	elif(!multiplayer.is_server()):
-		client_EndTurn.rpc_id(1, multiplayer.get_unique_id())
-	else:
+	if(HighLevelNetworkHandler.is_multiplayer):
+		if(HighLevelNetworkHandler.server_openned):
+			var viable_player: int = 1
+			for peer in multiplayer.get_peers():
+				if(players[str(peer)] >= 0):
+					viable_player = peer
+					break
+			
+			$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(viable_player)] + "'s Turn"
+			var new_tween = get_tree().create_tween()
+			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
+			#await get_tree().create_timer(1).timeout
+			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
+			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
+			
+			if(viable_player != 1):
+				next_turn.rpc(viable_player)
+			elif(Score >= 0):
+				next_turn(1)
+		else:
+			client_EndTurn.rpc_id(1, multiplayer.get_unique_id())
+	elif(HighLevelNetworkHandler.is_singleplayer):
 		next_turn(1)
 
 var button_prev_states: Array[bool]
@@ -773,24 +765,26 @@ func _on_start_turn_draw_pressed() -> void:
 			draw_tile()
 	else:
 		$GameOver_Screen.GameOver(stats)
-		if(multiplayer.is_server() && HighLevelNetworkHandler.server_openned):
-			players[str(1)] = -Score
-			var viable_player: int = 1
-			for peer in multiplayer.get_peers():
-				if(players[str(peer)] >= 0):
-					viable_player = peer
-					break
-			
-			$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(viable_player)] + "'s Turn"
-			var new_tween = get_tree().create_tween()
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
-			#await get_tree().create_timer(1).timeout
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
-			if(viable_player != 1):
-				next_turn.rpc(viable_player)
-			elif(Score >= 0):
-				next_turn(1)
-		elif(!multiplayer.is_server()):
-			server_get_newScore.rpc_id(1, multiplayer.get_unique_id(), -Score)
-			client_EndTurn.rpc_id(1, multiplayer.get_unique_id())
+		if(HighLevelNetworkHandler.is_multiplayer):
+			if(HighLevelNetworkHandler.server_openned):
+				players[str(1)] = -Score
+				var viable_player: int = 1
+				for peer in multiplayer.get_peers():
+					if(players[str(peer)] >= 0):
+						viable_player = peer
+						break
+				
+				$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(viable_player)] + "'s Turn"
+				var new_tween = get_tree().create_tween()
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
+				#await get_tree().create_timer(1).timeout
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
+				
+				if(viable_player != 1):
+					next_turn.rpc(viable_player)
+				#elif(Score >= 0):
+					#next_turn(1)
+			else:
+				server_get_newScore.rpc_id(1, multiplayer.get_unique_id(), -Score)
+				client_EndTurn.rpc_id(1, multiplayer.get_unique_id())

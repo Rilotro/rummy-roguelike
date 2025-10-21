@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://7w3c1x7bomld"]
+
+[ext_resource type="Script" uid="uid://fqfm6v38w2ky" path="res://Loading_Notice.gd" id="1_mi24v"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_mi24v"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_7haad"]
+
+[node name="Loading_Notice" type="Node2D"]
+script = ExtResource("1_mi24v")
+
+[node name="Background" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0, 0.49019608)
+texture = SubResource("CanvasTexture_mi24v")
+region_enabled = true
+region_rect = Rect2(0, 0, 1152, 648)
+
+[node name="Body" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0, 1)
+texture = SubResource("CanvasTexture_7haad")
+region_enabled = true
+region_rect = Rect2(0, 0, 100, 100)
