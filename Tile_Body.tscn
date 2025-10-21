@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://e4j2cwdm1xcb"]
 
-[ext_resource type="Texture2D" uid="uid://bux0j23a0ywry" path="res://Untitled.png" id="1_dm6w4"]
+[ext_resource type="Texture2D" uid="uid://bux0j23a0ywry" path="res://jokers/Untitled.png" id="1_dm6w4"]
 [ext_resource type="Script" uid="uid://7xep6ybdkwej" path="res://Tile_Body.gd" id="1_ys2m5"]
 [ext_resource type="Shader" uid="uid://decnyweg1gkmx" path="res://RainbowNumber.gdshader" id="2_7f3rd"]
 

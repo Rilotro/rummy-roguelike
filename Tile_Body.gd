@@ -28,7 +28,7 @@ func acc_size() -> Vector2:
 func change_info(new_info: Tile_Info) -> void:
 	Tile_Data = new_info
 	
-	if(!Tile_Data.joker):
+	if(Tile_Data.joker_id < 0):
 		$TileNumber.text = str(Tile_Data.number)
 		if(Tile_Data.effects["rainbow"]):
 			$TileNumber.set_instance_shader_parameter("is_rainbow", true)
@@ -64,8 +64,19 @@ func change_info(new_info: Tile_Info) -> void:
 			"porcelain":
 				$TileBody.self_modulate = Color(1, 1, 1, 1)
 	else:
-		$TileNumber.text = ""
-		$Joker_Face.visible = true
+		match Tile_Data.joker_id:
+			0:
+				$Joker_Face.texture = load("res://jokers/Untitled.png")
+				$TileNumber.text = ""
+				$Joker_Face.visible = true
+			1:
+				$TileNumber.text = ""
+				$Joker_Face.texture = load("res://jokers/Partygoer.png")
+				$Joker_Face.visible = true
+			2:
+				$TileNumber.text = ""
+				$Joker_Face.texture = load("res://jokers/Banker.png")
+				$Joker_Face.visible = true
 
 func changeHighLight(new_color: Color) -> void:
 	$HighLight.modulate = new_color

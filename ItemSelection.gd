@@ -38,12 +38,24 @@ func no_cost() -> void:
 	$Cost_Text.visible = false
 
 func check_access(currentCurrency: int) -> void:
-	if(currentCurrency < item_cost):
-		disabled = true
-		$Cost_Text.modulate = Color(1, 0, 0, 1)
-	else:
+	if(free):
 		disabled = false
-		$Cost_Text.modulate = Color(1, 1, 1, 1)
+		$Cost_Text.text = "0"
+		$Cost_Text.modulate = Color(1, 1, 0, 1)
+	else:
+		$Cost_Text.text = str(item_cost)
+		if(currentCurrency < item_cost):
+			disabled = true
+			$Cost_Text.modulate = Color(1, 0, 0, 1)
+		else:
+			disabled = false
+			$Cost_Text.modulate = Color(1, 1, 1, 1)
+
+var free: bool = false
+
+func freebie(is_free: bool, currency: int) -> void:
+	free = is_free
+	check_access(currency)
 
 func remove_item():
 	item_info = null
@@ -74,9 +86,9 @@ func REgenerate_selection(new_item: Item = null) -> void:
 			1:
 				item_cost = randi_range(20, 50)
 			2:
-				item_cost = randi_range(75, 100)
+				item_cost = randi_range(60, 85)
 			3:
-				item_cost = randi_range(75, 110)
+				item_cost = randi_range(70, 100)
 		$Cost_Text.text = str(item_cost)
 
 

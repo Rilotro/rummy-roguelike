@@ -1,6 +1,6 @@
 extends Resource
 
-class_name Item
+class_name Item #Paint size: 130x200
 
 var id: int
 var item_image: Texture

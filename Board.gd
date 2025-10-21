@@ -70,12 +70,11 @@ func _ready() -> void:
 	for number in range(1, 14):
 		for color in range(1, 5):
 			temp_Deck.append(Tile_Info.new(number, color))
-			#temp_Deck.append(Tile_Info.new(number, color))
 	for i in range(temp_Deck.size()):
 		var index: int = randi_range(0, temp_Deck.size()-1)
 		Tile_Deck.append(temp_Deck[index])
 		temp_Deck.remove_at(index)
-	Tile_Deck.insert(randi_range(0, 15), Tile_Info.new(0, 0, true))
+	Tile_Deck.insert(randi_range(0, 15), Tile_Info.new(0, 0, 0))
 	$Deck_Counter.text = str(Tile_Deck.size())
 	
 	var upper_board: Array[Tile] = [null, null, null, null, null, null, null, null, null, null]
@@ -246,23 +245,13 @@ func add_tile_to_deck(tile_to_add: Tile_Info = null) -> void:
 		index = randi_range(10, deck_size-11)
 	
 	if(tile_to_add == null):
-		var is_joker: bool
-		var cointoss: int = randi_range(1, 100)
+		var joker_id: int = randi_range(-3, 2)
 		var rand_num: int = randi_range(1, 13)
 		var rand_col: int = randi_range(1, 4)
-		if(cointoss <= 50):
-			is_joker = false
-		else:
-			is_joker = true
-			rand_num = 0
-			rand_col = 0
-		tile_to_add = Tile_Info.new(rand_num, rand_col, is_joker)
+		tile_to_add = Tile_Info.new(rand_num, rand_col, joker_id)
 	
 	Tile_Deck.insert(index, tile_to_add)
 	$Deck_Counter.text = str(Tile_Deck.size())
-	#tile_to_add = Base_Tile.instantiate()
-	#tile_to_add.change_info(temp_info)
-	#temp_Deck.append(Tile_Info.new(number, color))
 
 func discard() -> void:
 	var multiplayer_tiles: Array[Tile_Info]
@@ -304,10 +293,9 @@ func discard() -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func client_discard(client_id: int, Tile_Discarded) -> void:
-	#for tile in Tiles_Discarded:
 	var tile: Tile_Info = dict_to_inst(Tile_Discarded)
 	var new_tile: Tile = Base_Tile.instantiate()
-	new_tile.change_info(Tile_Info.new(0, 0, false, "", tile))
+	new_tile.change_info(Tile_Info.new(0, 0, 0, "", tile))
 	add_child(new_tile)
 	Discard_River.append(new_tile)
 	update_board_tile_positions()
@@ -318,12 +306,15 @@ func multiplayer_discard(client_id: int, Tile_Discarded) -> void:
 	if(multiplayer.get_unique_id() != client_id):
 		var tile = dict_to_inst(Tile_Discarded)
 		var new_tile: Tile = Base_Tile.instantiate()
-		new_tile.change_info(Tile_Info.new(0, 0, false, "", tile))
+		new_tile.change_info(Tile_Info.new(0, 0, 0, "", tile))
 		add_child(new_tile)
 		Discard_River.append(new_tile)
 		update_board_tile_positions()
 
-func Add_Spread_Score():
+func Gain_Freebie(freebies: int = 1) -> void:
+	$Shop.Gain_Freebie(freebies)
+
+func Add_Spread_Score() -> void:
 	var new_points: int = 0
 	for tile in selected_tiles:
 		new_points += tile.on_spread(self)
@@ -357,7 +348,7 @@ func check_spread_legality() -> String:
 		ordered_tiles.append(tile.getTileData().number)
 		for other_tile in selected_tiles:
 			if(tile != other_tile):
-				if(!tile.getTileData().joker && !other_tile.getTileData().joker):
+				if(tile.getTileData().joker_id < 0 && other_tile.getTileData().joker_id < 0):
 					if(tile.getTileData().number != other_tile.getTileData().number):
 						same_number = false
 					

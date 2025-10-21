@@ -19,7 +19,7 @@ func _init(new_row: Array[Tile]) -> void:
 	var joker: Tile = null
 	
 	for tile in new_row:
-		if(tile.getTileData().joker):
+		if(tile.getTileData().joker_id >= 0):
 			joker = tile
 		else:
 			if(temp_color == -1):

@@ -19,21 +19,40 @@ func no_cost() -> void:
 	$Cost_Text.modulate = Color(1, 1, 1, 0)
 
 func check_access(currentCurrency: int) -> void:
-	if(currentCurrency < tile_cost):
-		disabled = true
-		$Cost_Text.modulate = Color(1, 0, 0, 1)
-	else:
+	if(free):
 		disabled = false
-		$Cost_Text.modulate = Color(1, 1, 1, 1)
+		$Cost_Text.text = "0"
+		$Cost_Text.modulate = Color(1, 1, 0, 1)
+	else:
+		$Cost_Text.text = str(tile_cost)
+		if(currentCurrency < tile_cost):
+			disabled = true
+			$Cost_Text.modulate = Color(1, 0, 0, 1)
+		else:
+			disabled = false
+			$Cost_Text.modulate = Color(1, 1, 1, 1)
+
+var free: bool = false
+
+func freebie(is_free: bool, currency: int) -> void:
+	free = is_free
+	check_access(currency)
 
 func REgenerate_selection() -> void:
 	$SOLD.visible = false
 	disabled = false
 	if(joker_tile):
+		var joker_id: int = randi_range(0, 2) 
 		if(cost):
-			tile_cost = randi_range(30, 50)
+			match joker_id:
+				0:
+					tile_cost = randi_range(30, 50)
+				1:
+					tile_cost = randi_range(15, 35)
+				2:
+					tile_cost = randi_range(75, 105)
 			$Cost_Text.text = str(tile_cost)
-		$Body.change_info(Tile_Info.new(0, 0, true))
+		$Body.change_info(Tile_Info.new(0, 0, joker_id))
 	else:
 		var tile_rarity: String
 		var is_rainbow: bool = false
@@ -72,7 +91,7 @@ func REgenerate_selection() -> void:
 		var rand_col: int = randi_range(1, 4)
 		if(is_rainbow):
 			rand_col = -1
-		$Body.change_info(Tile_Info.new(rand_num, rand_col, false, tile_rarity, null, {"rainbow": is_rainbow, "duplicate": is_duplicate}))
+		$Body.change_info(Tile_Info.new(rand_num, rand_col, -1, tile_rarity, null, {"rainbow": is_rainbow, "duplicate": is_duplicate}))
 
 func _on_control_mouse_entered() -> bool:
 	return !disabled

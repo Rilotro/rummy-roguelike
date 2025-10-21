@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bux0j23a0ywry"
-path="res://.godot/imported/Untitled.png-30da513a925d9064453decddf41ecbd4.ctex"
+uid="uid://dinju06y64kxm"
+path="res://.godot/imported/Partygoer.png-77ca9f33cca69ffc0cdbc2020b3d2f83.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Untitled.png"
-dest_files=["res://.godot/imported/Untitled.png-30da513a925d9064453decddf41ecbd4.ctex"]
+source_file="res://jokers/Partygoer.png"
+dest_files=["res://.godot/imported/Partygoer.png-77ca9f33cca69ffc0cdbc2020b3d2f83.ctex"]
 
 [params]
 

@@ -17,11 +17,12 @@ func initialise_tip(body) -> void:
 		global_position.x = 0
 	
 	if("Tile_Data" in body):
-		$Banner_Text.text = "Tile"
-		if(body.Tile_Data.joker):
+		if(body.Tile_Data.joker_id >= 0):
+			$Banner_Text.text = body.Tile_Data.joker_name
 			$Keyword_Text.text = "Joker"
-			$Effects_Text.text = "Can be used as any [b]Tile[/b]"
+			$Effects_Text.text = body.Tile_Data.joker_description
 		else:
+			$Banner_Text.text = "Tile"
 			var color: String
 			match body.Tile_Data.color:
 				1:

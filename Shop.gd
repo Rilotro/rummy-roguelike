@@ -35,11 +35,30 @@ func checkButtons(currentCurrency: int) -> void:
 		button.check_access(currentCurrency)
 
 func tile_select(_button: Button, tile_bought: Tile_Info, cost: int) -> void:
+	if(freebies > 0):
+		cost = 0
+		freebies -= 1
 	get_parent().buy_tile(tile_bought, cost)
-	#button.disabled = true
+	if(freebies <= 0):
+		for selection in $Tile_Selections.get_children():
+			selection.freebie(false, get_parent().currency)
 
 func item_select(_button: Button, item_bought: Item, cost: int) -> void:
+	if(freebies > 0):
+		cost = 0
+		freebies -= 1
 	get_parent().buy_item(item_bought, cost)
+	if(freebies <= 0):
+		for selection in $Tile_Selections.get_children():
+			selection.freebie(false, get_parent().currency)
+	
+
+var freebies: int = 0
+
+func Gain_Freebie(extra_freebies: int = 1) -> void:
+	freebies += extra_freebies
+	for selection in $Tile_Selections.get_children():
+		selection.freebie(true, get_parent().currency)
 
 func _on_exit_shop_pressed() -> void:
 	get_parent().exit_shop()

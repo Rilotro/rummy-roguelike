@@ -70,11 +70,20 @@ func tile_move():
 
 func on_spread(Game: Node2D) -> int:
 	var TD: Tile_Info = $Body.Tile_Data
-	if(TD.effects["rainbow"]):
-		var modified_effects: Dictionary = TD.effects
-		modified_effects["duplicate"] = false
-		Game.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker, TD.rarity, null, modified_effects))
-	return TD.points
+	var final_points: int = TD.points
+	if(TD.joker_id < 0):
+		if(TD.effects["duplicate"]):
+			var modified_effects: Dictionary = TD.effects
+			modified_effects["duplicate"] = false
+			Game.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
+	else:
+		match TD.joker_id:
+			1:
+				final_points += 10*(Game.selected_tiles.size()-1)
+			2:
+				Game.Gain_Freebie(1)
+	
+	return final_points
 
 func getTileData() -> Tile_Info:
 	return $Body.Tile_Data
