@@ -17,54 +17,22 @@ var debug_added: int = 0
 
 var Score: int = 0
 
-var is_discarding: bool = false
+var discarding: bool = false
 
 var progressIndex: int = 0
 
 var tiles_discarded: int = 0
 var times_drained: int = 0
 
-var currency: int = 0
-
-var stats: Array[int] = [0, 0, 0, 0]#in order: Score, Biggest Spread (Score-Wise), Times Spread, Tiles Bought
-
-@export var players: Dictionary = {}
 var my_turn: bool = false
 
+var MS: MultiplayerSynchronizer
+
 func _ready() -> void:
-	if(HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned):
-		players[str(1)] = 0
-	
-	$EndTurn_Button.text = "Shop"
-	if(HighLevelNetworkHandler.is_multiplayer):
-		for id in multiplayer.get_peers():
-			if(HighLevelNetworkHandler.server_openned):
-				players[str(id)] = 0
-			var new_PB: Sprite2D = preload("res://ProgressBar.tscn").instantiate()
-			new_PB.owner_id = id
-			$MultiplayerControl.add_child(new_PB)
-			match $MultiplayerControl.get_child_count():
-				1:
-					new_PB.global_position = Vector2(100, 320)
-				2:
-					new_PB.global_position = Vector2(530, 100)
-		
-		$ProgressBar.owner_id = multiplayer.get_unique_id()
-	#$MultiplayerSpawner.multiplayer.peer_connected.connect(add_player)
-	$Shop.visible = false
-	$Shop.REgenerate_selections()
-	
-	var nex_X_size: Vector2 = $Discard_Tip.get_theme_font("normal_font").get_string_size($Discard_Tip.text)
-	$Discard_Tip.size = nex_X_size
-	$Discard_Tip.global_position.x -= nex_X_size.x/2
-	#$Discard_Tip.text = "You may discard 1 Tile"
-	#$Discard_Tip.modulate = Color(1, 1, 1, 0)
-	
 	$Spread_Button.visible = false
 	$Spread_Button.disabled = true
 	$Discard_Button.visible = false
 	$Discard_Button.disabled = true
-	#$Score_Text.text = str(0)
 	
 	var temp_Deck: Array[Tile_Info]
 	for number in range(1, 14):
@@ -81,14 +49,7 @@ func _ready() -> void:
 	var lower_board: Array[Tile] = [null, null, null, null, null, null, null, null, null, null]
 	Board_Tiles.append(upper_board)
 	Board_Tiles.append(lower_board)
-	if(HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned):
-		$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(1)] + "'s Turn"
-		var tween = get_tree().create_tween()
-		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
-		#await get_tree().create_timer(1).timeout
-		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
-		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
-	#var first_bonus: int = 0
+	
 	for i in range(14):
 		draw_tile()
 	if((HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned) || HighLevelNetworkHandler.is_singleplayer):
@@ -118,17 +79,14 @@ func draw_tile():
 		rand_place = randi_range(0, Board_Tiles[rand_board].size()-1)
 	
 	var new_Tile: Tile = Base_Tile.instantiate()
-	#var test_Tile: Tile = Tile.new()
-	#add_child(test_Tile)
-	#test_Tile.global_position = Vector2(500, 500)
+	
 	if(Item.flags["Midas Touch"] > 0):
 		if(Tile_Deck[0].Rarify("gold")):
-			$ItemBar.used_PassiveItem(3)
+			get_parent().used_PassiveItem(3)
 	new_Tile.change_info(Tile_Deck[0])
 	Tile_Deck.remove_at(0)
 	$Deck_Counter.text = str(Tile_Deck.size())
 	add_child(new_Tile)
-	move_child(new_Tile, 10)
 	Board_Tiles[rand_board][rand_place] = new_Tile
 	update_board_tile_positions()
 
@@ -161,7 +119,7 @@ func update_selected_tiles(tile: Tile, selected: bool) -> void:
 				selected_tiles.erase(other_tile)
 	
 	if(selected):
-		if(is_discarding):
+		if(discarding):
 			if(selected_tiles.size() >= 1+progressIndex):
 				tile.post_Spread()
 				return
@@ -175,9 +133,9 @@ func update_selected_tiles(tile: Tile, selected: bool) -> void:
 	else:
 		selected_tiles.erase(tile)
 		if(selected_tiles.is_empty()):
-			if(!is_discarding):
+			if(!discarding):
 				$Spread_Button.visible = false
-	if(!is_discarding):
+	if(!discarding):
 		var button_text: String = check_spread_legality()
 		$Spread_Button.text = button_text
 		if(button_text == "Spread!"):
@@ -206,34 +164,6 @@ func get_actual_size_board(board: int) -> int:
 	
 	return count
 
-func _process(_delta: float) -> void:
-	if(HighLevelNetworkHandler.is_multiplayer):
-		if(players.size() >= multiplayer.get_peers().size()+1):
-			for Peer_ProgressBoard in $MultiplayerControl.get_children():
-				var acc_score: int = players[str(Peer_ProgressBoard.owner_id)]
-				if(Peer_ProgressBoard.currentScore != acc_score && !Peer_ProgressBoard.is_updating):
-					Peer_ProgressBoard.uodateScore(acc_score)
-	
-	#if(Input.is_action_just_pressed("Debug_Draw")):
-		#$TileSelect_Screen.start_select(5)
-
-func select_tiles(nr_tiles: int = 3):
-	$TileSelect_Screen.start_select(nr_tiles)
-
-func add_ItemSlot() -> void:
-	$ItemBar.add_ItemSlot()
-
-func buy_tile(tile_bought: Tile_Info, tile_cost: int) -> void:
-	stats[3] += 1
-	currency -= tile_cost
-	$Shop.update_currency(currency)
-	add_tile_to_deck(tile_bought)
-
-func buy_item(item_bought: Item, cost: int) -> void:
-	currency -= cost
-	$Shop.update_currency(currency)
-	$ItemBar.add_item(item_bought)
-
 func add_tile_to_deck(tile_to_add: Tile_Info = null) -> void:
 	var deck_size: int = Tile_Deck.size()
 	var index: int
@@ -252,6 +182,35 @@ func add_tile_to_deck(tile_to_add: Tile_Info = null) -> void:
 	
 	Tile_Deck.insert(index, tile_to_add)
 	$Deck_Counter.text = str(Tile_Deck.size())
+
+func update_discard_requirement():
+	var new_text: String = "[font_size=12]End Turn[/font_size]"
+	new_text += " [font_size=8](0"
+	new_text += "/" + str(1+progressIndex) + ")[/font_size]"
+	$Discard_Button/RichTextLabel.text = new_text
+
+func is_discarding() -> bool:
+	discarding = !discarding
+	if(discarding):
+		for tile in selected_tiles:
+			tile.post_Spread()
+		selected_tiles.clear()
+		$Spread_Button.visible = false
+		$Spread_Button.disabled = true
+		Tile.select_Color = Color(1, 0, 0, 1)
+		
+		$Discard_Button.visible = true
+		$Discard_Button.disabled = false
+		update_discard_requirement()
+	else:
+		for tile in selected_tiles:
+			tile.post_Spread()
+		selected_tiles.clear()
+		Tile.select_Color = Color(1, 1, 0, 1)
+		$Discard_Button.visible = false
+		$Discard_Button.disabled = true
+	
+	return discarding
 
 func discard() -> void:
 	var multiplayer_tiles: Array[Tile_Info]
@@ -283,58 +242,17 @@ func discard() -> void:
 		$Drain_Counter.self_modulate = Color(1, 1, 1, 1)
 		$Drain_Counter/Locked.visible = false
 	update_board_tile_positions()
-	if(HighLevelNetworkHandler.is_multiplayer):
-		if(!HighLevelNetworkHandler.server_openned):
-			for tile_info in multiplayer_tiles:
-				client_discard.rpc_id(1, multiplayer.get_unique_id(), inst_to_dict(tile_info))
-		else:
-			for tile_info in multiplayer_tiles:
-				multiplayer_discard.rpc(1, inst_to_dict(tile_info))
-
-@rpc("any_peer", "call_local", "reliable")
-func client_discard(client_id: int, Tile_Discarded) -> void:
-	var tile: Tile_Info = dict_to_inst(Tile_Discarded)
-	var new_tile: Tile = Base_Tile.instantiate()
-	new_tile.change_info(Tile_Info.new(0, 0, 0, "", tile))
-	add_child(new_tile)
-	Discard_River.append(new_tile)
-	update_board_tile_positions()
-	multiplayer_discard.rpc(client_id, Tile_Discarded)
-
-@rpc
-func multiplayer_discard(client_id: int, Tile_Discarded) -> void:
-	if(multiplayer.get_unique_id() != client_id):
-		var tile = dict_to_inst(Tile_Discarded)
-		var new_tile: Tile = Base_Tile.instantiate()
-		new_tile.change_info(Tile_Info.new(0, 0, 0, "", tile))
-		add_child(new_tile)
-		Discard_River.append(new_tile)
-		update_board_tile_positions()
-
-func Gain_Freebie(freebies: int = 1) -> void:
-	$Shop.Gain_Freebie(freebies)
 
 func Add_Spread_Score() -> void:
 	var new_points: int = 0
 	for tile in selected_tiles:
 		new_points += tile.on_spread(self)
-	if(new_points > stats[1]):
-		stats[1] = new_points
+	
 	Score += new_points
-	stats[0] = Score
-	currency += new_points
 	#$Score_Text.text = str(Score)
 	$ProgressBar.uodateScore(Score)
-	$Shop.update_currency(currency)
-	if(HighLevelNetworkHandler.is_multiplayer):
-		if(HighLevelNetworkHandler.server_openned):
-			players[str(1)] = Score
-		else:
-			server_get_newScore.rpc_id(1, multiplayer.get_unique_id(), Score)
-
-@rpc("any_peer", "call_local", "reliable")
-func server_get_newScore(client_id: int, newScore: int) -> void:
-	players[str(client_id)] = newScore
+	get_parent().newScore(new_points, multiplayer.get_unique_id())
+	#$Shop.update_currency(currency)
 
 func check_spread_legality() -> String:
 	if(selected_tiles.size() < 3):
@@ -468,10 +386,7 @@ func get_spread_pos(tile: Tile) -> Vector2:
 	return tile.orig_pos
 
 func Spread() -> void:
-	#if(selected_tiles.size() > 0):
-	stats[2] += 1
 	var new_Spread: Spread_Info = Spread_Info.new(selected_tiles)
-	#new_Spread.append_array(selected_tiles)
 	Spread_Rows.append(new_Spread)
 	var River_index: int = -1
 	for tile_to_remove in selected_tiles:
@@ -549,233 +464,38 @@ func Drain_River(Drain_Start: int) -> void:
 		Discard_River = new_River
 		update_board_tile_positions()
 		if(HighLevelNetworkHandler.is_multiplayer):
-			if(!HighLevelNetworkHandler.server_openned):
-				client_Drain.rpc_id(1, multiplayer.get_unique_id(), Drain_Start)
-			else:
-				multiplayer_Drain.rpc(1, Drain_Start)
-
-@rpc("any_peer", "call_local", "reliable")
-func client_Drain(client_id: int, Drain_Start: int):
-	if(Drain_Start >= 0):
-		var new_River: Array[Tile]
-		for i in range(Drain_Start):
-			new_River.append(Discard_River[i])
-		for i in range(Drain_Start, Discard_River.size()):
-			Discard_River[i].queue_free()
-		Discard_River = new_River
-		update_board_tile_positions()
-		multiplayer_Drain.rpc(client_id, Drain_Start)
-
-@rpc
-func multiplayer_Drain(client_id: int, Drain_Start: int):
-	if(multiplayer.get_unique_id() != client_id && Drain_Start >= 0):
-		var new_River: Array[Tile]
-		for i in range(Drain_Start):
-			new_River.append(Discard_River[i])
-		for i in range(Drain_Start, Discard_River.size()):
-			Discard_River[i].queue_free()
-		Discard_River = new_River
-		update_board_tile_positions()
+			pass
 
 func _on_spread() -> void:
 	Spread()
 	$Spread_Button.visible = false
 	$Spread_Button.disabled = true
 
-@rpc
-func next_turn(next_client: int) -> void:
-	if(multiplayer.get_unique_id() == next_client):
-		$Deck_Counter/Deck_Highlight.visible = true
-		$Deck_Counter/StartTurn_Draw.disabled = false
-
-@rpc("any_peer", "call_local", "reliable")
-func client_EndTurn(client_id: int):
-	var client_index: int = multiplayer.get_peers().find(client_id)+1
-	if(client_index >= multiplayer.get_peers().size()):
-		client_index = 0
-	var server_checked: bool = false
-	var viable_player: bool = false
-	for i in range(multiplayer.get_peers().size()+1):
-		if(client_index == 0 && !server_checked):
-			client_id = 1
-			if(Score >= 0):
-				viable_player = true
-				break
-			else:
-				server_checked = true
-				continue
-		client_id = multiplayer.get_peers()[client_index]
-		if(players[str(client_id)] >= 0):
-			viable_player = true
-			break
-		else:
-			client_index += 1
-			if(client_index >= multiplayer.get_peers().size()):
-				client_index = 0
-	
-	if(viable_player):
-		var turn_username: String = HighLevelNetworkHandler.players[str(client_id)]
-		$Player_Turn_Announcer.text = "It's " + turn_username + "'s Turn"
-		var tween = get_tree().create_tween()
-		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
-		#await get_tree().create_timer(1).timeout
-		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
-		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
-		
-		if(client_id == 1):
-			next_turn(1)
-		else:
-			next_turn.rpc(client_id)
-	else:
-		pass
-
-func _on_EndTurn_button_pressed() -> void:
-	if(my_turn):
-		is_discarding = !is_discarding
-		if(is_discarding):
-			$EndTurn_Button.text = "Cancel"
-			$EndTurn_Button.self_modulate = Color(1, 0, 0, 1)
-			for tile in selected_tiles:
-				tile.post_Spread()
-			selected_tiles.clear()
-			$Spread_Button.visible = false
-			$Spread_Button.disabled = true
-			Tile.select_Color = Color(1, 0, 0, 1)
-			#$Shop_Button.disabled = true
-			
-			var new_tip: String
-			if(progressIndex == 0):
-				new_tip = "You may discard 1 Tile"
-			else:
-				new_tip = "You may discard up to " + str(1+progressIndex) + " Tiles"
-			var old_X_size: Vector2 = $Discard_Tip.get_theme_font("normal_font").get_string_size($Discard_Tip.text)
-			$Discard_Tip.global_position.x += old_X_size.x/2
-			var new_X_size: Vector2 = $Discard_Tip.get_theme_font("normal_font").get_string_size(new_tip)
-			$Discard_Tip.size = new_X_size
-			$Discard_Tip.global_position.x -= new_X_size.x/2
-			$Discard_Tip.text = new_tip
-			$Discard_Button.visible = true
-			$Discard_Button.disabled = false
-			var new_text: String = "[font_size=12]End Turn[/font_size]"
-			new_text += " [font_size=8](0"
-			new_text += "/" + str(1+progressIndex) + ")[/font_size]"
-			$Discard_Button/RichTextLabel.text = new_text
-			
-			if(shop_openned):
-				var tween = get_tree().create_tween()
-				tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 1), 0.5)
-			#$Discard_Tip.modulate = Color(1, 1, 1, 0)
-		else:
-			$EndTurn_Button.text = "End Turn"
-			$EndTurn_Button.self_modulate = Color(1, 1, 1, 1)
-			
-			for tile in selected_tiles:
-				tile.post_Spread()
-			selected_tiles.clear()
-			#$Spread_Button.visible = false
-			#$Spread_Button.disabled = true
-			Tile.select_Color = Color(1, 1, 0, 1)
-			#$Shop_Button.disabled = false
-			$Discard_Button.visible = false
-			$Discard_Button.disabled = true
-			var tween = get_tree().create_tween()
-			tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
-	else:
-		if(!shop_openned):
-			shop_openned = true
-			var tween = get_tree().create_tween()
-			tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
-		
-		button_prev_states.append($EndTurn_Button.disabled)
-		#button_prev_states.append($Shop_Button.disabled)
-		button_prev_states.append($Spread_Button.disabled)
-		button_prev_states.append($Discard_Button.disabled)
-		$EndTurn_Button.disabled = true
-		#$Shop_Button.disabled = true
-		$Spread_Button.disabled = true
-		$Discard_Button.disabled = true
-		$Shop.checkButtons(currency)
-		$Shop.visible = true
+func Activate_Draw() -> void:
+	$Deck_Counter/Deck_Highlight.visible = true
+	$Deck_Counter/StartTurn_Draw.disabled = false
 
 func _on_Discard_Button_pressed() -> void:
-	$EndTurn_Button.text = "Shop"
-	$EndTurn_Button.self_modulate = Color(1, 1, 1, 1)
 	discard()
 	$Discard_Button.visible = false
 	$Discard_Button.disabled = true
-	selected_tiles.clear()
-	is_discarding = false
-	Tile.select_Color = Color(1, 1, 0, 1)
-	$Shop.REgenerate_selections()
-	#$Shop_Button.disabled = false
-	var tween = get_tree().create_tween()
-	tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
+	discarding = false
 	my_turn = false
+	
 	if(HighLevelNetworkHandler.is_multiplayer):
-		if(HighLevelNetworkHandler.server_openned):
-			var viable_player: int = 1
-			for peer in multiplayer.get_peers():
-				if(players[str(peer)] >= 0):
-					viable_player = peer
-					break
-			
-			$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(viable_player)] + "'s Turn"
-			var new_tween = get_tree().create_tween()
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
-			#await get_tree().create_timer(1).timeout
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
-			
-			if(viable_player != 1):
-				next_turn.rpc(viable_player)
-			elif(Score >= 0):
-				next_turn(1)
-		else:
-			client_EndTurn.rpc_id(1, multiplayer.get_unique_id())
-	elif(HighLevelNetworkHandler.is_singleplayer):
-		next_turn(1)
+		get_parent().peer_discarded(multiplayer.get_unique_id(), selected_tiles)
+	get_parent().End_Turn()
+	
+	selected_tiles.clear()
 
 var button_prev_states: Array[bool]
 
-func exit_shop() -> void:
-	$EndTurn_Button.disabled = button_prev_states[0]
-	#$Shop_Button.disabled = button_prev_states[1]
-	$Spread_Button.disabled = button_prev_states[1]
-	$Discard_Button.disabled = button_prev_states[2]
-	$Shop.visible = false
-
-var shop_openned: bool = false
-
 func _on_start_turn_draw_pressed() -> void:
-	$EndTurn_Button.text = "End Turn"
 	$Deck_Counter/Deck_Highlight.visible = false
 	$Deck_Counter/StartTurn_Draw.disabled = true
-	if(Tile_Deck.size() >= 1+progressIndex):
+	var GameOver: bool = !(Tile_Deck.size() >= 1+progressIndex)
+	get_parent().Start_Turn(GameOver)
+	if(!GameOver):
 		my_turn = true
 		for i in range(1+progressIndex):
 			draw_tile()
-	else:
-		$GameOver_Screen.GameOver(stats)
-		if(HighLevelNetworkHandler.is_multiplayer):
-			if(HighLevelNetworkHandler.server_openned):
-				players[str(1)] = -Score
-				var viable_player: int = 1
-				for peer in multiplayer.get_peers():
-					if(players[str(peer)] >= 0):
-						viable_player = peer
-						break
-				
-				$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(viable_player)] + "'s Turn"
-				var new_tween = get_tree().create_tween()
-				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
-				#await get_tree().create_timer(1).timeout
-				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
-				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
-				
-				if(viable_player != 1):
-					next_turn.rpc(viable_player)
-				#elif(Score >= 0):
-					#next_turn(1)
-			else:
-				server_get_newScore.rpc_id(1, multiplayer.get_unique_id(), -Score)
-				client_EndTurn.rpc_id(1, multiplayer.get_unique_id())

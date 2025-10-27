@@ -15,6 +15,8 @@ var TipTexts: Array[String] = ["You need to select [b]3 or more Tiles[/b] in a [
 
 var TipCheck: Array[bool]
 
+var currency: int = 0
+
 func _ready() -> void:
 	TipCheck.resize(TipTexts.size())
 	TipCheck.fill(false)
@@ -27,38 +29,47 @@ func REgenerate_selections() -> void:
 		button.REgenerate_selection()
 
 func update_currency(newCurrency: int) -> void:
-	$Currency_Text.text = "Current Funds: " + str(newCurrency)
-	checkButtons(newCurrency)
+	currency += newCurrency
+	$Currency_Text.text = "Current Funds: " + str(currency)
+	checkButtons()
 
-func checkButtons(currentCurrency: int) -> void:
+func checkButtons() -> void:
 	for button in $Tile_Selections.get_children():
-		button.check_access(currentCurrency)
+		button.check_access(currency)
 
 func tile_select(_button: Button, tile_bought: Tile_Info, cost: int) -> void:
 	if(freebies > 0):
-		cost = 0
 		freebies -= 1
-	get_parent().buy_tile(tile_bought, cost)
+	else:
+		currency -= cost
+		update_currency(0)
+	get_parent().buy_tile(tile_bought)
 	if(freebies <= 0):
 		for selection in $Tile_Selections.get_children():
-			selection.freebie(false, get_parent().currency)
+			selection.freebie(false, currency)
 
 func item_select(_button: Button, item_bought: Item, cost: int) -> void:
 	if(freebies > 0):
-		cost = 0
 		freebies -= 1
-	get_parent().buy_item(item_bought, cost)
+	else:
+		currency -= cost
+		update_currency(0)
+	get_parent().buy_item(item_bought)
 	if(freebies <= 0):
 		for selection in $Tile_Selections.get_children():
-			selection.freebie(false, get_parent().currency)
-	
+			selection.freebie(false, currency)
+
+func addShopUses() -> void:
+	for ItemSlots in $Tile_Selections.get_children():
+		if("item_info" in ItemSlots):
+			ItemSlots.add_uses(1)
 
 var freebies: int = 0
 
 func Gain_Freebie(extra_freebies: int = 1) -> void:
 	freebies += extra_freebies
 	for selection in $Tile_Selections.get_children():
-		selection.freebie(true, get_parent().currency)
+		selection.freebie(true, currency)
 
 func _on_exit_shop_pressed() -> void:
 	get_parent().exit_shop()

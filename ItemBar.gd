@@ -19,29 +19,28 @@ func add_item(new_item: Item):
 		4:
 			Item.flags["Beaver Teeth"] = true
 	if(new_item.instant):
-		if(new_item.uses >= 0):
-			for i in range(new_item.uses):
-				new_item.useItem(get_parent())
-		else:
-			new_item.useItem(get_parent())
+		#if(new_item.uses >= 0):
+			#for i in range(new_item.uses):
+		print("HERE0 - " + str(new_item.id) + " - " + str(new_item.uses))
+		new_item.useItem(get_parent())
+		print("HERE1 - " + str(new_item.id) + " - " + str(new_item.uses))
+		if(new_item.uses < 0):
+			print("HERE1")
 			for i in range(end_point):
 				if($Slots.get_child(end_point - i - 1).item_info == null):
-					#items[i] = new_item
 					$Slots.get_child(end_point - i - 1).REgenerate_selection(new_item)
 					break
 	else:
 		for i in range(end_point):
 			if($Slots.get_child(end_point - i - 1).item_info == null):
-				#items[i] = new_item
 				$Slots.get_child(end_point - i - 1).REgenerate_selection(new_item)
 				break
 
 func item_select(Item_Slot: Item_Selection, item: Item, _cost: int) -> void:
-	#index = items.size()-1 - index
 	if(item != null && !item.passive):
 		var was_used: bool = item.useItem(get_parent())
 		if(was_used):
-			item.uses -= 1
+			#item.uses -= 1
 			if(item.uses <= 0):
 				Item_Slot.remove_item()
 

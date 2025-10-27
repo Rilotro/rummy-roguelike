@@ -1,13 +1,9 @@
-[gd_scene load_steps=26 format=3 uid="uid://chet0dxnbb2qs"]
+[gd_scene load_steps=21 format=3 uid="uid://chet0dxnbb2qs"]
 
-[ext_resource type="Script" uid="uid://c7vjdyaj3o0p0" path="res://Board.gd" id="1_n5ooj"]
+[ext_resource type="Script" uid="uid://c7vjdyaj3o0p0" path="res://Player_Board.gd" id="1_n5ooj"]
 [ext_resource type="Shader" uid="uid://c8msk6sgy2a1t" path="res://Deck_Highlight.gdshader" id="2_2k4wd"]
 [ext_resource type="PackedScene" uid="uid://brxaidy7oal4n" path="res://ProgressBar.tscn" id="2_n5ooj"]
 [ext_resource type="Texture2D" uid="uid://b503hsrjxwcub" path="res://new_Locked_sprite.png" id="3_q3pcv"]
-[ext_resource type="PackedScene" uid="uid://bqo6ci6u6f6fo" path="res://Shop.tscn" id="4_rosgs"]
-[ext_resource type="PackedScene" uid="uid://dabyek6g4ed0n" path="res://GameOver_Screen.tscn" id="5_msxg8"]
-[ext_resource type="PackedScene" uid="uid://dwq2yhspy7q4a" path="res://TileSelect_Screen.tscn" id="6_bid15"]
-[ext_resource type="PackedScene" uid="uid://bftt3sh7ylbn2" path="res://ItemBar.tscn" id="7_yrq8g"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_n5ooj"]
 
@@ -54,22 +50,8 @@ modulate_color = Color(1, 0, 0, 1)
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_2k4wd"]
 
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_yrq8g"]
-properties/0/path = NodePath(".:players")
-properties/0/spawn = true
-properties/0/replication_mode = 1
-properties/1/path = NodePath("Player_Turn_Announcer:text")
-properties/1/spawn = true
-properties/1/replication_mode = 1
-properties/2/path = NodePath("Player_Turn_Announcer:self_modulate")
-properties/2/spawn = true
-properties/2/replication_mode = 1
-
-[node name="Board_Test" type="Node2D"]
+[node name="Player_Board" type="Node2D"]
 script = ExtResource("1_n5ooj")
-
-[node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(576, 324)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(0.588235, 0.431373, 0.294118, 1)
@@ -107,48 +89,6 @@ layout_mode = 0
 offset_right = 8.0
 offset_bottom = 8.0
 disabled = true
-
-[node name="EndTurn_Button" type="Button" parent="."]
-offset_left = 1071.0
-offset_top = 308.0
-offset_right = 1149.0
-offset_bottom = 339.0
-text = "End Turn"
-
-[node name="Shop_Button" type="Button" parent="."]
-visible = false
-offset_left = 1086.5
-offset_top = 340.0
-offset_right = 1133.5
-offset_bottom = 371.0
-text = "Shop"
-
-[node name="Score_Text" type="RichTextLabel" parent="."]
-visible = false
-offset_left = 510.0
-offset_top = 480.0
-offset_right = 550.0
-offset_bottom = 520.0
-bbcode_enabled = true
-text = "1"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Player_Turn_Announcer" type="RichTextLabel" parent="."]
-self_modulate = Color(1, 1, 1, 0)
-z_index = 3
-custom_minimum_size = Vector2(700, 200)
-offset_left = 226.0
-offset_top = 224.0
-offset_right = 926.0
-offset_bottom = 424.0
-mouse_filter = 2
-theme_override_font_sizes/normal_font_size = 56
-text = "It's Player 1's Turn"
-fit_content = true
-scroll_active = false
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="Spread_Button" type="Button" parent="."]
 offset_left = 547.0
@@ -190,24 +130,6 @@ horizontal_alignment = 1
 [node name="ProgressBar" parent="." instance=ExtResource("2_n5ooj")]
 position = Vector2(530, 540)
 
-[node name="MultiplayerControl" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="Discard_Tip" type="RichTextLabel" parent="."]
-custom_minimum_size = Vector2(40, 40)
-offset_left = 530.0
-offset_top = 280.0
-offset_right = 830.0
-offset_bottom = 320.0
-text = "You can buy more tiles from the shop"
-fit_content = true
-scroll_active = false
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="Drain_Counter" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0, 0, 1)
 position = Vector2(346, 608)
@@ -241,32 +163,6 @@ fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ItemBar" parent="." instance=ExtResource("7_yrq8g")]
-z_index = -1
-position = Vector2(576, 20)
-
-[node name="GameOver_Screen" parent="." instance=ExtResource("5_msxg8")]
-modulate = Color(1, 1, 1, 0)
-top_level = true
-z_index = 2
-position = Vector2(576, 972)
-
-[node name="TileSelect_Screen" parent="." instance=ExtResource("6_bid15")]
-visible = false
-top_level = true
-z_index = 2
-position = Vector2(576, 324)
-
-[node name="Shop" parent="." instance=ExtResource("4_rosgs")]
-visible = false
-top_level = true
-z_index = 2
-
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
-replication_config = SubResource("SceneReplicationConfig_yrq8g")
-
 [connection signal="pressed" from="Deck_Counter/StartTurn_Draw" to="." method="_on_start_turn_draw_pressed"]
-[connection signal="pressed" from="EndTurn_Button" to="." method="_on_EndTurn_button_pressed"]
-[connection signal="pressed" from="Shop_Button" to="." method="_on_shop_button_pressed"]
 [connection signal="pressed" from="Spread_Button" to="." method="_on_spread"]
 [connection signal="pressed" from="Discard_Button" to="." method="_on_Discard_Button_pressed"]

@@ -37,7 +37,7 @@ func _process(delta: float) -> void:
 					$Body.changeHighLight(select_Color)
 				else:
 					$Body.changeHighLight(Color(0, 0, 0, 1))
-			elif(get_parent().my_turn && get_parent().is_in_River(self) && !get_parent().is_discarding):
+			elif(get_parent().my_turn && get_parent().is_in_River(self) && !get_parent().discarding):
 				selected = !selected
 				get_parent().update_selected_tiles(self, selected)
 				if(selected):
@@ -68,20 +68,20 @@ func tile_move():
 	if(target_pos != global_position):
 		target_pos = get_parent().get_height_limit(target_pos, global_position, self)
 
-func on_spread(Game: Node2D) -> int:
+func on_spread(Board: Node2D) -> int:
 	var TD: Tile_Info = $Body.Tile_Data
 	var final_points: int = TD.points
 	if(TD.joker_id < 0):
 		if(TD.effects["duplicate"]):
 			var modified_effects: Dictionary = TD.effects
 			modified_effects["duplicate"] = false
-			Game.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
+			Board.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
 	else:
 		match TD.joker_id:
 			1:
-				final_points += 10*(Game.selected_tiles.size()-1)
+				final_points += 10*(Board.selected_tiles.size()-1)
 			2:
-				Game.Gain_Freebie(1)
+				Board.get_parent().Gain_Freebie(1)
 	
 	return final_points
 

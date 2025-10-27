@@ -24,7 +24,7 @@ func _process(_delta: float) -> void:
 		$HBoxContainer.add_theme_constant_override("separation", separation)
 
 func tile_select(_selection: Tile_Selection, selection_info: Tile_Info, _c: int):
-	get_parent().add_tile_to_deck(selection_info)
+	get_parent().PB.add_tile_to_deck(selection_info)
 	for button in $HBoxContainer.get_children():
 		button.disabled = true
 	var tween = get_tree().create_tween()

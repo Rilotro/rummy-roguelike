@@ -32,7 +32,7 @@ func _init(new_id: int = 0) -> void:
 			item_image = load("res://Items/Workshop_Wrench.png")
 			uses = -1
 			passive = true
-			instant = false
+			instant = true
 			name = "Workshop Wrench"
 			description = "All [b]Consumable Items[/b] have an extra [b]Use[/b]"
 		3:
@@ -53,15 +53,22 @@ func _init(new_id: int = 0) -> void:
 		uses += flags["Wrench"]
 
 func useItem(Game: Node2D) -> bool:
-	if(!Game.my_turn && !instant):
+	if(!Game.getTurn() && !instant):
 		return false
 	match id:
 		0:
 			Game.select_tiles(3)
+			uses -= 1
 		1:
-			Game.add_ItemSlot()
+			for i in range(uses):
+				Game.add_ItemSlot()
+			uses = 0
+		2:
+			print("HERE0.1 - " + str(uses))
+			Game.addShopUses()
+			print("HERE0.2 - " + str(uses))
 		3:
 			pass
 		4:
-			Game.Beaver()
+			Game.PB.Beaver()
 	return true

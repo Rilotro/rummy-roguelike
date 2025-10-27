@@ -51,6 +51,10 @@ func check_access(currentCurrency: int) -> void:
 			disabled = false
 			$Cost_Text.modulate = Color(1, 1, 1, 1)
 
+func add_uses(additionalUses: int) -> void:
+	if(item_info.uses >= 0):
+		item_info.uses += additionalUses
+
 var free: bool = false
 
 func freebie(is_free: bool, currency: int) -> void:

@@ -5,7 +5,7 @@ func _ready() -> void:
 
 func singleplayer() -> void:
 	HighLevelNetworkHandler.is_singleplayer = true
-	get_tree().change_scene_to_file("res://Board_Test.tscn")
+	get_tree().change_scene_to_file("res://scenes/game_scene.tscn")
 
 func multi_player() -> void:
 	$VBoxContainer/SP_Button.visible = false
