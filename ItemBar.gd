@@ -21,11 +21,8 @@ func add_item(new_item: Item):
 	if(new_item.instant):
 		#if(new_item.uses >= 0):
 			#for i in range(new_item.uses):
-		print("HERE0 - " + str(new_item.id) + " - " + str(new_item.uses))
 		new_item.useItem(get_parent())
-		print("HERE1 - " + str(new_item.id) + " - " + str(new_item.uses))
 		if(new_item.uses < 0):
-			print("HERE1")
 			for i in range(end_point):
 				if($Slots.get_child(end_point - i - 1).item_info == null):
 					$Slots.get_child(end_point - i - 1).REgenerate_selection(new_item)

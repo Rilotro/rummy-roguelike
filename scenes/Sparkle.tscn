@@ -1,0 +1,17 @@
+[gd_scene load_steps=5 format=3 uid="uid://m1wadx2jphrs"]
+
+[ext_resource type="Script" uid="uid://df4qk1w08tiom" path="res://scripts/Sparkle.gd" id="1_3jti4"]
+[ext_resource type="Shader" uid="uid://sxmp778vpipc" path="res://shaders/Sparkle.gdshader" id="1_q37e2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_biddd"]
+shader = ExtResource("1_q37e2")
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_fx0op"]
+
+[node name="Sparkle" type="Sprite2D"]
+self_modulate = Color(1, 1, 0, 1)
+material = SubResource("ShaderMaterial_biddd")
+texture = SubResource("CanvasTexture_fx0op")
+region_enabled = true
+region_rect = Rect2(0, 0, 5, 5)
+script = ExtResource("1_3jti4")

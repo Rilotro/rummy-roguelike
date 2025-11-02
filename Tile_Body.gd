@@ -7,11 +7,23 @@ var tip_timer: float = 0
 var tip_openned: bool =  false
 var tip_UI: Control
 
+var Spread_highligh: bool = false
+var is_highlithing: bool = false
+
+var tween
+
 func _ready() -> void:
 	#$TileNumber.scale = Vector2(1/scale.x, 1/scale.y)
 	font_size *= scale.x
 
 func _process(delta: float) -> void:
+	if(Spread_highligh):
+		if(!is_highlithing):
+			is_highlithing = true
+			tween = get_tree().create_tween()
+			tween.tween_property($HighLight, "modulate:a", 1-$HighLight.modulate.a, 0.5)
+			await tween.finished
+			is_highlithing = false
 	if(mouse_inside):
 		tip_timer += delta
 		if(tip_timer >= 1.0 && !tip_openned):
@@ -24,6 +36,20 @@ func _process(delta: float) -> void:
 
 func acc_size() -> Vector2:
 	return $TileBody.scale*scale
+
+func possible_Spread_highlight(activate: bool) -> void:
+	if(activate):
+		$HighLight.visible = true
+		$HighLight.modulate = Color(0.9, 0.9, 0.3, 0)
+		Spread_highligh = true
+	else:
+		if(tween != null):
+			tween.kill()
+			is_highlithing = false
+		if(!mouse_inside):
+			$HighLight.visible = false
+		$HighLight.modulate = Color(0, 0, 0, 1)
+		Spread_highligh = false
 
 func change_info(new_info: Tile_Info) -> void:
 	Tile_Data = new_info
@@ -83,7 +109,8 @@ func changeHighLight(new_color: Color) -> void:
 
 func _on_control_mouse_entered() -> void:
 	mouse_inside = true
-	if(get_parent()._on_control_mouse_entered()):
+	var eligible: bool = get_parent()._on_control_mouse_entered()
+	if(!Spread_highligh && eligible):
 		$HighLight.visible = true
 
 
@@ -93,6 +120,7 @@ func _on_control_mouse_exited() -> void:
 	if(tip_openned):
 		tip_openned = false
 		tip_UI.queue_free()
-	if(get_parent()._on_control_mouse_exited()):
+	var eligible: bool = get_parent()._on_control_mouse_exited()
+	if(!Spread_highligh && eligible):
 		$HighLight.visible = false
 	

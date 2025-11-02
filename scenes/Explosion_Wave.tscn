@@ -1,0 +1,17 @@
+[gd_scene load_steps=5 format=3 uid="uid://crte1e7mswthh"]
+
+[ext_resource type="Shader" uid="uid://b88ypgw2wfo7n" path="res://shaders/Explosion_Wave.gdshader" id="1_wwm06"]
+[ext_resource type="Script" uid="uid://b610m6o7y0dur" path="res://scripts/Explosion_Wave.gd" id="2_1ojxu"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1ojxu"]
+shader = ExtResource("1_wwm06")
+shader_parameter/range = 0.0
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_k885b"]
+
+[node name="Explosion_Wave" type="Sprite2D"]
+material = SubResource("ShaderMaterial_1ojxu")
+texture = SubResource("CanvasTexture_k885b")
+region_enabled = true
+region_rect = Rect2(0, 0, 40, 40)
+script = ExtResource("2_1ojxu")

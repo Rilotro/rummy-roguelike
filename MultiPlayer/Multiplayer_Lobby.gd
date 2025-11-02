@@ -31,13 +31,12 @@ func _on_button_pressed() -> void:
 		for i in range(multiplayer.get_peers().size()):
 			HighLevelNetworkHandler.new_player(multiplayer.get_peers()[i], $VBoxContainer.get_child(i+1).get_username())
 		start_game.rpc()
-	get_tree().change_scene_to_file("res://Board_Test.tscn")
+	get_tree().change_scene_to_file("res://scenes/game_scene.tscn")
 
 @rpc
 func start_game() -> void:
-	get_tree().change_scene_to_file("res://Board_Test.tscn")
+	get_tree().change_scene_to_file("res://scenes/game_scene.tscn")
 
 @rpc("any_peer", "call_local", "reliable")
 func add_player(id: int, username: String) -> void:
-	print("HERE1")
 	HighLevelNetworkHandler.new_player(id, username)

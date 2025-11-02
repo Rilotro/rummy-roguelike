@@ -60,29 +60,25 @@ func Start_Turn(GameOver: bool = false) -> void:
 		$Turn_Button.text = "End Turn"
 		$Turn_Button.self_modulate = Color(1, 1, 1, 1)
 
-func Next_Turn():
-	if(HighLevelNetworkHandler.is_singleplayer):
+func Next_Turn(peer_ID: int, next_peer: int = -1):
+	if(HighLevelNetworkHandler.is_singleplayer || next_peer == multiplayer.get_unique_id()):
 		PB.Activate_Draw()
+	
 	if(HighLevelNetworkHandler.is_multiplayer):
 		if(HighLevelNetworkHandler.server_openned):
-			var viable_player: int = multiplayer.get_unique_id()
-			for peer in multiplayer.get_peers():
-				if(players[str(peer)] >= 0):
-					viable_player = peer
-					break
-			
-			$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(viable_player)] + "'s Turn"
-			var new_tween = get_tree().create_tween()
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
-			#await get_tree().create_timer(1).timeout
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
-			new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
-			
-			if(viable_player != multiplayer.get_unique_id()):
-				pass
+			if(next_peer >= 0):
+				$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(next_peer)] + "'s Turn"
+				var new_tween = get_tree().create_tween()
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
+				#await get_tree().create_timer(1).timeout
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
 			else:
-				PB.Activate_Draw()
-		#else:
+				$MultiplayerSynchronizer.handle_NextTurn(multiplayer.get_unique_id())
+				#else:
+					#PB.Activate_Draw()
+		elif(next_peer < 0):
+			$MultiplayerSynchronizer.handle_NextTurn(multiplayer.get_unique_id())
 			#server_get_newScore.rpc_id(1, multiplayer.get_unique_id(), -Score)
 			#client_EndTurn.rpc_id(1, multiplayer.get_unique_id())
 
@@ -130,15 +126,16 @@ func peer_discarded(peer_id: int, peer_DT: Array):
 	if(peer_id == multiplayer.get_unique_id()):
 		$MultiplayerSynchronizer.handle_discard(peer_id, peer_DT)
 	else:
-		var discarded_tiles: Array[Tile]
-		var new_tile: Tile
-		var deserialized_tile: Tile_Info
+		var deserialized_tile: Array[Tile_Info]
 		for serialezed_tile in peer_DT:
-			new_tile = Base_Tile.instantiate()
-			deserialized_tile = dict_to_inst(serialezed_tile)
-			new_tile.change_info(Tile_Info.new(0, 0, 0, "", deserialized_tile))
-			discarded_tiles.append(new_tile)
-		#PB.add_to_River(discarded_tiles)
+			deserialized_tile.append(dict_to_inst(serialezed_tile))
+		PB.add_to_River(deserialized_tile)
+
+func peer_Drained(peer_id: int, Drain_pos: int) -> void:
+	if(peer_id == multiplayer.get_unique_id()):
+		$MultiplayerSynchronizer.handle_Drain(peer_id, Drain_pos)
+	else:
+		PB.peer_Drained(Drain_pos)
 
 func End_Turn():
 	$Turn_Button.text = "Shop"
@@ -148,7 +145,7 @@ func End_Turn():
 	
 	var tween = get_tree().create_tween()
 	tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
-	Next_Turn()
+	Next_Turn(multiplayer.get_unique_id())
 
 #if(HighLevelNetworkHandler.is_multiplayer):
 		#if(HighLevelNetworkHandler.server_openned):
@@ -234,13 +231,6 @@ func End_Turn():
 #@rpc("any_peer", "call_local", "reliable")
 #func client_Drain(client_id: int, Drain_Start: int):
 	#if(Drain_Start >= 0):
-		#var new_River: Array[Tile]
-		#for i in range(Drain_Start):
-			#new_River.append(Discard_River[i])
-		#for i in range(Drain_Start, Discard_River.size()):
-			#Discard_River[i].queue_free()
-		#Discard_River = new_River
-		#update_board_tile_positions()
 		#multiplayer_Drain.rpc(client_id, Drain_Start)
 #
 #@rpc

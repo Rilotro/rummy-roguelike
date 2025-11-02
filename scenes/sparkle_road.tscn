@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://i6w3ns2g6mkj"]
+
+[ext_resource type="Script" uid="uid://7yrxaqavafrh" path="res://scripts/Sparkle_Road.gd" id="1_evftx"]
+
+[node name="Sparkle_Road" type="Node2D"]
+script = ExtResource("1_evftx")
