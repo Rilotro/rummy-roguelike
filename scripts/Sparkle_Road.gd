@@ -4,6 +4,7 @@ extends Node2D
 var Sparkle: PackedScene = preload("res://scenes/Sparkle.tscn")
 var HB_density: int = 1
 var LB_density: int = 10
+var rect_offset: Vector2 = Vector2(0, 0)
 
 func change_road(end_pos: Vector2, end_size: Vector2, duration: float, tween = get_tree().create_tween(), tween_trans = Tween.TRANS_LINEAR, tween_ease = Tween.EASE_IN_OUT, start_pos = global_position, start_size = size) -> void:
 	global_position = start_pos
@@ -18,6 +19,9 @@ func _process(delta: float) -> void:
 		var lowerBound: Vector2 = -size/2 + Vector2(5, 5)/2
 		var upperBound: Vector2 = size/2 - Vector2(5, 5)/2
 		for i in Sparkle_count:
+			var loc_pos: Vector2 = Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
+			while(abs(loc_pos.x) <= rect_offset.x && abs(loc_pos.y) <= rect_offset.y):
+				loc_pos = Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
 			new_Sparkle = Sparkle.instantiate()
 			add_child(new_Sparkle)
-			new_Sparkle.global_position = global_position + Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
+			new_Sparkle.global_position = global_position + loc_pos

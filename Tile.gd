@@ -23,6 +23,7 @@ func _process(delta: float) -> void:
 	if(Input.is_action_just_released("Left_Click")):
 		if(LC_timer >= 0.2):
 			LC_timer = 0.0
+			get_parent().reposition_Tile(self)
 		elif(mouse_still_inside):
 			if(get_parent().my_turn && get_parent().is_on_Board(self)):
 				selected = !selected
@@ -47,7 +48,7 @@ func _process(delta: float) -> void:
 	if(Input.is_action_pressed("Left_Click")):
 		if(mouse_still_inside):
 			if(mouse_entered):
-				if(LC_timer < 0.2 && get_parent().is_on_Board(self)):
+				if(LC_timer < 0.2 && get_parent().is_on_Board(self) && get_parent().my_turn):
 					LC_timer += delta
 					if(LC_timer >= 0.2):
 						$Body._on_control_mouse_exited()
@@ -61,9 +62,11 @@ func possible_Spread_highlight(activate: bool) -> void:
 	$Body.possible_Spread_highlight(activate)
 
 func tile_move():
-	var target_pos: Vector2 = (get_global_mouse_position() - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
-	if(target_pos != global_position):
-		target_pos = get_parent().get_height_limit(target_pos, global_position, self)
+	#var target_pos: Vector2 = (get_global_mouse_position() - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
+	#if(target_pos != global_position):
+		#target_pos = get_parent().get_height_limit(target_pos, global_position, self)
+	global_position = get_global_mouse_position()
+	get_parent().HighLightEndPos(global_position)
 
 var PointText: RichTextLabel
 var SR: Node2D

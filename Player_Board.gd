@@ -468,6 +468,73 @@ func get_height_limit(target_pos: Vector2, current_pos: Vector2, tile: Tile) -> 
 	
 	return target_pos
 
+var EP_HighLight: Node2D
+
+func HighLightEndPos(curr_pos: Vector2):
+	var end_pos: Vector2 = (curr_pos - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
+	var Y_Bounds: Vector2 = Vector2($Sprite2D.global_position.y, $Sprite2D.global_position.y - 40*(Board_Tiles.size()-1))
+	var X_Bounds: Vector2 = Vector2($Sprite2D.global_position.x + 135, $Sprite2D.global_position.x - 135)
+	if(end_pos.y > Y_Bounds.x):
+		end_pos.y = Y_Bounds.x
+	elif(end_pos.y < Y_Bounds.y):
+		end_pos.y = Y_Bounds.y
+	
+	if(end_pos.x > X_Bounds.x):
+		end_pos.x = X_Bounds.x
+	elif(end_pos.x < X_Bounds.y):
+		end_pos.x = X_Bounds.y
+	
+	if(EP_HighLight == null):
+		EP_HighLight = preload("res://scenes/sparkle_road.tscn").instantiate()
+		add_child(EP_HighLight)
+		EP_HighLight.change_road(end_pos, Vector2(30, 40), 0.1, get_tree().create_tween(), Tween.TRANS_LINEAR, Tween.EASE_IN_OUT, end_pos, Vector2(30, 40))
+		EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2
+	else:
+		EP_HighLight.change_road(end_pos, Vector2(30, 40), 0.1)
+
+func reposition_Tile(tile: Tile) -> void:
+	var curr_pos: Vector2 = tile.global_position
+	var orig_pos: Vector2
+	
+	var end_pos: Vector2 = (curr_pos - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
+	var Y_Bounds: Vector2 = Vector2($Sprite2D.global_position.y, $Sprite2D.global_position.y - 40*(Board_Tiles.size()-1))
+	var X_Bounds: Vector2 = Vector2($Sprite2D.global_position.x + 135, $Sprite2D.global_position.x - 135)
+	if(end_pos.y > Y_Bounds.x):
+		end_pos.y = Y_Bounds.x
+	elif(end_pos.y < Y_Bounds.y):
+		end_pos.y = Y_Bounds.y
+	
+	if(end_pos.x > X_Bounds.x):
+		end_pos.x = X_Bounds.x
+	elif(end_pos.x < X_Bounds.y):
+		end_pos.x = X_Bounds.y
+	
+	var start_Board_index: Vector2
+	var end_Board_index: Vector2
+	var Board_Tile: Tile = null
+	
+	for i in range(Board_Tiles.size()):
+		for j in range(Board_Tiles[i].size()):
+			var Board_pos: Vector2 = Vector2($Sprite2D.global_position.x - 135 + 30*j, $Sprite2D.global_position.y - 40*i)
+			if(Board_Tiles[i][j] == tile):
+				orig_pos = Board_pos
+				start_Board_index = Vector2(i, j)
+			if(end_pos == Board_pos):
+				Board_Tile = Board_Tiles[i][j]
+				end_Board_index = Vector2(i, j)
+	
+	if(Board_Tile != null):
+		Board_Tiles[start_Board_index.x][start_Board_index.y] = Board_Tiles[end_Board_index.x][end_Board_index.y]
+		Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
+		Board_Tiles[start_Board_index.x][start_Board_index.y].moveTile(orig_pos, 0.2)
+		await tile.moveTile(end_pos, 0.2)
+	else:
+		Board_Tiles[start_Board_index.x][start_Board_index.y] = null
+		Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
+		await tile.moveTile(end_pos, 0.2)
+	
+	EP_HighLight.queue_free()
+
 func get_Board_position(tile: Tile) -> Vector2:
 	var index_X: int
 	
