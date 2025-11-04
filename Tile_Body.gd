@@ -24,7 +24,7 @@ func _process(delta: float) -> void:
 			tween.tween_property($HighLight, "modulate:a", 1-$HighLight.modulate.a, 0.5)
 			await tween.finished
 			is_highlithing = false
-	if(mouse_inside):
+	if(mouse_inside && !Tile.is_moving):
 		tip_timer += delta
 		if(tip_timer >= 1.0 && !tip_openned):
 			tip_openned = true

@@ -4,7 +4,7 @@ class_name Tile
 
 var mouse_entered: bool = false
 var selected: bool = false
-var is_moving: bool  = false
+static var is_moving: bool  = false
 #var mouse_distance: Vector2
 var distance: float = 0
 var LC_timer: float = 0.0
@@ -22,6 +22,7 @@ func change_info(new_info: Tile_Info):
 func _process(delta: float) -> void:
 	if(Input.is_action_just_released("Left_Click")):
 		if(LC_timer >= 0.2):
+			is_moving = false
 			LC_timer = 0.0
 			get_parent().reposition_Tile(self)
 		elif(mouse_still_inside):
@@ -51,6 +52,7 @@ func _process(delta: float) -> void:
 				if(LC_timer < 0.2 && get_parent().is_on_Board(self) && get_parent().my_turn):
 					LC_timer += delta
 					if(LC_timer >= 0.2):
+						is_moving = true
 						$Body._on_control_mouse_exited()
 			else:
 				mouse_still_inside = false
@@ -66,12 +68,12 @@ func tile_move():
 	#if(target_pos != global_position):
 		#target_pos = get_parent().get_height_limit(target_pos, global_position, self)
 	global_position = get_global_mouse_position()
-	get_parent().HighLightEndPos(global_position)
+	get_parent().HighLightEndPos(self)
 
 var PointText: RichTextLabel
 var SR: Node2D
 
-func on_spread(Board: Node2D) -> int:
+func on_spread(Board: Node2D, PT_finalpos: Vector2 = Vector2(0, -40)) -> int:
 	var TD: Tile_Info = $Body.Tile_Data
 	var final_points: int = TD.points
 	if(TD.joker_id < 0):
@@ -114,7 +116,7 @@ func on_spread(Board: Node2D) -> int:
 	move_child(SR, 0)
 	var tween = get_tree().create_tween()
 	SR.change_road(global_position, Vector2(30, 42), 0.3, tween, Tween.TRANS_EXPO, Tween.EASE_OUT)
-	tween.parallel().tween_property(PointText, "global_position:y", PointText.global_position.y-40, 0.75).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(PointText, "global_position", PointText.global_position+PT_finalpos, 0.75).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 	
 	return final_points
 

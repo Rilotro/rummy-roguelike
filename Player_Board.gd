@@ -316,7 +316,7 @@ func Add_Spread_Score() -> void:
 	var BigScore: RichTextLabel = RichTextLabel.new()
 	add_child(BigScore)
 	for tile in selected_tiles:
-		tile.UI_add_score(Vector2(780, 588-40*Spread_Rows.size()), BigScore, new_points, selected_tiles.size())
+		tile.UI_add_score(Vector2(Spread_Info.MIDDLE_POS, 588-40*Spread_Rows.size()), BigScore, new_points, selected_tiles.size())
 		await get_tree().create_timer(0.3).timeout
 	
 	await get_tree().create_timer(1.3).timeout
@@ -425,89 +425,110 @@ func update_board_tile_positions(duration: float = 0.3) -> void:
 	
 	for j in range(Spread_Rows.size()):
 		for i in range(Spread_Rows[j].Tiles.size()):
-			curr_pos = Vector2(750 + 30*i, 628 - 40*j)
+			curr_pos = Vector2(Spread_Rows[j].get_tile_pos(i), 628 - 40*j)
 			if(Spread_Rows[j].Tiles[i].global_position != curr_pos && !Spread_Rows[j].Tiles[i].is_being_moved):
 				Spread_Rows[j].Tiles[i].moveTile(curr_pos)
 				await get_tree().create_timer(duration).timeout
 
-func get_height_limit(target_pos: Vector2, current_pos: Vector2, tile: Tile) -> Vector2:
-	var height_limit: float = 628 - 40 * (Board_Tiles.size() - 1)
-	var length_limit_left: float = $Sprite2D.global_position.x - 135
-	var length_limit_right: float = $Sprite2D.global_position.x + 135
-	if(target_pos.y < height_limit):
-		target_pos.y = height_limit
-	elif(target_pos.y > 628):
-		target_pos.y = 628
-	
-	if(target_pos.x < length_limit_left):
-		target_pos.x = length_limit_left
-	elif(target_pos.x > length_limit_right):
-		target_pos.x = length_limit_right
-	
-	var curr_Board_pos: Vector2 = get_Board_position(tile)
-	var target_Board_pos: Vector2 = curr_Board_pos
-	
-	if(target_pos.x > current_pos.x):
-		target_Board_pos.y += 1
-	if(target_pos.x < current_pos.x):
-		target_Board_pos.y -= 1
-	if(target_pos.y > current_pos.y):
-		target_Board_pos.x -= 1
-	if(target_pos.y < current_pos.y):
-		target_Board_pos.x += 1
-	
-	if(Board_Tiles[target_Board_pos.x][target_Board_pos.y] != null):
-		var temp_tile: Tile = Board_Tiles[target_Board_pos.x][target_Board_pos.y]
-		Board_Tiles[target_Board_pos.x][target_Board_pos.y] = Board_Tiles[curr_Board_pos.x][curr_Board_pos.y]
-		Board_Tiles[curr_Board_pos.x][curr_Board_pos.y] = temp_tile
-	else:
-		Board_Tiles[target_Board_pos.x][target_Board_pos.y] = Board_Tiles[curr_Board_pos.x][curr_Board_pos.y]
-		Board_Tiles[curr_Board_pos.x][curr_Board_pos.y] = null
-	
-	update_board_tile_positions()
-	
-	return target_pos
-
 var EP_HighLight: Node2D
 
-func HighLightEndPos(curr_pos: Vector2):
+func HighLightEndPos(tile: Tile):
+	var curr_pos = tile.global_position
 	var end_pos: Vector2 = (curr_pos - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
 	var Y_Bounds: Vector2 = Vector2($Sprite2D.global_position.y, $Sprite2D.global_position.y - 40*(Board_Tiles.size()-1))
 	var X_Bounds: Vector2 = Vector2($Sprite2D.global_position.x + 135, $Sprite2D.global_position.x - 135)
-	if(end_pos.y > Y_Bounds.x):
-		end_pos.y = Y_Bounds.x
-	elif(end_pos.y < Y_Bounds.y):
-		end_pos.y = Y_Bounds.y
+	var HL_size: Vector2 = Vector2(30, 40)
+	var HL_onSpread: int = -1
 	
 	if(end_pos.x > X_Bounds.x):
-		end_pos.x = X_Bounds.x
+		if(Spread_Rows.size() > 0):
+			for i in range(Spread_Rows.size()):
+				var row_Y: float = 628 - 40*i
+				if(i >= Spread_Rows.size()-1):
+					if(end_pos.y <= row_Y):
+						end_pos.y = row_Y
+						HL_size = Vector2(Spread_Rows[i].Tiles.size()*30, 40)
+						HL_onSpread = i
+				elif(end_pos.y == row_Y):
+					#-20 && end_pos.y < row_Y+20
+					end_pos.y = row_Y
+					HL_size = Vector2(Spread_Rows[i].Tiles.size()*30, 40)
+					HL_onSpread = i
+					break
+			end_pos.x = Spread_Info.MIDDLE_POS
+		else:
+			end_pos.x = X_Bounds.x
 	elif(end_pos.x < X_Bounds.y):
 		end_pos.x = X_Bounds.y
+	if(HL_onSpread == -1):
+		if(end_pos.y > Y_Bounds.x):
+			end_pos.y = Y_Bounds.x
+		elif(end_pos.y < Y_Bounds.y):
+			end_pos.y = Y_Bounds.y
 	
 	if(EP_HighLight == null):
 		EP_HighLight = preload("res://scenes/sparkle_road.tscn").instantiate()
 		add_child(EP_HighLight)
-		EP_HighLight.change_road(end_pos, Vector2(30, 40), 0.1, get_tree().create_tween(), Tween.TRANS_LINEAR, Tween.EASE_IN_OUT, end_pos, Vector2(30, 40))
-		EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2
+		EP_HighLight.change_road(end_pos, HL_size, 0.1, get_tree().create_tween(), Tween.TRANS_LINEAR, Tween.EASE_IN_OUT, end_pos, HL_size)
+		if(HL_onSpread == -1):
+			EP_HighLight.change_polarity(true)
+			EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2
+		else:
+			#change_polarity
+			if(Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile)):
+				EP_HighLight.change_polarity(true)
+			else:
+				EP_HighLight.change_polarity(false)
+			EP_HighLight.rect_offset = Vector2(Spread_Rows[HL_onSpread].Tiles.size()*30 - 6, 34.0)/2
 	else:
-		EP_HighLight.change_road(end_pos, Vector2(30, 40), 0.1)
+		EP_HighLight.change_road(end_pos, HL_size, 0.1)
+		if(HL_onSpread == -1):
+			EP_HighLight.change_polarity(true)
+			EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2
+		else:
+			if(Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile)):
+				EP_HighLight.change_polarity(true)
+			else:
+				EP_HighLight.change_polarity(false)
+			EP_HighLight.rect_offset = Vector2(Spread_Rows[HL_onSpread].Tiles.size()*30 - 6, 34.0)/2
 
 func reposition_Tile(tile: Tile) -> void:
 	var curr_pos: Vector2 = tile.global_position
 	var orig_pos: Vector2
 	
 	var end_pos: Vector2 = (curr_pos - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
+	var Spread_end_pos: Vector2
 	var Y_Bounds: Vector2 = Vector2($Sprite2D.global_position.y, $Sprite2D.global_position.y - 40*(Board_Tiles.size()-1))
 	var X_Bounds: Vector2 = Vector2($Sprite2D.global_position.x + 135, $Sprite2D.global_position.x - 135)
+	var HL_onSpread: int = -1
+	#change_polarity
+	if(end_pos.x > X_Bounds.x):
+		end_pos.x = X_Bounds.x
+		if(Spread_Rows.size() > 0):
+			for i in range(Spread_Rows.size()):
+				var row_Y: float = 628 - 40*i
+				if(i >= Spread_Rows.size()-1):
+					if(end_pos.y <= row_Y):
+						Spread_end_pos.y = row_Y
+						#HL_size = Vector2(Spread_Rows[i].Tiles.size()*30, 40)
+						HL_onSpread = i
+				elif(end_pos.y == row_Y):
+					#-20 && end_pos.y < row_Y+20
+					Spread_end_pos.y = row_Y
+					#HL_size = Vector2(Spread_Rows[i].Tiles.size()*30, 40)
+					HL_onSpread = i
+					break
+			Spread_end_pos.x = Spread_Info.MIDDLE_POS
+		#else:
+			#end_pos.x = X_Bounds.x
+	elif(end_pos.x < X_Bounds.y):
+		end_pos.x = X_Bounds.y
+	
+	#if(HL_onSpread == -1):
 	if(end_pos.y > Y_Bounds.x):
 		end_pos.y = Y_Bounds.x
 	elif(end_pos.y < Y_Bounds.y):
 		end_pos.y = Y_Bounds.y
-	
-	if(end_pos.x > X_Bounds.x):
-		end_pos.x = X_Bounds.x
-	elif(end_pos.x < X_Bounds.y):
-		end_pos.x = X_Bounds.y
 	
 	var start_Board_index: Vector2
 	var end_Board_index: Vector2
@@ -523,15 +544,32 @@ func reposition_Tile(tile: Tile) -> void:
 				Board_Tile = Board_Tiles[i][j]
 				end_Board_index = Vector2(i, j)
 	
-	if(Board_Tile != null):
-		Board_Tiles[start_Board_index.x][start_Board_index.y] = Board_Tiles[end_Board_index.x][end_Board_index.y]
-		Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
-		Board_Tiles[start_Board_index.x][start_Board_index.y].moveTile(orig_pos, 0.2)
-		await tile.moveTile(end_pos, 0.2)
+	var check_eli: bool = Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile)
+	if(HL_onSpread == -1 || !check_eli):
+		if(Board_Tile != null):
+			Board_Tiles[start_Board_index.x][start_Board_index.y] = Board_Tiles[end_Board_index.x][end_Board_index.y]
+			Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
+			Board_Tiles[start_Board_index.x][start_Board_index.y].moveTile(orig_pos, 0.2)
+			await tile.moveTile(end_pos, 0.2)
+		else:
+			Board_Tiles[start_Board_index.x][start_Board_index.y] = null
+			Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
+			await tile.moveTile(end_pos, 0.2)
 	else:
 		Board_Tiles[start_Board_index.x][start_Board_index.y] = null
-		Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
-		await tile.moveTile(end_pos, 0.2)
+		var PT_finalpos: Vector2 = Spread_Rows[HL_onSpread].append_postSpread(tile)
+		await update_board_tile_positions(0.1)
+		var new_points:int = tile.on_spread(self, PT_finalpos)
+		await get_tree().create_timer(1).timeout
+		var TMP_RTL: RichTextLabel = RichTextLabel.new()
+		add_child(TMP_RTL)
+		TMP_RTL.text = "0"
+		TMP_RTL.visible = false
+		await tile.UI_add_score($ProgressBar.global_position, TMP_RTL, 0, 0)
+		
+		Score += new_points
+		$ProgressBar.uodateScore(Score)
+		get_parent().newScore(new_points, multiplayer.get_unique_id())
 	
 	EP_HighLight.queue_free()
 

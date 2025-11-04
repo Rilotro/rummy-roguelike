@@ -24,4 +24,19 @@ func _process(delta: float) -> void:
 				loc_pos = Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
 			new_Sparkle = Sparkle.instantiate()
 			add_child(new_Sparkle)
+			if(queue_change):
+				new_Sparkle.material.set_shader_parameter("is_positive", polarity)
+				queue_change = false
+			#move_child(new_Sparkle, 0)
 			new_Sparkle.global_position = global_position + loc_pos
+
+var polarity: bool = true
+var queue_change: bool = false
+
+func change_polarity(new_polarity: bool):
+	if(polarity != new_polarity):
+		polarity = new_polarity
+		if(get_child_count() > 0):
+			get_child(0).material.set_shader_parameter("is_positive", new_polarity)
+		else:
+			queue_change = true

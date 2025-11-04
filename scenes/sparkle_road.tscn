@@ -4,3 +4,4 @@
 
 [node name="Sparkle_Road" type="Node2D"]
 script = ExtResource("1_evftx")
+size = Vector2(50, 50)

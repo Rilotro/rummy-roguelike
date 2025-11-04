@@ -5,11 +5,11 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_biddd"]
 shader = ExtResource("1_q37e2")
+shader_parameter/is_negative = false
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_fx0op"]
 
 [node name="Sparkle" type="Sprite2D"]
-self_modulate = Color(1, 1, 0, 1)
 material = SubResource("ShaderMaterial_biddd")
 texture = SubResource("CanvasTexture_fx0op")
 region_enabled = true

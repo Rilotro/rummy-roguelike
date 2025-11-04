@@ -7,6 +7,9 @@ var same_color: bool
 var same_number: bool
 var the_number: int = -1
 var the_color: int = -1
+var colors: Array[int]
+
+static var MIDDLE_POS: float = 840.0
 
 func _init(new_row: Array[Tile]) -> void:
 	Tiles = new_row.duplicate()
@@ -15,7 +18,6 @@ func _init(new_row: Array[Tile]) -> void:
 	var temp_number: int = -1
 	var is_color: bool = true
 	var is_number: bool = true
-	var colors: Array[int]
 	var joker: Tile = null
 	
 	for tile in new_row:
@@ -57,3 +59,50 @@ func _init(new_row: Array[Tile]) -> void:
 				if(colors.find(i) < 0):
 					jColors.append(i)
 			joker.getTileData().potential_colors = jColors
+
+func is_postSpread_Eligible(tile: Tile):
+	#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	if(tile.getTileData().joker_id >= 0):
+		return true
+	if(same_color):
+		if(tile.getTileData().effects["rainbow"] || tile.getTileData().color == the_color):
+			if(tile.getTileData().number == Tiles[0].getTileData().number-1 || tile.getTileData().number == Tiles[Tiles.size()-1].getTileData().number+1):
+				return true
+	
+	if(same_number):
+		if(tile.getTileData().number == the_number):
+			if(tile.getTileData().effects["rainbow"] || colors.find(tile.getTileData().color) < 0):
+				return true
+	
+	return false
+
+func append_postSpread(new_Tile: Tile) -> Vector2:
+	var final_pos: Vector2
+	if(same_color):
+		if(new_Tile.getTileData().joker_id >= 0):
+			if(new_Tile.global_position.x <= MIDDLE_POS):
+				Tiles.insert(0, new_Tile)
+				final_pos = Vector2(-30, 0)
+			else:
+				Tiles.append(new_Tile)
+				final_pos = Vector2(30, 0)
+		if(new_Tile.getTileData().number == Tiles[0].getTileData().number-1):
+			Tiles.insert(0, new_Tile)
+			final_pos = Vector2(-30, 0)
+		if(new_Tile.getTileData().number == Tiles[Tiles.size()-1].getTileData().number+1):
+			Tiles.append(new_Tile)
+			final_pos = Vector2(30, 0)
+	
+	if(same_number):
+		Tiles.append(new_Tile)
+		final_pos = Vector2(30, 0)
+	
+	#await new_Tile.get_parent().
+	return final_pos
+
+func get_tile_pos(pos: int) -> float:
+	if(pos >= 0 && pos <= Tiles.size()-1):
+		var start_pos: float = MIDDLE_POS - (25 + 30*(Tiles.size()-1))/2.0
+		return start_pos + 12.5 + 30*pos
+	
+	return 0
