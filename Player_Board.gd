@@ -544,7 +544,10 @@ func reposition_Tile(tile: Tile) -> void:
 				Board_Tile = Board_Tiles[i][j]
 				end_Board_index = Vector2(i, j)
 	
-	var check_eli: bool = Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile)
+	var check_eli: bool = false
+	if(HL_onSpread != -1):
+		check_eli = Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile)
+	
 	if(HL_onSpread == -1 || !check_eli):
 		if(Board_Tile != null):
 			Board_Tiles[start_Board_index.x][start_Board_index.y] = Board_Tiles[end_Board_index.x][end_Board_index.y]
@@ -555,23 +558,27 @@ func reposition_Tile(tile: Tile) -> void:
 			Board_Tiles[start_Board_index.x][start_Board_index.y] = null
 			Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
 			await tile.moveTile(end_pos, 0.2)
+		
+		EP_HighLight.queue_free()
 	else:
 		Board_Tiles[start_Board_index.x][start_Board_index.y] = null
 		var PT_finalpos: Vector2 = Spread_Rows[HL_onSpread].append_postSpread(tile)
 		await update_board_tile_positions(0.1)
+		EP_HighLight.queue_free()
+		await get_tree().create_timer(0.5).timeout
 		var new_points:int = tile.on_spread(self, PT_finalpos)
-		await get_tree().create_timer(1).timeout
+		await get_tree().create_timer(0.8).timeout
 		var TMP_RTL: RichTextLabel = RichTextLabel.new()
 		add_child(TMP_RTL)
 		TMP_RTL.text = "0"
 		TMP_RTL.visible = false
 		await tile.UI_add_score($ProgressBar.global_position, TMP_RTL, 0, 0)
+		TMP_RTL.queue_free()
 		
 		Score += new_points
 		$ProgressBar.uodateScore(Score)
 		get_parent().newScore(new_points, multiplayer.get_unique_id())
 	
-	EP_HighLight.queue_free()
 
 func get_Board_position(tile: Tile) -> Vector2:
 	var index_X: int
@@ -611,6 +618,7 @@ func Spread() -> void:
 	await get_tree().create_timer(0.2).timeout
 	await Add_Spread_Score()
 	selected_tiles.clear()
+	show_possible_selections()
 
 var DT_multiplier: int = 5
 

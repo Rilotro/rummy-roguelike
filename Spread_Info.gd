@@ -82,20 +82,20 @@ func append_postSpread(new_Tile: Tile) -> Vector2:
 		if(new_Tile.getTileData().joker_id >= 0):
 			if(new_Tile.global_position.x <= MIDDLE_POS):
 				Tiles.insert(0, new_Tile)
-				final_pos = Vector2(-30, 0)
+				final_pos = Vector2(-30, -10)
 			else:
 				Tiles.append(new_Tile)
-				final_pos = Vector2(30, 0)
+				final_pos = Vector2(30, -10)
 		if(new_Tile.getTileData().number == Tiles[0].getTileData().number-1):
 			Tiles.insert(0, new_Tile)
-			final_pos = Vector2(-30, 0)
+			final_pos = Vector2(-30, -10)
 		if(new_Tile.getTileData().number == Tiles[Tiles.size()-1].getTileData().number+1):
 			Tiles.append(new_Tile)
-			final_pos = Vector2(30, 0)
+			final_pos = Vector2(30, -10)
 	
 	if(same_number):
 		Tiles.append(new_Tile)
-		final_pos = Vector2(30, 0)
+		final_pos = Vector2(30, -10)
 	
 	#await new_Tile.get_parent().
 	return final_pos

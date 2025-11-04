@@ -163,6 +163,8 @@ fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Board" type="Node2D" parent="."]
+
 [connection signal="pressed" from="Deck_Counter/StartTurn_Draw" to="." method="_on_start_turn_draw_pressed"]
 [connection signal="pressed" from="Spread_Button" to="." method="_on_spread"]
 [connection signal="pressed" from="Discard_Button" to="." method="_on_Discard_Button_pressed"]
