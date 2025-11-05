@@ -58,7 +58,6 @@ func change_info(new_info: Tile_Info) -> void:
 		$TileNumber.text = str(Tile_Data.number)
 		if(Tile_Data.effects["rainbow"]):
 			$TileNumber.set_instance_shader_parameter("is_rainbow", true)
-			#$TileNumber.get_material().set_shader_parameter("is_rainbow", true)
 		else:
 			$TileNumber.set_instance_shader_parameter("is_rainbow", false)
 			match Tile_Data.color:

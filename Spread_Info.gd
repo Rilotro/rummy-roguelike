@@ -97,7 +97,6 @@ func append_postSpread(new_Tile: Tile) -> Vector2:
 		Tiles.append(new_Tile)
 		final_pos = Vector2(30, -10)
 	
-	#await new_Tile.get_parent().
 	return final_pos
 
 func get_tile_pos(pos: int) -> float:
@@ -106,3 +105,69 @@ func get_tile_pos(pos: int) -> float:
 		return start_pos + 12.5 + 30*pos
 	
 	return 0
+
+static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool = false) -> String:
+	if(selected_tiles.size() < 3 && !highlight):
+		return "too few!"
+	
+	var same_number: bool = true
+	var same_color: bool = true
+	var all_diff_color: bool = true
+	var temp_color: int = -1
+	var temp_number: int = -1
+	var last_number: int = -1
+	var is_ordered: bool = true
+	var colors: Array[int]
+	
+	for tile in selected_tiles:
+		if(tile.getTileData().joker_id >= 0):
+			colors.append(-1)
+			if(last_number != -1):
+				last_number += 1
+				if(last_number >= 14):
+					last_number = 1
+		else:
+			if(temp_color == -1):
+				temp_color = tile.getTileData().color
+				colors.append(tile.getTileData().color)
+			else:
+				if(tile.getTileData().effects["rainbow"]):
+					colors.append(0)
+				elif(tile.getTileData().color != temp_color):
+					same_color = false
+					if(colors.find(tile.getTileData().color) >= 0):
+						all_diff_color = false
+					else:
+						colors.append(tile.getTileData().color)
+			
+			
+			if(temp_number == -1):
+				temp_number = tile.getTileData().number
+				last_number = temp_number
+			else:
+				if(tile.getTileData().number - last_number != 1):
+					if(!(last_number == 13 && tile.getTileData().number == 1)):
+						is_ordered = false
+				if(tile.getTileData().number != temp_number):
+					same_number = false
+				
+				last_number = tile.getTileData().number
+	
+	if(!same_color && !same_number):
+		return "no pattern!"
+	
+	if(same_color && !is_ordered):
+		return "not sequenced!"
+	
+	if(same_number && !all_diff_color):
+		return "duplicates are illegal!"
+	
+	if(same_number && !all_diff_color):
+		return "duplicates are illegal!"
+	
+	if(highlight && selected_tiles.size() > 1):
+		if(same_number):
+			return "number:" + str(temp_number)
+		elif(same_color):
+			return "color:" + str(temp_color)
+	return "Spread!"

@@ -25,8 +25,15 @@ func _ready() -> void:
 	$TipText.text = "Tip: " + TipTexts[TipIndex]
 
 func REgenerate_selections() -> void:
+	var item_ids: Array[int]
+	var curr_id: int
 	for button in $Tile_Selections.get_children():
-		button.REgenerate_selection()
+		curr_id = button.REgenerate_selection()
+		if(curr_id >= 0):
+			while(item_ids.find(curr_id) >= 0):
+				curr_id = button.REgenerate_selection()
+			
+			item_ids.append(curr_id)
 
 func update_currency(newCurrency: int) -> void:
 	currency += newCurrency

@@ -64,9 +64,7 @@ func useItem(Game: Node2D) -> bool:
 				Game.add_ItemSlot()
 			uses = 0
 		2:
-			print("HERE0.1 - " + str(uses))
 			Game.addShopUses()
-			print("HERE0.2 - " + str(uses))
 		3:
 			pass
 		4:

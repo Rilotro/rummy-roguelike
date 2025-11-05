@@ -65,7 +65,7 @@ func remove_item():
 	item_info = null
 	$ItemSprite.texture = null
 
-func REgenerate_selection(new_item: Item = null) -> void:
+func REgenerate_selection(new_item: Item = null) -> int:
 	$SOLD.visible = false
 	disabled = false
 	
@@ -94,6 +94,8 @@ func REgenerate_selection(new_item: Item = null) -> void:
 			3:
 				item_cost = randi_range(70, 100)
 		$Cost_Text.text = str(item_cost)
+	
+	return item_info.id
 
 
 func _on_mouse_entered() -> void:

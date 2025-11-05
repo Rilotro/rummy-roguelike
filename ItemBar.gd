@@ -37,7 +37,6 @@ func item_select(Item_Slot: Item_Selection, item: Item, _cost: int) -> void:
 	if(item != null && !item.passive):
 		var was_used: bool = item.useItem(get_parent())
 		if(was_used):
-			#item.uses -= 1
 			if(item.uses <= 0):
 				Item_Slot.remove_item()
 

@@ -5,8 +5,6 @@ class_name Tile
 var mouse_entered: bool = false
 var selected: bool = false
 static var is_moving: bool  = false
-#var mouse_distance: Vector2
-var distance: float = 0
 var LC_timer: float = 0.0
 
 var mouse_still_inside: bool = false
@@ -16,27 +14,35 @@ var curr_EPH: Sprite2D
 
 static var select_Color: Color = Color(1, 1, 0, 1)
 
+var Player: Node2D
+var parentEffector: Node2D
+
 func change_info(new_info: Tile_Info):
 	$Body.change_info(new_info)
 
+func REparent(new_Player: Node2D, new_parentEffector: Node2D) -> void:
+	Player = new_Player
+	parentEffector = new_parentEffector
+
 func _process(delta: float) -> void:
 	if(Input.is_action_just_released("Left_Click")):
+		z_index = 0
 		if(LC_timer >= 0.2):
 			is_moving = false
 			LC_timer = 0.0
-			get_parent().reposition_Tile(self)
+			parentEffector.reposition_Tile(self)
 		elif(mouse_still_inside):
-			if(get_parent().my_turn && get_parent().is_on_Board(self)):
+			if(Player.my_turn && !Player.is_spreading && "Board_Tiles" in parentEffector):
 				selected = !selected
 				possible_Spread_highlight(false)
-				get_parent().update_selected_tiles(self, selected)
+				Player.update_selected_tiles(self, selected)
 				if(selected):
 					$Body.changeHighLight(select_Color)
 				elif(!$Body.Spread_highligh):
 					$Body.changeHighLight(Color(0, 0, 0, 1))
-			elif(get_parent().my_turn && get_parent().is_in_River(self) && !get_parent().discarding):
+			elif(Player.my_turn && !Player.is_spreading && "Discard_River" in parentEffector && !Player.discarding):
 				selected = !selected
-				get_parent().update_selected_tiles(self, selected)
+				Player.update_selected_tiles(self, selected)
 				if(selected):
 					$Body.changeHighLight(Color(0, 1, 0, 1))
 				else:
@@ -49,9 +55,10 @@ func _process(delta: float) -> void:
 	if(Input.is_action_pressed("Left_Click")):
 		if(mouse_still_inside):
 			if(mouse_entered):
-				if(LC_timer < 0.2 && get_parent().is_on_Board(self) && get_parent().my_turn):
+				if(LC_timer < 0.2 && "Board_Tiles" in parentEffector && Player.my_turn):
 					LC_timer += delta
 					if(LC_timer >= 0.2):
+						z_index = 1
 						is_moving = true
 						$Body._on_control_mouse_exited()
 			else:
@@ -64,29 +71,27 @@ func possible_Spread_highlight(activate: bool) -> void:
 	$Body.possible_Spread_highlight(activate)
 
 func tile_move():
-	#var target_pos: Vector2 = (get_global_mouse_position() - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
-	#if(target_pos != global_position):
-		#target_pos = get_parent().get_height_limit(target_pos, global_position, self)
 	global_position = get_global_mouse_position()
-	get_parent().HighLightEndPos(self)
+	parentEffector.HighLightEndPos(self)
 
 var PointText: RichTextLabel
 var SR: Node2D
 
-func on_spread(Board: Node2D, PT_finalpos: Vector2 = Vector2(0, -40)) -> int:
+func on_spread(PT_finalpos: Vector2 = Vector2(0, -40)) -> int:
 	var TD: Tile_Info = $Body.Tile_Data
 	var final_points: int = TD.points
+	
 	if(TD.joker_id < 0):
 		if(TD.effects["duplicate"]):
 			var modified_effects: Dictionary = TD.effects
 			modified_effects["duplicate"] = false
-			Board.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
+			Player.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
 	else:
 		match TD.joker_id:
 			1:
-				final_points += 10*(Board.selected_tiles.size()-1)
+				final_points += 10*(Player.selected_tiles.size()-1)
 			2:
-				Board.get_parent().Gain_Freebie(1)
+				Player.get_parent().Gain_Freebie(1)
 	
 	SR = preload("res://scenes/sparkle_road.tscn").instantiate()
 	var EW: Sprite2D = preload("res://scenes/Explosion_Wave.tscn").instantiate()
@@ -155,7 +160,6 @@ func UI_add_score(final_score_pos: Vector2, BigScore: RichTextLabel, BigPoints: 
 		await tween.finished
 		PointText.queue_free()
 		SR.queue_free()
-	#return BigScore
 
 func update_BigScore(BigPoints:int, BigScore: RichTextLabel):
 	BigScore.text = "+" + str(BigPoints)
@@ -164,10 +168,18 @@ var is_being_moved: bool = false
 
 func moveTile(endPos: Vector2, duration: float = 0.5) -> void:
 	is_being_moved = true
+	z_index = 1
 	var tween = get_tree().create_tween()
 	tween.tween_property(self, "global_position", endPos, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	await tween.finished
+	z_index = 0
 	is_being_moved = false
+
+func is_on_Board() -> bool:
+	return "Board_Tiles" in parentEffector
+
+func is_in_River() -> bool:
+	return "Discard_River" in parentEffector
 
 func getTileData() -> Tile_Info:
 	return $Body.Tile_Data
@@ -175,9 +187,8 @@ func getTileData() -> Tile_Info:
 func post_Spread():
 	selected = false
 	$Body.changeHighLight(Color(0, 0, 0, 1))
-	
-	distance = 0
 	$Body._on_control_mouse_exited()
+	$Body.possible_Spread_highlight(false)
 
 func _on_control_mouse_entered() -> bool:
 	if(LC_timer < 0.2):

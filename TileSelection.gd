@@ -38,7 +38,7 @@ func freebie(is_free: bool, currency: int) -> void:
 	free = is_free
 	check_access(currency)
 
-func REgenerate_selection() -> void:
+func REgenerate_selection() -> int:
 	$SOLD.visible = false
 	disabled = false
 	if(joker_tile):
@@ -91,7 +91,9 @@ func REgenerate_selection() -> void:
 		var rand_col: int = randi_range(1, 4)
 		if(is_rainbow):
 			rand_col = -1
+		#-------------------------------------------------------------------------------------------------------------------------------------------
 		$Body.change_info(Tile_Info.new(rand_num, rand_col, -1, tile_rarity, null, {"rainbow": is_rainbow, "duplicate": is_duplicate}))
+	return -1
 
 func _on_control_mouse_entered() -> bool:
 	return !disabled
