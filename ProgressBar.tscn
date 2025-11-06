@@ -10,26 +10,27 @@ shader = ExtResource("1_dwfyx")
 
 [node name="Sprite2D" type="Sprite2D"]
 material = SubResource("ShaderMaterial_4xpuq")
-scale = Vector2(250, 30)
+instance_shader_parameters/progress_alpha = 250.0
 texture = SubResource("CanvasTexture_bvpha")
+region_enabled = true
+region_rect = Rect2(0, 0, 250, 30)
 script = ExtResource("2_oad78")
 
 [node name="ScoreControl" type="Control" parent="."]
+custom_minimum_size = Vector2(28, 23)
 layout_mode = 3
 anchors_preset = 0
-offset_left = -1.0
-offset_top = 0.5
-offset_right = 99.0
-offset_bottom = 23.5
-scale = Vector2(0.004, 0.033)
+offset_left = -153.0
+offset_top = -11.5
+offset_right = -125.0
+offset_bottom = 11.5
 mouse_filter = 2
 
 [node name="Score" type="RichTextLabel" parent="ScoreControl"]
+custom_minimum_size = Vector2(28, 23)
 layout_mode = 0
-offset_left = 55.0
-offset_top = -40.0
-offset_right = 155.0
-offset_bottom = -17.0
+offset_right = 28.0
+offset_bottom = 23.0
 mouse_filter = 2
 text = "999"
 fit_content = true
@@ -38,20 +39,20 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="MaxScoreControl" type="Control" parent="."]
+custom_minimum_size = Vector2(37, 23)
 layout_mode = 3
 anchors_preset = 0
-offset_top = 0.5
-offset_right = 100.0
-offset_bottom = 23.5
-scale = Vector2(0.004, 0.033)
+offset_left = 125.0
+offset_top = -11.5
+offset_right = 162.0
+offset_bottom = 11.5
 mouse_filter = 2
 
 [node name="MaxScore" type="RichTextLabel" parent="MaxScoreControl"]
+custom_minimum_size = Vector2(37, 23)
 layout_mode = 0
-offset_left = 95.0
-offset_top = -40.0
-offset_right = 195.0
-offset_bottom = -17.0
+offset_right = 37.0
+offset_bottom = 23.0
 mouse_filter = 2
 text = "1000"
 fit_content = true
@@ -60,19 +61,20 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LevelControl" type="Control" parent="."]
+custom_minimum_size = Vector2(12, 28)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 100.0
-offset_bottom = 23.0
-scale = Vector2(0.004, 0.033)
+offset_left = -6.0
+offset_top = -43.0
+offset_right = 6.0
+offset_bottom = -15.0
 mouse_filter = 2
 
 [node name="Level" type="RichTextLabel" parent="LevelControl"]
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 0
-offset_left = -73.0
-offset_top = -80.0
-offset_right = 71.2525
-offset_bottom = 18.99997
+offset_right = 12.0
+offset_bottom = 28.0
 mouse_filter = 2
 theme_override_font_sizes/normal_font_size = 20
 text = "4"

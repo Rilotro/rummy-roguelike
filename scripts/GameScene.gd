@@ -1,6 +1,8 @@
 extends Node2D
 
-@export var players: Dictionary = {}
+var players: Array[PlayerData]
+@export var playerScores: Array[int]
+
 var stats: Array[int] = [0, 0, 0, 0]#in order: Score, Biggest Spread (Score-Wise), Times Spread, Tiles Bought
 
 var PB: Node2D
@@ -8,19 +10,30 @@ var PB: Node2D
 func _ready() -> void:
 	PB = $Player_Board
 	if(HighLevelNetworkHandler.is_multiplayer):
-		if(HighLevelNetworkHandler.is_multiplayer ):
-			players[str(1)] = 0
+		if(HighLevelNetworkHandler.server_openned):
+			playerScores.append(0)
+		
+		players.append(PlayerData.new(multiplayer.get_unique_id(), 0, PB))
+		var players_added: int = 0
 		for id in multiplayer.get_peers():
+			var new_PB: Node2D = preload("res://Player_Board.tscn").instantiate()
+			add_child(new_PB)
+			new_PB.becomePeerBoard()
+			players.append(PlayerData.new(id, 0, new_PB))
 			if(HighLevelNetworkHandler.server_openned):
-				players[str(id)] = 0
-			var new_PB: Sprite2D = preload("res://ProgressBar.tscn").instantiate()
-			new_PB.owner_id = id
-			$MultiplayerControl.add_child(new_PB)
-			match $MultiplayerControl.get_child_count():
+				playerScores.append(0)
+			
+			players_added += 1
+			match players_added:
 				1:
 					new_PB.global_position = Vector2(100, 320)
+					new_PB.rotation = deg_to_rad(90)
 				2:
 					new_PB.global_position = Vector2(530, 100)
+					new_PB.rotation = deg_to_rad(180)
+				3:
+					new_PB.global_position = Vector2(1052, 400)
+					new_PB.rotation = deg_to_rad(270)
 	
 	$Turn_Button.text = "Shop"
 	$Shop.visible = false
@@ -29,6 +42,8 @@ func _ready() -> void:
 	var nex_X_size: Vector2 = $Discard_Tip.get_theme_font("normal_font").get_string_size($Discard_Tip.text)
 	$Discard_Tip.size = nex_X_size
 	$Discard_Tip.global_position.x -= nex_X_size.x/2
+	
+	PB.artificialReady()
 	
 	if(HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned):
 		$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(1)] + "'s Turn"
@@ -39,9 +54,19 @@ func _ready() -> void:
 	elif(HighLevelNetworkHandler.is_singleplayer):
 		PB.Activate_Draw()
 
+func _process(delta: float) -> void:
+	if(Input.is_action_just_pressed("Debug_Draw")):
+		if(!$TileSelect_Screen.visible):
+			$TileSelect_Screen.start_select(3, true)
+
 @rpc("any_peer", "call_local", "reliable")
 func client_NewScore(client_id: int, newScore: int):
-	players[str(client_id)] = -players[str(client_id)]
+	for i in range(players.size()):
+		if(players[i].player_id == client_id):
+			players[i].Score = newScore
+			playerScores[i] = newScore
+			
+			break
 
 func getTurn() -> bool:
 	return PB.my_turn
@@ -50,9 +75,13 @@ func Start_Turn(GameOver: bool = false) -> void:
 	if(GameOver):
 		if(HighLevelNetworkHandler.is_multiplayer):
 			if(HighLevelNetworkHandler.server_openned):
-				players[str(multiplayer.get_unique_id())] = -players[str(multiplayer.get_unique_id())]
+				players[0].Score *= -1
 			else:
-				client_NewScore.rpc_id(1, multiplayer.get_unique_id(), -players[str(multiplayer.get_unique_id())])
+				for player in players:
+					if(player.player_id == multiplayer.get_unique_id()):
+						client_NewScore.rpc_id(1, multiplayer.get_unique_id(), -player.Score)
+						break
+		
 		End_Turn()
 		$GameOver_Screen.GameOver(stats)
 	else:
@@ -76,23 +105,13 @@ func Next_Turn(peer_ID: int, next_peer: int = -1):
 		elif(next_peer < 0):
 			$MultiplayerSynchronizer.handle_NextTurn(multiplayer.get_unique_id())
 
-func _process(_delta: float) -> void:
-	if(HighLevelNetworkHandler.is_multiplayer):
-		if(players.size() >= multiplayer.get_peers().size()+1):
-			for Peer_ProgressBoard in $MultiplayerControl.get_children():
-				var acc_score: int = players[str(Peer_ProgressBoard.owner_id)]
-				if(Peer_ProgressBoard.currentScore != acc_score && !Peer_ProgressBoard.is_updating):
-					Peer_ProgressBoard.uodateScore(acc_score)
-
 func select_tiles(nr_tiles: int = 3):
 	$TileSelect_Screen.start_select(nr_tiles)
 
 func newScore(newScore: int, client_ID: int):
-	$Shop.update_currency(newScore)
-	if(HighLevelNetworkHandler.is_multiplayer):
-		if(HighLevelNetworkHandler.server_openned):
-			players[str(client_ID)] += newScore 
-		elif(client_ID == multiplayer.get_unique_id()):
+	if(client_ID == multiplayer.get_unique_id()):
+		$Shop.update_currency(newScore)
+		if(HighLevelNetworkHandler.is_multiplayer):
 			$MultiplayerSynchronizer.handle_newScore(newScore, client_ID)
 
 func addShopUses():
@@ -124,12 +143,40 @@ func peer_discarded(peer_id: int, peer_DT: Array):
 		for serialezed_tile in peer_DT:
 			deserialized_tile.append(dict_to_inst(serialezed_tile))
 		PB.add_RiverPeerTiles(deserialized_tile)
+		for player in players:
+			if(player.player_id == peer_id):
+				player.player_Node.River.tiles_discarded += deserialized_tile.size()
+				player.player_Node.update_DrainCounter()
+
+func peer_spread(peer_id: int, spread_tiles: Array) -> void:
+	if(peer_id == multiplayer.get_unique_id()):
+		$MultiplayerSynchronizer.handle_spread(peer_id, spread_tiles)
+	else:
+		var deserialized_tile: Array[Tile_Info]
+		for serialezed_tile in spread_tiles:
+			deserialized_tile.append(dict_to_inst(serialezed_tile))
+		
+		for player in players:
+			if(player.player_id == peer_id):
+				player.player_Node.peerSpread(deserialized_tile)
+
+func peer_PostSpread(tile_spread: Tile_Info, Spread_Row: int, peer_id: int) -> void:
+	if(peer_id == multiplayer.get_unique_id()):
+		$MultiplayerSynchronizer.handle_PostSpread(peer_id, tile_spread, Spread_Row)
+	else:
+		for player in players:
+			if(player.player_id == peer_id):
+				player.player_Node.peer_PostSpread(tile_spread, Spread_Row)
 
 func peer_Drained(peer_id: int, Drain_pos: int) -> void:
 	if(peer_id == multiplayer.get_unique_id()):
 		$MultiplayerSynchronizer.handle_Drain(peer_id, Drain_pos)
 	else:
 		PB.peer_Drained(Drain_pos)
+		for player in players:
+			if(player.player_id == peer_id):
+				player.player_Node.River.peer_Drained()
+				player.player_Node.update_DrainCounter()
 
 func End_Turn():
 	$Turn_Button.text = "Shop"

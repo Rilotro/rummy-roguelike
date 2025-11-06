@@ -4,7 +4,10 @@ extends Node2D
 var is_starting: bool = false
 var separation: float = -50
 
-func start_select(selection_nr: int) -> void:
+var add_toBoard: bool = false
+
+func start_select(selection_nr: int, atB: bool = false) -> void:
+	add_toBoard = atB
 	var final_sep: float = ($HBoxContainer.size.x - 50*selection_nr)/(selection_nr+1)
 	for i in range(selection_nr):
 		var new_selection: Tile_Selection = Tile_Selection_Base.instantiate()
@@ -22,9 +25,19 @@ func start_select(selection_nr: int) -> void:
 func _process(_delta: float) -> void:
 	if(is_starting):
 		$HBoxContainer.add_theme_constant_override("separation", separation)
+	
+	if(Input.is_action_just_pressed("Debug_Draw")):
+		for TS in $HBoxContainer.get_children():
+			TS.REgenerate_selection()
 
 func tile_select(_selection: Tile_Selection, selection_info: Tile_Info, _c: int):
-	get_parent().PB.add_tile_to_deck(selection_info)
+	if(!add_toBoard):
+		get_parent().PB.add_tile_to_deck(selection_info)
+	else:
+		var newTile: Tile = preload("res://Tile.tscn").instantiate()
+		newTile.change_info(selection_info)
+		get_parent().PB.add_BoardTile(newTile)
+		get_parent().PB.updateTilePos(0.1)
 	for button in $HBoxContainer.get_children():
 		button.disabled = true
 	var tween = get_tree().create_tween()

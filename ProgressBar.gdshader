@@ -1,6 +1,6 @@
 shader_type canvas_item;
 
-instance uniform float progress_alpha = 1.0;
+instance uniform float progress_alpha = 250.0;
 
 void vertex() {
 	// Called for every vertex the material is visible on.
@@ -11,12 +11,9 @@ void fragment() {
 	if(UV.x < progress_alpha){
 		alpha = 1.0;
 	}
-	//COLOR = vec4(UV.y, 1.0 - UV.y, 0, alpha);
-	//COLOR = vec4(sin(PI/2.0*UV.y), cos(PI/2.0*UV.y), 0, alpha);
-	//float acc_Y = 1.0-UV.y;
-	float cycles = 4.0;
-	float color_step = 1.0/(cycles*6.0);
-	for(float i = (cycles-1.0)/cycles; i >= 0.0; i -= 1.0/cycles){
+	float cycles = 5.0;
+	float color_step = 250.0/(cycles*6.0);
+	for(float i = 250.0*(cycles-1.0)/cycles; i >= 0.0; i -= 250.0/cycles){
 		if(UV.x >= i){
 			if(UV.x < i+color_step){
 				float G = (UV.x-i)/color_step;

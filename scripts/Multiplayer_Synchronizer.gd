@@ -27,10 +27,34 @@ func handle_Drain(peer_id: int, Drain_pos: int) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func handle_newScore(newScore: int, client_ID: int) -> void:
-	if(!HighLevelNetworkHandler.server_openned):
-		handle_newScore.rpc_id(1, newScore, client_ID)
-	else:
+	if(client_ID == multiplayer.get_unique_id() && !is_handling):
+		is_handling = true
+		handle_newScore.rpc(newScore, client_ID)
+		is_handling = false
+	elif(multiplayer.get_unique_id() != client_ID):
 		get_parent().newScore(newScore, client_ID)
+
+@rpc("any_peer", "call_local", "reliable")
+func handle_spread(client_ID: int, spread_tiles: Array) -> void:
+	if(client_ID == multiplayer.get_unique_id() && !is_handling):
+		var serialized_array: Array[Dictionary]
+		for tile in spread_tiles:
+			serialized_array.append(inst_to_dict(tile))
+		
+		is_handling = true
+		handle_spread.rpc(client_ID, serialized_array)
+		is_handling = false
+	elif(multiplayer.get_unique_id() != client_ID):
+		get_parent().peer_spread(client_ID, spread_tiles)
+
+@rpc("any_peer", "call_local", "reliable")
+func handle_PostSpread(client_ID: int, tile_spread, spread_row: int)-> void:
+	if(client_ID == multiplayer.get_unique_id() && !is_handling):
+		is_handling = true
+		handle_PostSpread.rpc(client_ID, inst_to_dict(tile_spread), spread_row)
+		is_handling = false
+	elif(multiplayer.get_unique_id() != client_ID):
+		get_parent().peer_PostSpread(dict_to_inst(tile_spread), spread_row, client_ID)
 
 @rpc("any_peer", "call_local", "reliable")
 func handle_NextTurn(peer_ID: int, viable_peer: int = -1) -> void:
@@ -47,15 +71,15 @@ func handle_NextTurn(peer_ID: int, viable_peer: int = -1) -> void:
 				if(current_peer >= multiplayer.get_peers().size()):
 					current_peer = 0
 			
-			for i in range(multiplayer.get_peers().size()+1):
+			for i in range(get_parent().players.size()):
 				if(current_peer == 0 && !server_checked):
 					server_checked = true
-					if(get_parent().players[str(multiplayer.get_unique_id())] >= 0):
+					if(get_parent().players[current_peer].Score >= 0):
 						viable_peer = multiplayer.get_unique_id()
 						break
 				else:
 					var next_peer: int = multiplayer.get_peers()[current_peer]
-					if(get_parent().players[str(next_peer)] >= 0):
+					if(get_parent().players[current_peer+1].Score >= 0):
 						viable_peer = next_peer
 						break
 					else:

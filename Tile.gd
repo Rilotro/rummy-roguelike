@@ -77,12 +77,15 @@ func tile_move():
 var PointText: RichTextLabel
 var SR: Node2D
 
-func on_spread(PT_finalpos: Vector2 = Vector2(0, -40)) -> int:
+func on_spread(PT_finalpos: Vector2 = Vector2(0, 0)) -> int:
+	var parentRot: float = Player.rotation
+	if(PT_finalpos == Vector2(0, 0)):
+		PT_finalpos = Vector2(50*sin(parentRot), -40*cos(parentRot))
 	var TD: Tile_Info = $Body.Tile_Data
 	var final_points: int = TD.points
 	
 	if(TD.joker_id < 0):
-		if(TD.effects["duplicate"]):
+		if(TD.effects["duplicate"] && Player.is_MainInstance):
 			var modified_effects: Dictionary = TD.effects
 			modified_effects["duplicate"] = false
 			Player.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
@@ -91,7 +94,8 @@ func on_spread(PT_finalpos: Vector2 = Vector2(0, -40)) -> int:
 			1:
 				final_points += 10*(Player.selected_tiles.size()-1)
 			2:
-				Player.get_parent().Gain_Freebie(1)
+				if(Player.is_MainInstance):
+					Player.get_parent().Gain_Freebie(1)
 	
 	SR = preload("res://scenes/sparkle_road.tscn").instantiate()
 	var EW: Sprite2D = preload("res://scenes/Explosion_Wave.tscn").instantiate()
@@ -116,7 +120,10 @@ func on_spread(PT_finalpos: Vector2 = Vector2(0, -40)) -> int:
 			fontSize = 10
 	PointText.add_theme_font_size_override("normal_font_size", fontSize)
 	PointText.text = "+" + str(final_points)
-	PointText.global_position -= $Body.acc_size()/2
+	var B: Vector2 = $Body.acc_size()
+	var XSizeDistance_B: Vector2 = Vector2(B.x*cos(parentRot), B.x*sin(parentRot))/2.0
+	var YSizeDistance_B: Vector2 = Vector2(-B.y*sin(parentRot), B.y*cos(parentRot))/2.0
+	PointText.global_position -= XSizeDistance_B + YSizeDistance_B
 	move_child(PointText, 0)
 	move_child(SR, 0)
 	var tween = get_tree().create_tween()
@@ -125,15 +132,25 @@ func on_spread(PT_finalpos: Vector2 = Vector2(0, -40)) -> int:
 	
 	return final_points
 
-func UI_add_score(final_score_pos: Vector2, BigScore: RichTextLabel, BigPoints: int, Spread_size: int) -> void:
+func UI_add_score(BigScore: RichTextLabel, BigPoints: int, Spread_size: int) -> void:
+	#530.0  628.0
 	var tween = get_tree().create_tween()
 	tween.set_parallel()
 	SR.HB_density = 3
 	SR.LB_density = -2
-	SR.change_road(final_score_pos, PointText.get_theme_font("normal_font").get_string_size("+5000"), 1, tween, Tween.TRANS_BACK, Tween.EASE_IN)
-	tween.tween_property(PointText, "global_position", final_score_pos - PointText.custom_minimum_size/2, 1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	
+	var parentRot: float = Player.rotation
+	
+	var XSizeDistance_BS: Vector2 = Vector2(BigScore.custom_minimum_size.x*cos(parentRot), BigScore.custom_minimum_size.x*sin(parentRot))/2.0
+	var YSizeDistance_BS: Vector2 = Vector2(-BigScore.custom_minimum_size.y*sin(parentRot), BigScore.custom_minimum_size.y*cos(parentRot))/2.0
+	
+	var XSizeDistance_PT: Vector2 = Vector2(PointText.custom_minimum_size.x*cos(parentRot), PointText.custom_minimum_size.x*sin(parentRot))/2.0
+	var YSizeDistance_PT: Vector2 = Vector2(-PointText.custom_minimum_size.y*sin(parentRot), PointText.custom_minimum_size.y*cos(parentRot))/2.0
+	
+	SR.change_road(BigScore.global_position + XSizeDistance_BS + YSizeDistance_BS, PointText.get_theme_font("normal_font").get_string_size("+5000"), 1, tween, Tween.TRANS_BACK, Tween.EASE_IN)
+	tween.tween_property(PointText, "global_position", BigScore.global_position - XSizeDistance_PT - YSizeDistance_PT + XSizeDistance_BS + YSizeDistance_BS, 1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	
 	if(BigScore.text == ""):
-		BigScore.custom_minimum_size = Vector2(90, 40)
 		BigScore.fit_content = true
 		BigScore.scroll_active = false
 		BigScore.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -141,7 +158,6 @@ func UI_add_score(final_score_pos: Vector2, BigScore: RichTextLabel, BigPoints: 
 		BigScore.modulate = Color(1, 1, 0, 1)
 		BigScore.add_theme_font_size_override("normal_font_size", 16)
 		BigScore.text = "+0"
-		BigScore.global_position = final_score_pos - BigScore.custom_minimum_size/2
 		
 		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
@@ -176,9 +192,13 @@ func moveTile(endPos: Vector2, duration: float = 0.5) -> void:
 	is_being_moved = false
 
 func is_on_Board() -> bool:
+	if(parentEffector == null):
+		return false
 	return "Board_Tiles" in parentEffector
 
 func is_in_River() -> bool:
+	if(parentEffector == null):
+		return false
 	return "Discard_River" in parentEffector
 
 func getTileData() -> Tile_Info:

@@ -10,7 +10,7 @@ func _ready() -> void:
 	Board_Tiles.append(upper_board)
 	Board_Tiles.append(lower_board)
 
-func add_BoardTile(newTile: Tile, relocationDelay: float = 0.0) -> void:
+func add_BoardTile(newTile: Tile) -> void:
 	var space: bool = false
 	for i in range(Board_Tiles.size()):
 		if(get_child(i).get_child_count() < 10):
@@ -279,24 +279,30 @@ func reposition_Tile(tile: Tile) -> void:
 		EP_HighLight.queue_free()
 	else:
 		Board_Tiles[start_Board_index.x][start_Board_index.y] = null
+		get_parent().get_parent().peer_PostSpread(tile.getTileData(), HL_onSpread, multiplayer.get_unique_id())
+		tile.reparent(get_parent().Spread)
+		tile.REparent(get_parent(), get_parent().Spread)
 		var PT_finalpos: Vector2 = SR[HL_onSpread].append_postSpread(tile)
 		await get_parent().updateTilePos(0.1)
 		EP_HighLight.queue_free()
 		await get_tree().create_timer(0.5).timeout
 		var new_points:int = tile.on_spread(PT_finalpos)
 		await get_tree().create_timer(0.8).timeout
+		
 		var TMP_RTL: RichTextLabel = RichTextLabel.new()
 		add_child(TMP_RTL)
 		TMP_RTL.text = "0"
 		TMP_RTL.visible = false
-		await tile.UI_add_score($"../ProgressBar".global_position, TMP_RTL, 0, 0)
+		TMP_RTL.global_position = $"../ProgressBar".global_position
+		await tile.UI_add_score(TMP_RTL, 0, 0)
 		TMP_RTL.queue_free()
 		
 		get_parent().addPoints(new_points)
 
 func remove_BoardTile( tile: Tile) -> void:
 	var tileIndex: Vector2 = get_BoardTile_index(tile)
-	Board_Tiles[tileIndex.x][tileIndex.y] = null
+	if(tileIndex.x >= 0 && tileIndex.y >= 0):
+		Board_Tiles[tileIndex.x][tileIndex.y] = null
 
 func get_BoardTile_index(tile: Tile) -> Vector2:
 	var index_X: int

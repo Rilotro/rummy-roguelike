@@ -32,6 +32,7 @@ func new_server() -> void:
 		await HighLevelNetworkHandler.peer.hosting
 	
 	new_Loading.queue_free()
+	DisplayServer.clipboard_set(HighLevelNetworkHandler.peer.online_id)
 	get_tree().change_scene_to_file("res://MultiPlayer/Server_Join.tscn")
 
 func join_server() -> void:

@@ -9,8 +9,9 @@ script = ExtResource("1_mry7p")
 
 [node name="BarBody" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0.2901961, 0.8666667, 1)
-scale = Vector2(1152, 40)
 texture = SubResource("CanvasTexture_l5ixw")
+region_enabled = true
+region_rect = Rect2(0, 0, 1152, 40)
 
 [node name="Slots" type="HBoxContainer" parent="."]
 custom_minimum_size = Vector2(560, 30)

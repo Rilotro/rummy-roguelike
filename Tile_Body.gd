@@ -12,9 +12,9 @@ var is_highlithing: bool = false
 
 var tween
 
-func _ready() -> void:
+#func _ready() -> void:
 	#$TileNumber.scale = Vector2(1/scale.x, 1/scale.y)
-	font_size *= scale.x
+	#font_size *= scale.x
 
 func _process(delta: float) -> void:
 	if(Spread_highligh):
@@ -35,7 +35,7 @@ func _process(delta: float) -> void:
 			#tip_UI.global_position = global_position + $TileBody.scale*scale/2 - Vector2(0, tip_UI.size.y/2)
 
 func acc_size() -> Vector2:
-	return $TileBody.scale*scale
+	return $TileBody.region_rect.size*$TileBody.scale*scale
 
 func possible_Spread_highlight(activate: bool) -> void:
 	if(activate):

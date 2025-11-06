@@ -39,13 +39,11 @@ func Drain_River(Drain_Start: int, OPD: bool = false) -> void:
 		
 		Discard_River = new_River
 
-#func peer_Drained(Drain_pos: int) -> void:
-	#if(Drain_pos >= 0):
-		#var new_River: Array[Tile]
-		#for i in range(Drain_pos):
-			#new_River.append(Discard_River[i])
-		#Discard_River = new_River
-		#updateTilePos()
+func peer_Drained() -> void:
+	var drain_threshold: int = DT_multiplier*(1+times_drained)
+	tiles_discarded -= drain_threshold
+	times_drained += 1
+	drain_threshold += DT_multiplier
 
 func get_current_DrainThreshold() -> int:
 	return DT_multiplier*(1+times_drained)

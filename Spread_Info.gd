@@ -77,34 +77,34 @@ func is_postSpread_Eligible(tile: Tile):
 	return false
 
 func append_postSpread(new_Tile: Tile) -> Vector2:
+	var parentRot: float = new_Tile.Player.rotation
 	var final_pos: Vector2
 	if(same_color):
 		if(new_Tile.getTileData().joker_id >= 0):
 			if(new_Tile.global_position.x <= MIDDLE_POS):
 				Tiles.insert(0, new_Tile)
-				final_pos = Vector2(-30, -10)
+				final_pos = Vector2(-30*cos(parentRot), -30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
 			else:
 				Tiles.append(new_Tile)
-				final_pos = Vector2(30, -10)
+				final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
 		if(new_Tile.getTileData().number == Tiles[0].getTileData().number-1):
 			Tiles.insert(0, new_Tile)
-			final_pos = Vector2(-30, -10)
+			final_pos = Vector2(-30*cos(parentRot), -30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
 		if(new_Tile.getTileData().number == Tiles[Tiles.size()-1].getTileData().number+1):
 			Tiles.append(new_Tile)
-			final_pos = Vector2(30, -10)
+			final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
 	
 	if(same_number):
 		Tiles.append(new_Tile)
-		final_pos = Vector2(30, -10)
+		final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
 	
 	return final_pos
 
-func get_tile_pos(pos: int) -> float:
-	if(pos >= 0 && pos <= Tiles.size()-1):
-		var start_pos: float = MIDDLE_POS - (25 + 30*(Tiles.size()-1))/2.0
-		return start_pos + 12.5 + 30*pos
+func get_Spread_StartPos(SpreadNode: Node2D) -> Vector2:
+	#-------------------------------------------------------------------------------------------------------------------------------------------------
+	return SpreadNode.global_position + Vector2(-(25 + 30*(Tiles.size()-1))*cos(SpreadNode.get_parent().rotation), -(25 + 30*(Tiles.size()-1))*sin(SpreadNode.get_parent().rotation))/2.0
 	
-	return 0
+	return Vector2()
 
 static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool = false) -> String:
 	if(selected_tiles.size() < 3 && !highlight):

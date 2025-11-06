@@ -1,8 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://dgswt76jwdg63"]
+[gd_scene load_steps=7 format=3 uid="uid://dgswt76jwdg63"]
 
 [ext_resource type="Script" uid="uid://sqskv6ak4kdy" path="res://ItemSelection.gd" id="1_j8qva"]
+[ext_resource type="Shader" uid="uid://bsdbmq322sb1n" path="res://shaders/test.gdshader" id="2_lgkca"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_f511j"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fxidx"]
+shader = ExtResource("2_lgkca")
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_qgppb"]
 
@@ -37,6 +41,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ItemSprite" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_fxidx")
 position = Vector2(10, 15)
 scale = Vector2(0.15, 0.15)
 

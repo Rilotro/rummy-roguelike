@@ -46,11 +46,11 @@ func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarit
 				joker_name = "The Banker"
 				joker_description = "[b]On Spread[/b] - The next [b]Item[/b] or [b]Tile[/b] you buy in the [b]Shop[/b] is [b]Free[/b]"
 				points = 5
-	elif(tile_rarity == "gold"):
+	elif(rarity == "gold"):
 		points = 50
-	elif(tile_rarity == "silver"):
+	elif(rarity == "silver"):
 		points = 25
-	elif(tile_rarity == "bronze"):
+	elif(rarity == "bronze"):
 		points = 10
 	else:
 		points = 5

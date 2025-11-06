@@ -73,7 +73,7 @@ region_enabled = true
 region_rect = Rect2(0, 0, 300, 40)
 
 [node name="Spread" type="Node2D" parent="."]
-position = Vector2(250, 0)
+position = Vector2(310, 0)
 script = ExtResource("3_c401b")
 
 [node name="River" type="Node2D" parent="."]

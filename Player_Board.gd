@@ -18,12 +18,23 @@ var progressIndex: int = 0
 
 var my_turn: bool = false
 
+var is_MainInstance: bool = true
 @onready var Board: Node2D = $Board
 @onready var Spread: Node2D = $Spread
 @onready var River: Node2D = $River
 
-func _ready() -> void:
-	$ProgressBar.owner_id = multiplayer.get_unique_id()
+func becomePeerBoard() -> void:
+	is_MainInstance = false
+	$Spread_Button.visible = false
+	$Spread_Button.disabled = true
+	$Discard_Button.visible = false
+	$Discard_Button.disabled = true
+	$Deck_Counter.visible = false
+	#$Drain_Counter.visible
+	
+
+func artificialReady() -> void:
+	#$ProgressBar.owner_id = multiplayer.get_unique_id()
 	$Spread_Button.visible = false
 	$Spread_Button.disabled = true
 	$Discard_Button.visible = false
@@ -102,7 +113,12 @@ func show_possible_selections() -> void:
 func addPoints(newPoints: int) -> void:
 	Score += newPoints
 	$ProgressBar.uodateScore(Score)
-	get_parent().newScore(newPoints, multiplayer.get_unique_id())
+	if(is_MainInstance):
+		get_parent().newScore(newPoints, multiplayer.get_unique_id())
+
+func Progress() -> void:
+	if(is_MainInstance):
+		progressIndex += 1
 
 func add_tile_to_deck(tile_to_add: Tile_Info = null) -> void:
 	var deck_size: int = Tile_Deck.size()
@@ -188,7 +204,7 @@ func add_RiverPeerTiles(discarded_Tiles: Array[Tile_Info]) -> void:
 		new_tile = Base_Tile.instantiate()
 		add_child(new_tile)
 		new_tile.change_info(Tile_Info.new(0, 0, 0, "", dT))
-		#new_tile.global_position = otherPlayerBoard
+		##new_tile.global_position = otherPlayerBoard
 		new_tile.global_position = Vector2(50, 320)
 		add_RiverTile(new_tile, true)
 	
@@ -245,9 +261,54 @@ func _on_spread() -> void:
 	is_spreading = true
 	$Spread_Button.visible = false
 	$Spread_Button.disabled = true
+	if(HighLevelNetworkHandler.is_multiplayer):
+		var tiles_info: Array[Tile_Info]
+		for tile in selected_tiles:
+			tiles_info.append(tile.getTileData())
+		get_parent().peer_spread(multiplayer.get_unique_id(), tiles_info)
 	await Spread.Spread(selected_tiles)
 	selected_tiles.clear()
 	is_spreading = false
+
+func peerSpread(peer_SpreadTiles: Array[Tile_Info]):
+	var new_tile: Tile
+	#var peer_selected_tiles: Array[Tile]
+	for ST in peer_SpreadTiles:
+		new_tile = Base_Tile.instantiate()
+		add_child(new_tile)
+		new_tile.change_info(Tile_Info.new(0, 0, 0, "", ST))
+		new_tile.REparent(self, self)
+		selected_tiles.append(new_tile)
+	
+	await Spread.Spread(selected_tiles)
+	selected_tiles.clear()
+	
+	updateTilePos()
+
+func peer_PostSpread(peerTile: Tile_Info, Spread_Row: int):
+	var newTile: Tile = Base_Tile.instantiate()
+	newTile.change_info(peerTile)
+	
+	var SR: Array[Spread_Info] = get_SpreadRows()
+	
+	Spread.add_child(newTile)
+	newTile.REparent(self, Spread)
+	newTile.global_position = global_position
+	var PT_finalpos: Vector2 = SR[Spread_Row].append_postSpread(newTile)
+	await updateTilePos(0.1)
+	await get_tree().create_timer(0.5).timeout
+	var new_points:int = newTile.on_spread(PT_finalpos)
+	await get_tree().create_timer(0.8).timeout
+	
+	var TMP_RTL: RichTextLabel = RichTextLabel.new()
+	add_child(TMP_RTL)
+	TMP_RTL.text = "0"
+	TMP_RTL.visible = false
+	TMP_RTL.global_position = $ProgressBar.global_position
+	await newTile.UI_add_score(TMP_RTL, 0, 0)
+	TMP_RTL.queue_free()
+	
+	addPoints(new_points)
 
 func Activate_Draw() -> void:
 	$Deck_Counter/Deck_Highlight.visible = true
