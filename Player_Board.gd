@@ -170,7 +170,7 @@ func is_discarding() -> bool:
 	return discarding
 
 func update_DrainCounter() -> void:
-	var new_text: String = "[font_size=12]Drain[/font_size] [font_size=8]("
+	var new_text: String = "[font_size=15]Drain[/font_size] [font_size=10]("
 	new_text += str(River.tiles_discarded) + "/"
 	new_text += str(River.get_current_DrainThreshold()) + ")[/font_size]"
 	$Drain_Counter/Control/RichTextLabel.text = new_text
@@ -225,6 +225,9 @@ func get_BoardTiles() -> Array[Array]:
 
 func get_SpreadRows() -> Array[Spread_Info]:
 	return Spread.Spread_Rows
+
+func get_DrainCounter() -> Sprite2D:
+	return $Drain_Counter
 
 func remove_BoardTile(tile: Tile) -> void:
 	if(tile.is_on_Board()):

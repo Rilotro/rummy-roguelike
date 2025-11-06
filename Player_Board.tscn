@@ -148,32 +148,30 @@ position = Vector2(0, -88)
 [node name="Drain_Counter" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0, 0, 1)
 position = Vector2(-184, -20)
-scale = Vector2(40, 60)
 texture = SubResource("CanvasTexture_2k4wd")
+region_enabled = true
+region_rect = Rect2(0, 0, 40, 60)
 
 [node name="Locked" type="Sprite2D" parent="Drain_Counter"]
-scale = Vector2(0.025, 0.016)
 texture = ExtResource("3_q3pcv")
 
 [node name="Control" type="Control" parent="Drain_Counter"]
-custom_minimum_size = Vector2(40, 62.5)
+custom_minimum_size = Vector2(40, 60)
 layout_mode = 3
 anchors_preset = 0
-offset_left = -0.5
-offset_top = -0.5
-offset_right = 39.5
-offset_bottom = 62.0
-scale = Vector2(0.025, 0.016)
+offset_left = -20.0
+offset_top = -30.0
+offset_right = 20.0
+offset_bottom = 30.0
 
 [node name="RichTextLabel" type="RichTextLabel" parent="Drain_Counter/Control"]
 self_modulate = Color(1, 0, 0, 1)
+custom_minimum_size = Vector2(40, 60)
 layout_mode = 0
-offset_left = -20.0
-offset_top = -32.0
-offset_right = 20.0
-offset_bottom = 30.5
+offset_right = 40.0
+offset_bottom = 60.0
 bbcode_enabled = true
-text = "[font_size=12]Drain[/font_size] [font_size=8](0/5)[/font_size]"
+text = "[font_size=15]Drain[/font_size] [font_size=10](0/5)[/font_size]"
 fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1

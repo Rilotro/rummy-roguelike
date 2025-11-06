@@ -55,16 +55,83 @@ func tile_select(_button: Button, tile_bought: Tile_Info, cost: int) -> void:
 		for selection in $Tile_Selections.get_children():
 			selection.freebie(false, currency)
 
-func item_select(_button: Button, item_bought: Item, cost: int) -> void:
+func item_select(button: Button, item_bought: Item, cost: int) -> void:
 	if(freebies > 0):
 		freebies -= 1
 	else:
 		currency -= cost
 		update_currency(0)
+	match item_bought.id:
+		4:
+			Beaver_Break(button)
 	get_parent().buy_item(item_bought)
 	if(freebies <= 0):
 		for selection in $Tile_Selections.get_children():
 			selection.freebie(false, currency)
+
+func Beaver_Break(IS: Button) -> void:
+	var tween =  get_tree().create_tween()
+	tween.set_parallel()
+	for shopUI in get_children():
+		tween.tween_property(shopUI, "modulate:a", 0, 0.5)
+	
+	var BTU: Sprite2D = Sprite2D.new()
+	var BTD: Sprite2D = Sprite2D.new()
+	BTU.texture = preload("res://Items/Beaver_Teeth_UP.png")
+	BTD.texture = preload("res://Items/Beaver_Teeth_DOWN.png")
+	
+	add_child(BTU)
+	add_child(BTD)
+	
+	BTU.scale = Vector2(0.3, 0.3)
+	BTD.scale = Vector2(0.3, 0.3)
+	
+	BTU.material = ShaderMaterial.new()
+	BTU.material.shader = preload("res://shaders/test.gdshader")
+	
+	BTD.material = ShaderMaterial.new()
+	BTD.material.shader = preload("res://shaders/test.gdshader")
+	
+	BTU.global_position = IS.global_position
+	BTD.global_position = IS.global_position
+	
+	tween.tween_property(BTU, "global_position", get_parent().PB.get_DrainCounter().global_position + Vector2(0, -20), 0.65)
+	tween.tween_property(BTU, "scale", Vector2(0.5, 0.5), 0.3)
+	tween.tween_property(BTD, "global_position", get_parent().PB.get_DrainCounter().global_position + Vector2(0, 20), 0.65)
+	tween.tween_property(BTD, "scale", Vector2(0.5, 0.5), 0.3)
+	
+	await tween.finished
+	tween =  get_tree().create_tween()
+	
+	tween.set_parallel()
+	
+	tween.tween_property(BTU, "global_position", get_parent().PB.get_DrainCounter().global_position, 0.01)
+	tween.tween_property(BTD, "global_position", get_parent().PB.get_DrainCounter().global_position, 0.01)
+	
+	await tween.finished
+	
+	const BGOrigAlpha: float = 100.0/255.0
+	$Shop_BackGround.self_modulate.a = 1
+	$Shop_BackGround.modulate.a = 1
+	await get_tree().create_timer(0.15).timeout
+	$Shop_BackGround.modulate.a = 0
+	await get_tree().create_timer(0.075).timeout
+	$Shop_BackGround.modulate.a = 1
+	await get_tree().create_timer(0.15).timeout
+	
+	BTU.queue_free()
+	BTD.queue_free()
+	
+	tween =  get_tree().create_tween()
+	tween.set_parallel()
+	tween.tween_property($Shop_BackGround, "self_modulate:a", BGOrigAlpha, 0.5)
+	var first: bool = true
+	for shopUI in get_children():
+		if(first):
+			first = false
+			continue
+		tween.tween_property(shopUI, "modulate:a", 1, 0.5)
+	
 
 func addShopUses() -> void:
 	for ItemSlots in $Tile_Selections.get_children():
