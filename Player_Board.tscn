@@ -76,6 +76,16 @@ region_rect = Rect2(0, 0, 300, 40)
 position = Vector2(250, 0)
 script = ExtResource("3_c401b")
 
+[node name="MouseCheck" type="Control" parent="Spread"]
+custom_minimum_size = Vector2(170, 235)
+layout_mode = 3
+anchors_preset = 0
+offset_left = -85.0
+offset_top = -217.5
+offset_right = 85.0
+offset_bottom = 17.5
+mouse_filter = 1
+
 [node name="River" type="Node2D" parent="."]
 position = Vector2(-130, -304)
 script = ExtResource("4_635d4")
@@ -176,6 +186,8 @@ fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[connection signal="mouse_entered" from="Spread/MouseCheck" to="Spread" method="_on_mouse_check_mouse_entered"]
+[connection signal="mouse_exited" from="Spread/MouseCheck" to="Spread" method="_on_mouse_check_mouse_exited"]
 [connection signal="pressed" from="Deck_Counter/StartTurn_Draw" to="." method="_on_start_turn_draw_pressed"]
 [connection signal="pressed" from="Spread_Button" to="." method="_on_spread"]
 [connection signal="pressed" from="Discard_Button" to="." method="_on_Discard_Button_pressed"]

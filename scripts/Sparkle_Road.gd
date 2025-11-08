@@ -5,6 +5,7 @@ var Sparkle: PackedScene = preload("res://scenes/Sparkle.tscn")
 var HB_density: int = 1
 var LB_density: int = 10
 var rect_offset: Vector2 = Vector2(0, 0)
+var checkPolarity_atReady: bool = true
 
 func change_road(end_pos: Vector2, end_size: Vector2, duration: float, tween = get_tree().create_tween(), tween_trans = Tween.TRANS_LINEAR, tween_ease = Tween.EASE_IN_OUT, start_pos = global_position, start_size = size) -> void:
 	global_position = start_pos
@@ -20,10 +21,17 @@ func _process(delta: float) -> void:
 		var upperBound: Vector2 = size/2 - Vector2(5, 5)/2
 		for i in Sparkle_count:
 			var loc_pos: Vector2 = Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
-			while(abs(loc_pos.x) <= rect_offset.x && abs(loc_pos.y) <= rect_offset.y):
-				loc_pos = Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
+			if(upperBound.x > rect_offset.x && upperBound.y > rect_offset.y):
+				while(abs(loc_pos.x) <= rect_offset.x && abs(loc_pos.y) <= rect_offset.y):
+					loc_pos = Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
+			
 			new_Sparkle = Sparkle.instantiate()
 			add_child(new_Sparkle)
+			if(checkPolarity_atReady):
+				checkPolarity_atReady = false
+				if(!new_Sparkle.material.get_shader_parameter("is_positive")):
+					new_Sparkle.material.set_shader_parameter("is_positive", true)
+			
 			if(queue_change):
 				new_Sparkle.material.set_shader_parameter("is_positive", polarity)
 				queue_change = false

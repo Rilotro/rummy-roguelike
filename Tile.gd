@@ -182,11 +182,14 @@ func update_BigScore(BigPoints:int, BigScore: RichTextLabel):
 
 var is_being_moved: bool = false
 
-func moveTile(endPos: Vector2, duration: float = 0.5) -> void:
+func moveTile(endPos: Vector2, duration: float = 0.5, local: bool = false) -> void:
 	is_being_moved = true
 	z_index = 1
 	var tween = get_tree().create_tween()
-	tween.tween_property(self, "global_position", endPos, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	if(local):
+		tween.tween_property(self, "position", endPos, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	else:
+		tween.tween_property(self, "global_position", endPos, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	await tween.finished
 	z_index = 0
 	is_being_moved = false

@@ -48,13 +48,13 @@ func handle_spread(client_ID: int, spread_tiles: Array) -> void:
 		get_parent().peer_spread(client_ID, spread_tiles)
 
 @rpc("any_peer", "call_local", "reliable")
-func handle_PostSpread(client_ID: int, tile_spread, spread_row: int)-> void:
+func handle_PostSpread(client_ID: int, tile_spread, playerIndex: int, spread_row: int)-> void:
 	if(client_ID == multiplayer.get_unique_id() && !is_handling):
 		is_handling = true
-		handle_PostSpread.rpc(client_ID, inst_to_dict(tile_spread), spread_row)
+		handle_PostSpread.rpc(client_ID, inst_to_dict(tile_spread), playerIndex, spread_row)
 		is_handling = false
 	elif(multiplayer.get_unique_id() != client_ID):
-		get_parent().peer_PostSpread(dict_to_inst(tile_spread), spread_row, client_ID)
+		get_parent().peer_PostSpread(dict_to_inst(tile_spread), spread_row, playerIndex, client_ID)
 
 @rpc("any_peer", "call_local", "reliable")
 func handle_NextTurn(peer_ID: int, viable_peer: int = -1) -> void:

@@ -2,6 +2,8 @@ extends Node2D
 
 var Spread_Rows: Array[Spread_Info]
 
+var mouse_inside: bool = false
+
 func Spread(selected_tiles: Array[Tile]) -> void:
 	var new_Spread: Spread_Info = Spread_Info.new(selected_tiles)
 	Spread_Rows.append(new_Spread)
@@ -28,6 +30,8 @@ func Spread(selected_tiles: Array[Tile]) -> void:
 				tile.possible_Spread_highlight(false)
 	
 	await updateTilePos()
+	#$Control.custom_minimum_size = Vector2(200, 35 + 40*(Spread_Rows.size()-1))
+	#$Control.position = Vector2(-100, -17.5 - 40*(Spread_Rows.size()-1))
 	await get_tree().create_timer(0.2).timeout
 	
 	await Add_Spread_Score(selected_tiles)
@@ -62,12 +66,26 @@ func Add_Spread_Score(selected_tiles: Array[Tile]) -> void:
 
 func updateTilePos(duration: float = 0.3):#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	var curr_pos: Vector2
+	var parentRot: float = get_parent().rotation
 	for j in range(Spread_Rows.size()):
-		for i in range(Spread_Rows[j].Tiles.size()):
-			curr_pos = Spread_Rows[j].get_Spread_StartPos(self) + Vector2((12.5 + 30*i)*cos(get_parent().rotation), (12.5 + 30*i)*sin(get_parent().rotation)) + Vector2(40*j*sin(get_parent().rotation), -40*j*cos(get_parent().rotation))
-			if(Spread_Rows[j].Tiles[i].global_position != curr_pos && !Spread_Rows[j].Tiles[i].is_being_moved):
-				Spread_Rows[j].Tiles[i].moveTile(curr_pos)
+		curr_pos = global_position - Spread_Rows[j].get_SpreadSize(self)/2.0 + Vector2(17.5*cos(parentRot), 17.5*sin(parentRot)) + Vector2(40*j*sin(parentRot), -40*j*cos(parentRot))
+		for tile in Spread_Rows[j].prefixedLeeches:
+			if(tile.global_position != curr_pos && !tile.is_being_moved):
+				tile.moveTile(curr_pos)
 				await get_tree().create_timer(duration).timeout
+			curr_pos +=  Vector2(35*cos(parentRot), 35*sin(parentRot))
+		curr_pos -=  Vector2(5*cos(parentRot), 5*sin(parentRot))
+		for tile in Spread_Rows[j].Tiles:
+			#curr_pos = Spread_Rows[j].get_Spread_StartPos(self) + Vector2((12.5 + 30*i)*cos(get_parent().rotation), (12.5 + 30*i)*sin(get_parent().rotation)) + Vector2(40*j*sin(get_parent().rotation), -40*j*cos(get_parent().rotation))
+			if(tile.global_position != curr_pos && !tile.is_being_moved):
+				tile.moveTile(curr_pos)
+				await get_tree().create_timer(duration).timeout
+			curr_pos +=  Vector2(30*cos(parentRot), 30*sin(parentRot))
+		for tile in Spread_Rows[j].suffixedLeeches:
+			if(tile.global_position != curr_pos && !tile.is_being_moved):
+				tile.moveTile(curr_pos)
+				await get_tree().create_timer(duration).timeout
+			curr_pos +=  Vector2(35*cos(parentRot), 35*sin(parentRot))
 
 func get_spread_pos(tile: Tile) -> Vector2:
 	var index_y = Spread_Rows.size()-1
@@ -76,3 +94,11 @@ func get_spread_pos(tile: Tile) -> Vector2:
 		if(index_x >= 0):
 			return Vector2(750 + 30*index_x, 628 - 40*index_y)
 	return tile.orig_pos
+
+
+func _on_mouse_check_mouse_entered() -> void:
+	mouse_inside = true
+
+
+func _on_mouse_check_mouse_exited() -> void:
+	mouse_inside = false

@@ -9,7 +9,8 @@ var the_number: int = -1
 var the_color: int = -1
 var colors: Array[int]
 
-static var MIDDLE_POS: float = 840.0
+var prefixedLeeches: Array[Tile]
+var suffixedLeeches: Array[Tile]
 
 func _init(new_row: Array[Tile]) -> void:
 	Tiles = new_row.duplicate()
@@ -60,51 +61,116 @@ func _init(new_row: Array[Tile]) -> void:
 					jColors.append(i)
 			joker.getTileData().potential_colors = jColors
 
-func is_postSpread_Eligible(tile: Tile):
+func is_postSpread_Eligible(tile: Tile, is_HomeSpread: bool = true):
 	#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	var parentRot: float = tile.Player.rotation
+	
+	var firstTile: Tile = Tiles[0]
+	var lastTile: Tile = Tiles[Tiles.size()-1]
+	if(prefixedLeeches.size() >= 1):
+		firstTile = prefixedLeeches[0]
+	if(suffixedLeeches.size() >= 1):
+		lastTile = suffixedLeeches[suffixedLeeches.size()-1]
+	
 	if(tile.getTileData().joker_id >= 0):
+		var S: Vector2 = Tiles[0].parentEffector.global_position
+		var D: float = cos(PI/2-parentRot)*(S.y-tile.global_position.y) + sin(PI/2-parentRot)*(S.x-tile.global_position.x)
+		if(D >= 0):
+			if(prefixedLeeches.size() >= 1 && is_HomeSpread):
+				return false
+		else:
+			if(suffixedLeeches.size() >= 1 && is_HomeSpread):
+				return false
+		
 		return true
+	
 	if(same_color):
 		if(tile.getTileData().effects["rainbow"] || tile.getTileData().color == the_color):
-			if(tile.getTileData().number == Tiles[0].getTileData().number-1 || tile.getTileData().number == Tiles[Tiles.size()-1].getTileData().number+1):
+			if(tile.getTileData().number == firstTile.getTileData().number-1 && prefixedLeeches.size() == 0):
+				return true
+			elif(tile.getTileData().number == firstTile.getTileData().number-1 && !is_HomeSpread):
+				return true
+			
+			if(tile.getTileData().number == lastTile.getTileData().number+1 && suffixedLeeches.size() == 0):
+				return true
+			elif(tile.getTileData().number == lastTile.getTileData().number+1 && !is_HomeSpread):
 				return true
 	
 	if(same_number):
 		if(tile.getTileData().number == the_number):
 			if(tile.getTileData().effects["rainbow"] || colors.find(tile.getTileData().color) < 0):
-				return true
+				if(suffixedLeeches.size() >= 1 && prefixedLeeches.size() >= 1):
+					if(!is_HomeSpread):
+						return true
+				else:
+					return true
 	
 	return false
 
 func append_postSpread(new_Tile: Tile) -> Vector2:
 	var parentRot: float = new_Tile.Player.rotation
 	var final_pos: Vector2
-	if(same_color):
-		if(new_Tile.getTileData().joker_id >= 0):
-			if(new_Tile.global_position.x <= MIDDLE_POS):
+	
+	var firstTile: Tile = Tiles[0]
+	var lastTile: Tile = Tiles[Tiles.size()-1]
+	if(prefixedLeeches.size() >= 1):
+		firstTile = prefixedLeeches[0]
+	if(suffixedLeeches.size() >= 1):
+		lastTile = suffixedLeeches[suffixedLeeches.size()-1]
+	
+	if(new_Tile.getTileData().joker_id >= 0):
+		var S: Vector2 = Tiles[0].parentEffector.global_position
+		var D: float = cos(PI/2-parentRot)*(S.y-new_Tile.global_position.y) + sin(PI/2-parentRot)*(S.x-new_Tile.global_position.x)
+		if(D >= 0):
+			if(new_Tile.rotation == 0 && prefixedLeeches.size() == 0):
 				Tiles.insert(0, new_Tile)
 				final_pos = Vector2(-30*cos(parentRot), -30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
-			else:
+			elif(new_Tile.rotation != 0):
+				prefixedLeeches.insert(0, new_Tile)
+				final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+		else:
+			if(new_Tile.rotation == 0 && suffixedLeeches.size() == 0):
 				Tiles.append(new_Tile)
 				final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
-		if(new_Tile.getTileData().number == Tiles[0].getTileData().number-1):
-			Tiles.insert(0, new_Tile)
-			final_pos = Vector2(-30*cos(parentRot), -30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
-		if(new_Tile.getTileData().number == Tiles[Tiles.size()-1].getTileData().number+1):
-			Tiles.append(new_Tile)
-			final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
-	
-	if(same_number):
-		Tiles.append(new_Tile)
-		final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+			elif(new_Tile.rotation != 0):
+				suffixedLeeches.append(new_Tile)
+				final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+	else:
+		if(same_color):#prefixedLeeches
+			if(new_Tile.getTileData().number == firstTile.getTileData().number-1):
+				if(new_Tile.rotation == 0):
+					Tiles.insert(0, new_Tile)
+					final_pos = Vector2(-30*cos(parentRot), -30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+				else:
+					prefixedLeeches.insert(0, new_Tile)
+					final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+			if(new_Tile.getTileData().number == lastTile.getTileData().number+1):
+				if(new_Tile.rotation == 0):
+					Tiles.append(new_Tile)
+					final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+				else:
+					suffixedLeeches.append(new_Tile)
+					final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+		
+		if(same_number):
+			if(new_Tile.rotation == 0):
+				Tiles.append(new_Tile)
+				final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+			else:
+				suffixedLeeches.append(new_Tile)
+				final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
 	
 	return final_pos
 
-func get_Spread_StartPos(SpreadNode: Node2D) -> Vector2:
-	#-------------------------------------------------------------------------------------------------------------------------------------------------
-	return SpreadNode.global_position + Vector2(-(25 + 30*(Tiles.size()-1))*cos(SpreadNode.get_parent().rotation), -(25 + 30*(Tiles.size()-1))*sin(SpreadNode.get_parent().rotation))/2.0
+func get_SpreadSize(SpreadNode: Node2D) -> Vector2:
+	#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	var parentRot: float = SpreadNode.get_parent().rotation
 	
-	return Vector2()
+	var SuffixSize: Vector2 = Vector2(35*suffixedLeeches.size()*cos(parentRot), 35*suffixedLeeches.size()*sin(parentRot))
+	var TileSize: Vector2 = Vector2((25 + 30*(Tiles.size()-1))*cos(parentRot), (25 + 30*(Tiles.size()-1))*sin(parentRot))
+	var PrefixSize: Vector2 = Vector2(35*prefixedLeeches.size()*cos(parentRot), 35*prefixedLeeches.size()*sin(parentRot))
+	
+	return SuffixSize + TileSize + PrefixSize
 
 static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool = false) -> String:
 	if(selected_tiles.size() < 3 && !highlight):

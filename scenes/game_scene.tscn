@@ -71,7 +71,7 @@ z_index = -1
 position = Vector2(576, 20)
 
 [node name="Player_Board" parent="." instance=ExtResource("7_kk2rg")]
-position = Vector2(530, 628)
+position = Vector2(600, 628)
 
 [node name="Shop" parent="." instance=ExtResource("5_kk2rg")]
 visible = false

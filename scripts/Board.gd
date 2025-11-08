@@ -149,91 +149,154 @@ var EP_HighLight: Node2D
 
 func HighLightEndPos(tile: Tile):
 	var curr_pos = tile.global_position
-	var end_pos: Vector2 = (curr_pos - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
+	var end_pos: Vector2 = (curr_pos - Vector2(15, 28)).snapped(Vector2(30, 40)) + Vector2(15, 28)
 	var Y_Bounds: Vector2 = Vector2(global_position.y, global_position.y - 40*(Board_Tiles.size()-1))
 	var X_Bounds: Vector2 = Vector2(global_position.x + 135, global_position.x - 135)
 	var HL_size: Vector2 = Vector2(30, 40)
 	var HL_onSpread: int = -1
+	#var GamePlayers: Array[Node2D]
+	#var GameSpreads: Array[Node2D]
+	var parentRot: float
+	var S: Node2D
 	
-	var SR: Array[Spread_Info] = get_parent().get_SpreadRows()
 	
-	if(end_pos.x > X_Bounds.x):
-		if(SR.size() > 0):
-			for i in range(SR.size()):
-				var row_Y: float = $"../Spread".global_position.y - 40*i
-				if(i >= SR.size()-1):
-					if(end_pos.y <= row_Y):
-						end_pos.y = row_Y
-						HL_size = Vector2(SR[i].Tiles.size()*30, 40)
-						HL_onSpread = i
-				elif(end_pos.y == row_Y):
-					end_pos.y = row_Y
-					HL_size = Vector2(SR[i].Tiles.size()*30, 40)
+	for player in get_parent().get_parent().players:
+		S = player.player_Node.Spread
+		parentRot = player.player_Node.rotation
+		
+		#var P1: Vector2 = S.global_position + Vector2(-100*cos(parentRot), -100*sin(parentRot))
+		#var P2: Vector2 = S.global_position + Vector2(100*cos(parentRot), 100*sin(parentRot))
+		
+		#var D1: float = abs(cos(parentRot-PI/2)*(P1.y-curr_pos.y) - sin(parentRot-PI/2)*(P1.x-curr_pos.x))
+		#var D2: float = abs(cos(parentRot-PI/2)*(P2.y-curr_pos.y) - sin(parentRot-PI/2)*(P2.x-curr_pos.x))
+		
+		#600.0 vs 530.0   628.0
+		#100.0   280.0
+		
+		#D1 <= 200.0 && D2 <= 200.0
+		
+		if(S.Spread_Rows.size() > 0 && S.mouse_inside):
+			var row_LL: Vector2 = S.global_position + Vector2(-17.5*sin(parentRot), 17.5*cos(parentRot))
+			var row_UL: Vector2 = S.global_position + Vector2(-17.5*sin(parentRot), 17.5*cos(parentRot))
+			for i in range(S.Spread_Rows.size()):
+				row_LL = row_UL
+				row_UL += Vector2(35.0*sin(parentRot), -35.0*cos(parentRot))
+				
+				var row_D1: float = abs(cos(parentRot)*(row_LL.y-curr_pos.y) - sin(parentRot)*(row_LL.x-curr_pos.x))
+				var row_D2: float = abs(cos(parentRot)*(row_UL.y-curr_pos.y) - sin(parentRot)*(row_UL.x-curr_pos.x))
+				
+				#var row_Y: float = $"../Spread".global_position.y - 40*i
+				end_pos = (row_LL + row_UL)/2.0
+				if(i >= S.Spread_Rows.size()-1):
+					#if(end_pos.y <= row_Y):
+					#end_pos.y = row_Y
+					HL_size = S.Spread_Rows[i].get_SpreadSize(S) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))#Vector2(S.Spread_Rows[i].Tiles.size()*30*abs(cos(parentRot)), S.Spread_Rows[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
+					HL_onSpread = i
+				elif(row_D1 <= 40 && row_D2 <= 40):
+					#end_pos.y = row_Y
+					HL_size = S.Spread_Rows[i].get_SpreadSize(S) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))#Vector2(S.Spread_Rows[i].Tiles.size()*30*abs(cos(parentRot)), S.Spread_Rows[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
 					HL_onSpread = i
 					break
-			end_pos.x = $"../Spread".global_position.x
-		else:
-			end_pos.x = X_Bounds.x
-	elif(end_pos.x < X_Bounds.y):
-		end_pos.x = X_Bounds.y
+				
+				row_UL += Vector2(5.0*sin(parentRot), -5.0*cos(parentRot))
+			if(HL_onSpread >= 0):
+				break
+	
 	if(HL_onSpread == -1):
-		if(end_pos.y > Y_Bounds.x):
-			end_pos.y = Y_Bounds.x
-		elif(end_pos.y < Y_Bounds.y):
-			end_pos.y = Y_Bounds.y
+		if(end_pos.x > X_Bounds.x):
+			end_pos.x = X_Bounds.x
+		elif(end_pos.x < X_Bounds.y):
+			end_pos.x = X_Bounds.y
+		if(HL_onSpread == -1):
+			if(end_pos.y > Y_Bounds.x):
+				end_pos.y = Y_Bounds.x
+			elif(end_pos.y < Y_Bounds.y):
+				end_pos.y = Y_Bounds.y
 	
 	if(EP_HighLight == null):
 		EP_HighLight = preload("res://scenes/sparkle_road.tscn").instantiate()
 		add_child(EP_HighLight)
+		#EP_HighLight.change_polarity(true)
 		EP_HighLight.change_road(end_pos, HL_size, 0.1, get_tree().create_tween(), Tween.TRANS_LINEAR, Tween.EASE_IN_OUT, end_pos, HL_size)
 		if(HL_onSpread == -1):
 			EP_HighLight.change_polarity(true)
 			EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2
 		else:
-			if(SR[HL_onSpread].is_postSpread_Eligible(tile)):
+			if(S.Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile, S == get_parent().Spread)):
 				EP_HighLight.change_polarity(true)
 			else:
 				EP_HighLight.change_polarity(false)
 			
-			EP_HighLight.rect_offset = Vector2(SR[HL_onSpread].Tiles.size()*30 - 6, 34.0)/2
+			EP_HighLight.rect_offset = (HL_size - Vector2(6, 6))/2.0
+			#Vector2(SR[HL_onSpread].Tiles.size()*30 - 6, 34.0)/2
+			#HL_size = Vector2(SR[i].Tiles.size()*30*abs(cos(parentRot)), SR[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
 	else:
 		EP_HighLight.change_road(end_pos, HL_size, 0.1)
 		if(HL_onSpread == -1):
 			EP_HighLight.change_polarity(true)
 			EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2
 		else:
-			if(SR[HL_onSpread].is_postSpread_Eligible(tile)):
+			if(S.Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile, S == get_parent().Spread)):
 				EP_HighLight.change_polarity(true)
 			else:
 				EP_HighLight.change_polarity(false)
 			
-			EP_HighLight.rect_offset = Vector2(SR[HL_onSpread].Tiles.size()*30 - 6, 34.0)/2
+			#EP_HighLight.rect_offset = Vector2(SR[HL_onSpread].Tiles.size()*30 - 6, 34.0)/2
+			EP_HighLight.rect_offset = (HL_size - Vector2(6, 6))/2.0
 
 func reposition_Tile(tile: Tile) -> void:
 	var curr_pos: Vector2 = tile.global_position
 	var orig_pos: Vector2
-	
-	var end_pos: Vector2 = (curr_pos - Vector2(5, 28)).snapped(Vector2(30, 40)) + Vector2(5, 28)
+	var parentRot: float
+	var end_pos: Vector2 = (curr_pos - Vector2(15, 28)).snapped(Vector2(30, 40)) + Vector2(15, 28)
 	var Spread_end_pos: Vector2
 	var Y_Bounds: Vector2 = Vector2(global_position.y, global_position.y - 40*(Board_Tiles.size()-1))
 	var X_Bounds: Vector2 = Vector2(global_position.x + 135, global_position.x - 135)
 	var HL_onSpread: int = -1
-	var SR: Array[Spread_Info] = get_parent().get_SpreadRows()
+	var S: Node2D
+	
+	#var P1: Vector2 = S.global_position + Vector2(-100*cos(parentRot), -100*sin(parentRot))
+	#var P2: Vector2 = S.global_position + Vector2(100*cos(parentRot), 100*sin(parentRot))
+	
+	#var D1: float = abs(cos(parentRot-PI/2)*(P1.y-end_pos.y) + sin(parentRot-PI/2)*(P1.x-end_pos.x))
+	#var D2: float = abs(cos(parentRot-PI/2)*(P2.y-end_pos.y) + sin(parentRot-PI/2)*(P2.x-end_pos.x))
+	
+	#var L1: Vector2 = Vector2(tan(parentRot-PI/2), P1.y - tan(parentRot-PI/2)*P1.x)
+	#var L2: Vector2 = Vector2(tan(parentRot-PI/2), P2.y - tan(parentRot-PI/2)*P2.x)
+	
+	for player in get_parent().get_parent().players:
+		S = player.player_Node.Spread
+		parentRot = player.player_Node.rotation
+		if(S.Spread_Rows.size() > 0 && S.mouse_inside):
+			var row_LL: Vector2 = S.global_position + Vector2(-17.5*sin(parentRot), 17.5*cos(parentRot))
+			var row_UL: Vector2 = S.global_position + Vector2(-17.5*sin(parentRot), 17.5*cos(parentRot))
+			for i in range(S.Spread_Rows.size()):
+				row_LL = row_UL
+				row_UL += Vector2(35.0*sin(parentRot), -35.0*cos(parentRot))
+				
+				var row_D1: float = abs(cos(parentRot)*(row_LL.y-curr_pos.y) - sin(parentRot)*(row_LL.x-curr_pos.x))
+				var row_D2: float = abs(cos(parentRot)*(row_UL.y-curr_pos.y) - sin(parentRot)*(row_UL.x-curr_pos.x))
+				
+				#var row_Y: float = $"../Spread".global_position.y - 40*i
+				#end_pos = (row_LL + row_UL)/2.0
+				if(i >= S.Spread_Rows.size()-1):
+					#if(end_pos.y <= row_Y):
+					#end_pos.y = row_Y
+					#HL_size = Vector2(S.Spread_Rows[i].Tiles.size()*30*abs(cos(parentRot)), S.Spread_Rows[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
+					HL_onSpread = i
+				elif(row_D1 <= 40 && row_D2 <= 40):
+					#end_pos.y = row_Y
+					#HL_size = Vector2(S.Spread_Rows[i].Tiles.size()*30*abs(cos(parentRot)), S.Spread_Rows[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
+					HL_onSpread = i
+					break
+				
+				row_UL += Vector2(5.0*sin(parentRot), -5.0*cos(parentRot))
+			if(HL_onSpread >= 0):
+				break
 	
 	if(end_pos.x > X_Bounds.x):
 		end_pos.x = X_Bounds.x
-		if(SR.size() > 0):
-			for i in range(SR.size()):
-				var row_Y: float = $"../Spread".global_position.y - 40*i
-				if(i >= SR.size()-1):
-					if(end_pos.y <= row_Y):
-						Spread_end_pos.y = row_Y
-						HL_onSpread = i
-				elif(end_pos.y == row_Y):
-					Spread_end_pos.y = row_Y
-					HL_onSpread = i
-					break
-			Spread_end_pos.x = $"../Spread".global_position.x
+		#if(SR.size() > 0 && D1 <= 200.0 && D2 <= 200.0):
 	elif(end_pos.x < X_Bounds.y):
 		end_pos.x = X_Bounds.y
 	
@@ -258,7 +321,7 @@ func reposition_Tile(tile: Tile) -> void:
 	
 	var check_eli: bool = false
 	if(HL_onSpread != -1):
-		check_eli = SR[HL_onSpread].is_postSpread_Eligible(tile)
+		check_eli = S.Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile, S == get_parent().Spread)
 	
 	if(HL_onSpread == -1 || !check_eli):
 		if(Board_Tile != null):
@@ -279,11 +342,24 @@ func reposition_Tile(tile: Tile) -> void:
 		EP_HighLight.queue_free()
 	else:
 		Board_Tiles[start_Board_index.x][start_Board_index.y] = null
-		get_parent().get_parent().peer_PostSpread(tile.getTileData(), HL_onSpread, multiplayer.get_unique_id())
-		tile.reparent(get_parent().Spread)
-		tile.REparent(get_parent(), get_parent().Spread)
-		var PT_finalpos: Vector2 = SR[HL_onSpread].append_postSpread(tile)
-		await get_parent().updateTilePos(0.1)
+		get_parent().get_parent().peer_PostSpread(tile.getTileData(), HL_onSpread, S.get_parent(), multiplayer.get_unique_id())
+		tile.reparent(S)
+		tile.REparent(S.get_parent(), S)
+		var PT_finalpos: Vector2 = S.Spread_Rows[HL_onSpread].append_postSpread(tile)
+		if(S.get_parent() == get_parent()):
+			await S.get_parent().updateTilePos(0.1)
+		else:
+			var tween = get_tree().create_tween()
+			S.get_parent().updateTilePos(0.1)
+			var origRot: float = tile.rotation
+			while(S.get_parent().is_updatingPos):
+				tween.tween_property(tile, "rotation", 2*PI+origRot, 0.05)
+				await tween.finished
+				if(S.get_parent().is_updatingPos):
+					print("HERE0")
+					tile.rotation = origRot
+					tween = get_tree().create_tween()
+		
 		EP_HighLight.queue_free()
 		await get_tree().create_timer(0.5).timeout
 		var new_points:int = tile.on_spread(PT_finalpos)

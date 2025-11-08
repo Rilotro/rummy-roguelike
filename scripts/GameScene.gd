@@ -9,11 +9,11 @@ var PB: Node2D
 
 func _ready() -> void:
 	PB = $Player_Board
+	players.append(PlayerData.new(multiplayer.get_unique_id(), 0, PB))
 	if(HighLevelNetworkHandler.is_multiplayer):
 		if(HighLevelNetworkHandler.server_openned):
 			playerScores.append(0)
 		
-		players.append(PlayerData.new(multiplayer.get_unique_id(), 0, PB))
 		var players_added: int = 0
 		for id in multiplayer.get_peers():
 			var new_PB: Node2D = preload("res://Player_Board.tscn").instantiate()
@@ -26,7 +26,7 @@ func _ready() -> void:
 			players_added += 1
 			match players_added:
 				1:
-					new_PB.global_position = Vector2(100, 320)
+					new_PB.global_position = Vector2(100, 280)
 					new_PB.rotation = deg_to_rad(90)
 				2:
 					new_PB.global_position = Vector2(530, 100)
@@ -160,13 +160,25 @@ func peer_spread(peer_id: int, spread_tiles: Array) -> void:
 			if(player.player_id == peer_id):
 				player.player_Node.peerSpread(deserialized_tile)
 
-func peer_PostSpread(tile_spread: Tile_Info, Spread_Row: int, peer_id: int) -> void:
+func peer_PostSpread(tile_spread: Tile_Info, Spread_Row: int, PlayerBoard, peer_id: int) -> void:
 	if(peer_id == multiplayer.get_unique_id()):
-		$MultiplayerSynchronizer.handle_PostSpread(peer_id, tile_spread, Spread_Row)
+		for i in range(players.size()):
+			if(players[i].player_Node == PlayerBoard):
+				$MultiplayerSynchronizer.handle_PostSpread(peer_id, tile_spread, players[i].player_id, Spread_Row)
+				break
 	else:
+		var OPlayer: Node2D
+		var IPlayer: Node2D
 		for player in players:
 			if(player.player_id == peer_id):
-				player.player_Node.peer_PostSpread(tile_spread, Spread_Row)
+				OPlayer = player.player_Node
+			if(player.player_id == PlayerBoard):
+				IPlayer = player.player_Node
+				#for i in range(players.size()):
+					#if(players[i].player_id == PlayerBoard):#---------------------------------------------------------------------
+						#
+						#break
+		OPlayer.peer_PostSpread(tile_spread, Spread_Row, IPlayer)
 
 func peer_Drained(peer_id: int, Drain_pos: int) -> void:
 	if(peer_id == multiplayer.get_unique_id()):

@@ -249,10 +249,14 @@ func peer_Drained(Drain_Start: int) -> void:
 	if(Drain_Start >= 0):
 		River.Drain_River(Drain_Start, true)
 
+var is_updatingPos: bool = false
+
 func updateTilePos(duration: float = 0.3) -> void:
+	is_updatingPos = true
 	await Board.updateTilePos(duration)
 	await River.updateTilePos(duration)
 	await Spread.updateTilePos(duration)
+	is_updatingPos = false
 
 func Beaver():
 	River.DT_multiplier = 3
@@ -288,17 +292,30 @@ func peerSpread(peer_SpreadTiles: Array[Tile_Info]):
 	
 	updateTilePos()
 
-func peer_PostSpread(peerTile: Tile_Info, Spread_Row: int):
+func peer_PostSpread(peerTile: Tile_Info, Spread_Row: int, player: Node2D):
 	var newTile: Tile = Base_Tile.instantiate()
 	newTile.change_info(peerTile)
 	
-	var SR: Array[Spread_Info] = get_SpreadRows()
+	var SR: Array[Spread_Info] = player.get_SpreadRows()
 	
-	Spread.add_child(newTile)
-	newTile.REparent(self, Spread)
+	add_child(newTile)
+	newTile.reparent(player.Spread)
+	newTile.REparent(player, player.Spread)
 	newTile.global_position = global_position
 	var PT_finalpos: Vector2 = SR[Spread_Row].append_postSpread(newTile)
-	await updateTilePos(0.1)
+	if(player == self):
+		await player.updateTilePos(0.1)
+	else:
+		var tween = get_tree().create_tween()
+		player.updateTilePos(0.1)
+		var origRot: float = newTile.rotation
+		while(player.is_updatingPos):
+			tween.tween_property(newTile, "rotation", 2*PI+origRot, 0.05)
+			await tween.finished
+			if(player.is_updatingPos):
+				newTile.rotation = origRot
+				tween = get_tree().create_tween()
+	
 	await get_tree().create_timer(0.5).timeout
 	var new_points:int = newTile.on_spread(PT_finalpos)
 	await get_tree().create_timer(0.8).timeout
