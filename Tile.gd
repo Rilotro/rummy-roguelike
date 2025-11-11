@@ -17,6 +17,8 @@ static var select_Color: Color = Color(1, 1, 0, 1)
 var Player: Node2D
 var parentEffector: Node2D
 
+static var MonkeyPaw: bool = false
+
 func change_info(new_info: Tile_Info):
 	$Body.change_info(new_info)
 
@@ -32,7 +34,13 @@ func _process(delta: float) -> void:
 			LC_timer = 0.0
 			parentEffector.reposition_Tile(self)
 		elif(mouse_still_inside):
-			if(Player.my_turn && !Player.is_spreading && "Board_Tiles" in parentEffector):
+			if(is_on_Board() && MonkeyPaw && getTileData().Rarify("", false)):
+				MonkeyPaw = false
+				Player.get_parent().select_tiles(3, -1, self)
+				Player.show_possible_selections(false)
+				Player.get_parent().MonkeyPawUsed()
+				
+			elif(Player.my_turn && !Player.is_spreading && is_on_Board):
 				selected = !selected
 				possible_Spread_highlight(false)
 				Player.update_selected_tiles(self, selected)
@@ -55,7 +63,7 @@ func _process(delta: float) -> void:
 	if(Input.is_action_pressed("Left_Click")):
 		if(mouse_still_inside):
 			if(mouse_entered):
-				if(LC_timer < 0.2 && "Board_Tiles" in parentEffector && Player.my_turn):
+				if(LC_timer < 0.2 && is_on_Board() && Player.my_turn):
 					LC_timer += delta
 					if(LC_timer >= 0.2):
 						z_index = 1
@@ -89,6 +97,9 @@ func on_spread(PT_finalpos: Vector2 = Vector2(0, 0)) -> int:
 			var modified_effects: Dictionary = TD.effects
 			modified_effects["duplicate"] = false
 			Player.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
+		
+		if(TD.effects["winged"] && Player.is_MainInstance):
+			Player.Draw()
 	else:
 		match TD.joker_id:
 			1:

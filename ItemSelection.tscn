@@ -16,24 +16,26 @@ modulate_color = Color(0, 0, 0, 1)
 
 [node name="ItemSelection" type="Button"]
 self_modulate = Color(1, 1, 1, 0)
-custom_minimum_size = Vector2(20, 30)
+custom_minimum_size = Vector2(39, 60)
 offset_right = 20.0
 offset_bottom = 30.0
 script = ExtResource("1_j8qva")
 
 [node name="ItemBackGround" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0, 0.54509807, 1)
-position = Vector2(10, 15)
-scale = Vector2(20, 30)
+position = Vector2(19.5, 30)
 texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 39, 60)
 
 [node name="Cost_Text" type="RichTextLabel" parent="."]
-custom_minimum_size = Vector2(20, 23)
+custom_minimum_size = Vector2(39, 23)
 layout_mode = 0
-offset_top = 30.0
-offset_right = 20.0
-offset_bottom = 53.0
+offset_top = 60.0
+offset_right = 39.0
+offset_bottom = 88.0
 mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 20
 text = "15"
 fit_content = true
 scroll_active = false
@@ -42,22 +44,22 @@ vertical_alignment = 1
 
 [node name="ItemSprite" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_fxidx")
-position = Vector2(10, 15)
-scale = Vector2(0.15, 0.15)
+position = Vector2(19.5, 30)
+scale = Vector2(0.3, 0.3)
 
 [node name="SOLD" type="RichTextLabel" parent="."]
 visible = false
 self_modulate = Color(1, 1, 1, 0.78431374)
-custom_minimum_size = Vector2(20, 23)
+custom_minimum_size = Vector2(60, 23)
 layout_mode = 0
-offset_left = -20.0
-offset_top = 30.0
-offset_right = 35.0
-offset_bottom = 53.0
+offset_left = -12.0
+offset_top = 40.0
+offset_right = 48.0
+offset_bottom = 70.0
 rotation = -0.7853982
 mouse_filter = 2
 theme_override_colors/default_color = Color(1, 0, 0, 1)
-theme_override_font_sizes/normal_font_size = 16
+theme_override_font_sizes/normal_font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_svtxo")
 text = "SOLD"
 fit_content = true

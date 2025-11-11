@@ -63,21 +63,30 @@ func change_info(new_info: Tile_Info) -> void:
 			match Tile_Data.color:
 				1:
 					$TileNumber.modulate = Color(0, 0, 0, 1)
-					$Duplicate_Icon.modulate = Color(0, 0, 0, 1)
+					$HBoxContainer/DuplicateIcon.modulate = Color(0, 0, 0, 1)
+					$HBoxContainer/WingedIcon.modulate = Color(0.021, 0.021, 0.021, 1)
 				2:
 					$TileNumber.modulate = Color(0, 0, 1, 1)
-					$Duplicate_Icon.modulate = Color(0, 0, 1, 1)
+					$HBoxContainer/DuplicateIcon.modulate = Color(0, 0, 1, 1)
+					$HBoxContainer/WingedIcon.modulate = Color(0, 0, 1, 1)
 				3:
 					$TileNumber.modulate = Color(0, 1, 0, 1)
-					$Duplicate_Icon.modulate = Color(0, 1, 0, 1)
+					$HBoxContainer/DuplicateIcon.modulate = Color(0, 1, 0, 1)
+					$HBoxContainer/WingedIcon.modulate = Color(0, 1, 0, 1)
 				4:
 					$TileNumber.modulate = Color(1, 0, 0, 1)
-					$Duplicate_Icon.modulate = Color(1, 0, 0, 1)
+					$HBoxContainer/DuplicateIcon.modulate = Color(1, 0, 0, 1)
+					$HBoxContainer/WingedIcon.modulate = Color(1, 0, 0, 1)
 		
 		if(Tile_Data.effects["duplicate"]):
-			$Duplicate_Icon.visible = true
+			$HBoxContainer/DuplicateIcon.visible = true
 		else:
-			$Duplicate_Icon.visible = false
+			$HBoxContainer/DuplicateIcon.visible = false
+		
+		if(Tile_Data.effects["winged"]):
+			$HBoxContainer/WingedIcon.visible = true
+		else:
+			$HBoxContainer/WingedIcon.visible = false
 		
 		match new_info.rarity:
 			"gold":

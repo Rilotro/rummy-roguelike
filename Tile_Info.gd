@@ -18,7 +18,7 @@ static var level: int = 0
 var joker_name: String
 var joker_description: String
 
-func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarity: String = "porcelain", orig: Tile_Info = null, new_effects: Dictionary = {"rainbow": false, "duplicate": false}) -> void:
+func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarity: String = "porcelain", orig: Tile_Info = null, new_effects: Dictionary = {"rainbow": false, "duplicate": false, "winged": false}) -> void:
 	if(orig != null):
 		number = orig.number
 		color = orig.color
@@ -55,7 +55,7 @@ func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarit
 	else:
 		points = 5
 
-func Rarify(set_rarity: String = "") -> bool:
+func Rarify(set_rarity: String = "", direction: bool = true) -> bool:
 	if(joker_id >= 0):
 		return false
 	
@@ -63,16 +63,31 @@ func Rarify(set_rarity: String = "") -> bool:
 		"":
 			match rarity:
 				"porcelain":
-					rarity = "bronze"
-					points = 10
+					if(direction):
+						rarity = "bronze"
+						points = 10
+					else:
+						return false
 				"bronze":
-					rarity = "silver"
-					points = 25
+					if(direction):
+						rarity = "silver"
+						points = 25
+					else:
+						rarity = "porcelain"
+						points = 5
 				"silver":
-					rarity = "gold"
-					points = 50
+					if(direction):
+						rarity = "gold"
+						points = 50
+					else:
+						rarity = "bronze"
+						points = 10
 				"gold":
-					return false
+					if(direction):
+						return false
+					else:
+						rarity = "silver"
+						points = 25
 		"porcelain":
 			if(rarity == "porcelain"):
 				return false

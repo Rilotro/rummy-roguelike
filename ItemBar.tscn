@@ -11,12 +11,12 @@ script = ExtResource("1_mry7p")
 self_modulate = Color(0, 0.2901961, 0.8666667, 1)
 texture = SubResource("CanvasTexture_l5ixw")
 region_enabled = true
-region_rect = Rect2(0, 0, 1152, 40)
+region_rect = Rect2(0, 0, 1152, 70)
 
 [node name="Slots" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(560, 30)
-offset_top = -15.0
-offset_right = 560.0
-offset_bottom = 15.0
+custom_minimum_size = Vector2(570, 60)
+offset_top = -30.0
+offset_right = 570.0
+offset_bottom = 30.0
 theme_override_constants/separation = 10
 alignment = 2

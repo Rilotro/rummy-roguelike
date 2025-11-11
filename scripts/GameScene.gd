@@ -26,13 +26,13 @@ func _ready() -> void:
 			players_added += 1
 			match players_added:
 				1:
-					new_PB.global_position = Vector2(100, 280)
+					new_PB.global_position = Vector2(50.0, 310.0)
 					new_PB.rotation = deg_to_rad(90)
 				2:
-					new_PB.global_position = Vector2(530, 100)
+					new_PB.global_position = Vector2(550.0, 125.0)
 					new_PB.rotation = deg_to_rad(180)
 				3:
-					new_PB.global_position = Vector2(1052, 400)
+					new_PB.global_position = Vector2(1102.0, 440.0)
 					new_PB.rotation = deg_to_rad(270)
 	
 	$Turn_Button.text = "Shop"
@@ -57,7 +57,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if(Input.is_action_just_pressed("Debug_Draw")):
 		if(!$TileSelect_Screen.visible):
-			$TileSelect_Screen.start_select(3, true)
+			$TileSelect_Screen.start_select(3, {"BoardAdd": true, "Position": -1, "Replacement": null})
 
 @rpc("any_peer", "call_local", "reliable")
 func client_NewScore(client_id: int, newScore: int):
@@ -87,6 +87,7 @@ func Start_Turn(GameOver: bool = false) -> void:
 	else:
 		$Turn_Button.text = "End Turn"
 		$Turn_Button.self_modulate = Color(1, 1, 1, 1)
+		$ItemBar.StartTurn()
 
 func Next_Turn(peer_ID: int, next_peer: int = -1):
 	if(HighLevelNetworkHandler.is_singleplayer || next_peer == multiplayer.get_unique_id()):
@@ -105,8 +106,8 @@ func Next_Turn(peer_ID: int, next_peer: int = -1):
 		elif(next_peer < 0):
 			$MultiplayerSynchronizer.handle_NextTurn(multiplayer.get_unique_id())
 
-func select_tiles(nr_tiles: int = 3):
-	$TileSelect_Screen.start_select(nr_tiles)
+func select_tiles(nr_tiles: int = 3, DeckIndex: int = -1, Replacement: Tile = null):
+	$TileSelect_Screen.start_select(nr_tiles, {"BoardAdd": false, "Position": DeckIndex, "Replacement": Replacement})
 
 func newScore(newScore: int, client_ID: int):
 	if(client_ID == multiplayer.get_unique_id()):
@@ -132,6 +133,9 @@ func buy_item(item_bought: Item) -> void:
 
 func Gain_Freebie(freebies: int = 1) -> void:
 	$Shop.Gain_Freebie(freebies)
+
+func MonkeyPawUsed() -> void:
+	$ItemBar.MonkeyPawUsed()
 
 var Base_Tile: PackedScene = preload("res://Tile.tscn")
 

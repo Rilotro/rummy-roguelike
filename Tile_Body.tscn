@@ -1,8 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://e4j2cwdm1xcb"]
+[gd_scene load_steps=10 format=3 uid="uid://e4j2cwdm1xcb"]
 
 [ext_resource type="Texture2D" uid="uid://bux0j23a0ywry" path="res://jokers/Untitled.png" id="1_dm6w4"]
 [ext_resource type="Script" uid="uid://7xep6ybdkwej" path="res://Tile_Body.gd" id="1_ys2m5"]
 [ext_resource type="Shader" uid="uid://decnyweg1gkmx" path="res://RainbowNumber.gdshader" id="2_7f3rd"]
+[ext_resource type="Texture2D" uid="uid://cyf4tfuge2as6" path="res://Items/Winged.png" id="4_icy37"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_je3b2"]
 
@@ -33,16 +34,16 @@ region_rect = Rect2(0, 0, 25, 35)
 [node name="TileNumber" type="RichTextLabel" parent="."]
 modulate = Color(0, 0, 0, 1)
 material = SubResource("ShaderMaterial_icy37")
-custom_minimum_size = Vector2(25, 35)
+custom_minimum_size = Vector2(25, 23)
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -12.5
-offset_top = -25.0
+offset_top = -17.5
 offset_right = 12.5
-offset_bottom = 15.0
+offset_bottom = 5.5
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
@@ -72,23 +73,45 @@ visible = false
 texture = ExtResource("1_dm6w4")
 region_rect = Rect2(0, 0, 25, 35)
 
-[node name="Duplicate_Icon" type="Node2D" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(25, 12)
+offset_left = -12.5
+offset_top = 5.5
+offset_right = 12.5
+offset_bottom = 17.5
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="DuplicateIcon" type="Control" parent="HBoxContainer"]
 visible = false
 modulate = Color(0, 0, 0, 1)
-position = Vector2(0, 10)
+custom_minimum_size = Vector2(11, 12)
+layout_mode = 2
 
-[node name="Duplicate" type="Sprite2D" parent="Duplicate_Icon"]
-self_modulate = Color(1, 1, 1, 0.60784316)
-position = Vector2(1, -1.5)
+[node name="Duplicate" type="Sprite2D" parent="HBoxContainer/DuplicateIcon"]
+self_modulate = Color(1, 1, 1, 0.39215687)
+position = Vector2(6, 5)
 texture = SubResource("CanvasTexture_ys2m5")
 region_enabled = true
-region_rect = Rect2(0, 0, 5, 7)
+region_rect = Rect2(0, 0, 8, 11.2)
 
-[node name="Original" type="Sprite2D" parent="Duplicate_Icon"]
-position = Vector2(-1, -1)
+[node name="Original" type="Sprite2D" parent="HBoxContainer/DuplicateIcon"]
+position = Vector2(4, 5.6)
 texture = SubResource("CanvasTexture_7f3rd")
 region_enabled = true
-region_rect = Rect2(0, 0, 5, 7)
+region_rect = Rect2(0, 0, 8, 11.2)
+
+[node name="WingedIcon" type="Control" parent="HBoxContainer"]
+visible = false
+modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
+custom_minimum_size = Vector2(11, 12)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="HBoxContainer/WingedIcon"]
+position = Vector2(5.5, 6)
+scale = Vector2(0.17, 0.17)
+texture = ExtResource("4_icy37")
+region_rect = Rect2(0, 0, 7, 7.5)
 
 [connection signal="mouse_entered" from="Control" to="." method="_on_control_mouse_entered"]
 [connection signal="mouse_exited" from="Control" to="." method="_on_control_mouse_exited"]

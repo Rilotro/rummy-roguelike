@@ -57,7 +57,8 @@ func artificialReady() -> void:
 		$Deck_Counter/StartTurn_Draw.disabled = false
 
 func Draw(count: int = 1) -> void:
-	if(Tile_Deck.size() < count):
+	#var acc_count: int = count + 
+	if(Tile_Deck.size() < count + Item.flags["Burning Shoes"]):
 		return
 	
 	for i in range(count):
@@ -69,6 +70,26 @@ func Draw(count: int = 1) -> void:
 		Tile_Deck.remove_at(0)
 	
 	$Deck_Counter.text = str(Tile_Deck.size())
+	if(Item.flags["Burning Shoes"]):
+		await get_tree().create_timer(1.3 + 0.1*(count-1)).timeout
+	
+	for i in range(Item.flags["Burning Shoes"]):
+		if(Item.flags["Midas Touch"] > 0):
+			if(Tile_Deck[0].Rarify("gold")):
+				get_parent().used_PassiveItem(3)
+		
+		Board.Draw(Tile_Deck[0])
+		Tile_Deck.remove_at(0)
+		$Deck_Counter.text = str(Tile_Deck.size())
+		var tween = get_tree().create_tween()
+		$Deck_Counter/BurningDeck.modulate.a = 0
+		$Deck_Counter/BurningDeck.visible = true
+		tween.tween_property($Deck_Counter/BurningDeck, "modulate:a", 1, 0.3)
+		tween.tween_property($Deck_Counter/BurningDeck, "modulate:a", 0, 0.5)
+		await tween.finished
+		$Deck_Counter/BurningDeck.visible = false
+		if(i < Item.flags["Burning Shoes"]-1):
+			await get_tree().create_timer(1.3).timeout
 
 func update_selected_tiles(tile: Tile, selected: bool) -> void:
 	if(tile.is_in_River()):
@@ -107,8 +128,11 @@ func update_selected_tiles(tile: Tile, selected: bool) -> void:
 	else:
 		update_discard_requirement(selected_tiles.size())
 
-func show_possible_selections() -> void:
-	Board.show_possible_selections(selected_tiles)
+func show_possible_selections(MonkeyPaw: bool = false) -> void:
+	$"../Turn_Button".disabled = MonkeyPaw
+	if(MonkeyPaw):
+		selected_tiles.clear()
+	Board.show_possible_selections(selected_tiles, MonkeyPaw)
 
 func addPoints(newPoints: int) -> void:
 	Score += newPoints
@@ -120,15 +144,18 @@ func Progress() -> void:
 	if(is_MainInstance):
 		progressIndex += 1
 
-func add_tile_to_deck(tile_to_add: Tile_Info = null) -> void:
+func add_tile_to_deck(tile_to_add: Tile_Info = null, DeckPos: int = -1) -> void:
 	var deck_size: int = Tile_Deck.size()
 	var index: int
-	if(deck_size == 0):
-		index = 0
-	elif(deck_size <= 20):
-		index = randi_range(0, deck_size-1)
+	if(DeckPos >= 0 && DeckPos <= deck_size-1):
+		index = DeckPos
 	else:
-		index = randi_range(10, deck_size-11)
+		if(deck_size == 0):
+			index = 0
+		elif(deck_size <= 20):
+			index = randi_range(0, deck_size-1)
+		else:
+			index = randi_range(10, deck_size-11)
 	
 	if(tile_to_add == null):
 		var joker_id: int = randi_range(-3, 2)

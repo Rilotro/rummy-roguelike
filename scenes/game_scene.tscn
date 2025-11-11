@@ -27,9 +27,10 @@ position = Vector2(576, 324)
 
 [node name="Turn_Button" type="Button" parent="."]
 offset_left = 10.0
-offset_top = 4.5
-offset_right = 88.0
-offset_bottom = 35.5
+offset_top = 14.0
+offset_right = 123.0
+offset_bottom = 56.0
+theme_override_font_sizes/font_size = 24
 text = "End Turn"
 
 [node name="Player_Turn_Announcer" type="RichTextLabel" parent="."]
@@ -68,7 +69,7 @@ vertical_alignment = 1
 
 [node name="ItemBar" parent="." instance=ExtResource("2_onqr8")]
 z_index = -1
-position = Vector2(576, 20)
+position = Vector2(576, 35)
 
 [node name="Player_Board" parent="." instance=ExtResource("7_kk2rg")]
 position = Vector2(600, 628)

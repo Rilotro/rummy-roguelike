@@ -63,7 +63,13 @@ func item_select(button: Button, item_bought: Item, cost: int) -> void:
 		update_currency(0)
 	match item_bought.id:
 		4:
+			Item.singularItems.append(4)
 			Beaver_Break(button)
+		5:
+			Item.singularItems.append(5)
+		6:
+			Item.singularItems.append(6)
+	
 	get_parent().buy_item(item_bought)
 	if(freebies <= 0):
 		for selection in $Tile_Selections.get_children():

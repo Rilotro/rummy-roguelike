@@ -47,9 +47,9 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 426.0
-offset_top = 242.0
+offset_top = 150.0
 offset_right = 476.0
-offset_bottom = 312.0
+offset_bottom = 220.0
 grow_horizontal = 1
 grow_vertical = 1
 
@@ -61,9 +61,9 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 576.0
-offset_top = 242.0
+offset_top = 150.0
 offset_right = 626.0
-offset_bottom = 312.0
+offset_bottom = 220.0
 grow_horizontal = 1
 grow_vertical = 1
 
@@ -75,9 +75,9 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 726.0
-offset_top = 242.0
+offset_top = 150.0
 offset_right = 776.0
-offset_bottom = 312.0
+offset_bottom = 220.0
 grow_horizontal = 1
 grow_vertical = 1
 
@@ -89,36 +89,36 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 300.0
-offset_top = 332.0
+offset_top = 250.0
 offset_right = 350.0
-offset_bottom = 402.0
+offset_bottom = 320.0
 grow_horizontal = 1
 grow_vertical = 1
 joker_tile = true
 
 [node name="ItemSelection" parent="Tile_Selections" instance=ExtResource("3_c0ofq")]
 layout_mode = 0
-offset_left = 431.0
-offset_top = 427.0
-offset_right = 451.0
-offset_bottom = 457.0
-scale = Vector2(2, 2)
+offset_left = 426.0
+offset_top = 320.0
+offset_right = 465.0
+offset_bottom = 380.0
+scale = Vector2(1.5, 1.5)
 
 [node name="ItemSelection2" parent="Tile_Selections" instance=ExtResource("3_c0ofq")]
 layout_mode = 0
-offset_left = 581.0
-offset_top = 427.0
-offset_right = 601.0
-offset_bottom = 457.0
-scale = Vector2(2, 2)
+offset_left = 576.0
+offset_top = 320.0
+offset_right = 615.0
+offset_bottom = 380.0
+scale = Vector2(1.5, 1.5)
 
 [node name="ItemSelection3" parent="Tile_Selections" instance=ExtResource("3_c0ofq")]
 layout_mode = 0
-offset_left = 731.0
-offset_top = 427.0
-offset_right = 751.0
-offset_bottom = 457.0
-scale = Vector2(2, 2)
+offset_left = 726.0
+offset_top = 320.0
+offset_right = 765.0
+offset_bottom = 380.0
+scale = Vector2(1.5, 1.5)
 
 [node name="Exit_Shop" type="Button" parent="."]
 self_modulate = Color(1, 1, 1, 0)

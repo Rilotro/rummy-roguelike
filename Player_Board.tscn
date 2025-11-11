@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://chet0dxnbb2qs"]
+[gd_scene load_steps=25 format=3 uid="uid://chet0dxnbb2qs"]
 
 [ext_resource type="Script" uid="uid://c7vjdyaj3o0p0" path="res://Player_Board.gd" id="1_n5ooj"]
 [ext_resource type="Shader" uid="uid://c8msk6sgy2a1t" path="res://Deck_Highlight.gdshader" id="2_2k4wd"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://dy1uxtr010jum" path="res://scripts/Spread.gd" id="3_c401b"]
 [ext_resource type="Texture2D" uid="uid://b503hsrjxwcub" path="res://new_Locked_sprite.png" id="3_q3pcv"]
 [ext_resource type="Script" uid="uid://dmmd7tkni3r7b" path="res://scripts/River.gd" id="4_635d4"]
+[ext_resource type="Script" uid="uid://b04s2m76ajjht" path="res://scripts/BurningDeck.gd" id="6_c401b"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_n5ooj"]
 
@@ -77,12 +78,12 @@ position = Vector2(250, 0)
 script = ExtResource("3_c401b")
 
 [node name="MouseCheck" type="Control" parent="Spread"]
-custom_minimum_size = Vector2(170, 235)
+custom_minimum_size = Vector2(175, 235)
 layout_mode = 3
 anchors_preset = 0
-offset_left = -85.0
+offset_left = -87.5
 offset_top = -217.5
-offset_right = 85.0
+offset_right = 87.5
 offset_bottom = 17.5
 mouse_filter = 1
 
@@ -91,6 +92,7 @@ position = Vector2(-130, -304)
 script = ExtResource("4_635d4")
 
 [node name="Deck_Counter" type="RichTextLabel" parent="."]
+clip_contents = false
 custom_minimum_size = Vector2(40, 60)
 offset_left = -279.0
 offset_top = -50.0
@@ -104,8 +106,9 @@ vertical_alignment = 1
 visible = false
 material = SubResource("ShaderMaterial_7cgx7")
 position = Vector2(20, 30)
-scale = Vector2(40, 60)
 texture = SubResource("CanvasTexture_7cgx7")
+region_enabled = true
+region_rect = Rect2(0, 0, 40, 60)
 
 [node name="StartTurn_Draw" type="Button" parent="Deck_Counter"]
 self_modulate = Color(1, 1, 1, 0)
@@ -114,6 +117,11 @@ layout_mode = 0
 offset_right = 8.0
 offset_bottom = 8.0
 disabled = true
+
+[node name="BurningDeck" type="Sprite2D" parent="Deck_Counter"]
+visible = false
+position = Vector2(20, 13)
+script = ExtResource("6_c401b")
 
 [node name="Spread_Button" type="Button" parent="."]
 offset_left = 17.0

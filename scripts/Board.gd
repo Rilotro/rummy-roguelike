@@ -83,7 +83,7 @@ func updateTilePos(duration: float = 0.3) -> void:
 					Board_Tiles[j][i].moveTile(curr_pos)
 					await get_tree().create_timer(duration).timeout
 
-func show_possible_selections(selected_tiles: Array[Tile]) -> void:
+func show_possible_selections(selected_tiles: Array[Tile], MonkeyPaw: bool = false) -> void:
 	var is_sequence: bool = false
 	var common_value: int = -1
 	var last_number: int = -1
@@ -112,7 +112,9 @@ func show_possible_selections(selected_tiles: Array[Tile]) -> void:
 		for other_tile in Board:
 			if(other_tile != null && selected_tiles.find(other_tile) < 0):
 				other_tile.possible_Spread_highlight(false)
-				if(selected_tiles.size() > 0):
+				if(MonkeyPaw):
+					other_tile.possible_Spread_highlight(true)
+				elif(selected_tiles.size() > 0):
 					if(other_tile.getTileData().joker_id >= 0):
 						other_tile.possible_Spread_highlight(true)
 					elif(nonJoker_count == 0):
@@ -170,8 +172,8 @@ func HighLightEndPos(tile: Tile):
 		#var D1: float = abs(cos(parentRot-PI/2)*(P1.y-curr_pos.y) - sin(parentRot-PI/2)*(P1.x-curr_pos.x))
 		#var D2: float = abs(cos(parentRot-PI/2)*(P2.y-curr_pos.y) - sin(parentRot-PI/2)*(P2.x-curr_pos.x))
 		
-		#600.0 vs 530.0   628.0
-		#100.0   280.0
+		#600.0   628.0
+		#50.0   310.0
 		
 		#D1 <= 200.0 && D2 <= 200.0
 		

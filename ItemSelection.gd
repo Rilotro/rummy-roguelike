@@ -65,6 +65,9 @@ func remove_item():
 	item_info = null
 	$ItemSprite.texture = null
 
+func change_Sprite(new_Sprite: Texture) -> void:
+	$ItemSprite.texture = new_Sprite
+
 func REgenerate_selection(new_item: Item = null) -> int:
 	$SOLD.visible = false
 	disabled = false
@@ -72,10 +75,9 @@ func REgenerate_selection(new_item: Item = null) -> int:
 	var id: int
 	
 	if(new_item == null):
-		id = randi_range(0, 4)
-		if(Item.flags["Beaver Teeth"]):
-			while(id == 4 && cost):
-				id = randi_range(0, 4)
+		id = randi_range(0, 6)
+		while(Item.singularItems.find(id) >= 0):
+			id = randi_range(0, 6)
 		item_info = Item.new(id)
 	else:
 		id = new_item.id
@@ -86,13 +88,19 @@ func REgenerate_selection(new_item: Item = null) -> int:
 	if(cost):
 		match id:
 			0:
-				item_cost = randi_range(40, 65)
+				item_cost = randi_range(30, 50)
 			1:
-				item_cost = randi_range(20, 50)
+				item_cost = randi_range(15, 30)
 			2:
-				item_cost = randi_range(60, 85)
+				item_cost = randi_range(45, 70)
 			3:
 				item_cost = randi_range(70, 100)
+			4:
+				item_cost = randi_range(55, 80)
+			5:
+				item_cost = randi_range(25, 40)
+			6:
+				item_cost = randi_range(60, 85)
 		$Cost_Text.text = str(item_cost)
 	
 	return item_info.id
