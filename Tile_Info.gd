@@ -46,6 +46,14 @@ func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarit
 				joker_name = "The Banker"
 				joker_description = "[b]On Spread[/b] - The next [b]Item[/b] or [b]Tile[/b] you buy in the [b]Shop[/b] is [b]Free[/b]"
 				points = 5
+			3:
+				joker_name = "The Architect"
+				joker_description = "[b]On Spread[/b] - All your [b]Consumable Items[/b] gain [b]+1 Uses[/b].[br][b]While Spread[/b] - When you [b]Use[/b] a [b]Consumable[/b], [b]Gain +5 Points[/b]"
+				points = 10
+			4:
+				joker_name = "The Vampire"
+				joker_description = "[b]On Spread[/b] - If I am a [b]Leech[/b], I [b]Gain Points[/b] equal to the [b]Points[/b] in the [b]Row[/b] I'm [b]Leeching[/b]"
+				points = 0
 	elif(rarity == "gold"):
 		points = 50
 	elif(rarity == "silver"):

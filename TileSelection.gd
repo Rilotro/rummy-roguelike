@@ -51,6 +51,10 @@ func REgenerate_selection(setTile: Tile_Info = null) -> int:
 						tile_cost = randi_range(15, 35)
 					2:
 						tile_cost = randi_range(75, 105)
+					3:
+						tile_cost = randi_range(35, 70)
+					4:
+						tile_cost = randi_range(45, 75)
 				$Cost_Text.text = str(tile_cost)
 			else:
 				match setTile.rarity:
@@ -76,7 +80,10 @@ func REgenerate_selection(setTile: Tile_Info = null) -> int:
 		
 		$Body.change_info(setTile)
 	elif(joker_tile):
-		var joker_id: int = randi_range(0, 2) 
+		var joker_id: int = randi_range(0, 4)
+		while(HighLevelNetworkHandler.is_singleplayer && joker_id == 4):
+			joker_id = randi_range(0, 4)
+		
 		if(cost):
 			match joker_id:
 				0:
@@ -84,7 +91,11 @@ func REgenerate_selection(setTile: Tile_Info = null) -> int:
 				1:
 					tile_cost = randi_range(15, 35)
 				2:
-					tile_cost = randi_range(75, 105)
+					tile_cost = randi_range(60, 85)
+				3:
+					tile_cost = randi_range(35, 70)
+				4:
+					tile_cost = randi_range(45, 75)
 			$Cost_Text.text = str(tile_cost)
 		$Body.change_info(Tile_Info.new(0, 0, joker_id))
 	else:

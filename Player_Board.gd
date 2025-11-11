@@ -48,6 +48,7 @@ func artificialReady() -> void:
 		var index: int = randi_range(0, temp_Deck.size()-1)
 		Tile_Deck.append(temp_Deck[index])
 		temp_Deck.remove_at(index)
+	#Tile_Deck.insert(randi_range(0, 7), Tile_Info.new(0, 0, 0))
 	Tile_Deck.insert(randi_range(0, 15), Tile_Info.new(0, 0, 0))
 	$Deck_Counter.text = str(Tile_Deck.size())
 	
@@ -255,6 +256,9 @@ func get_SpreadRows() -> Array[Spread_Info]:
 
 func get_DrainCounter() -> Sprite2D:
 	return $Drain_Counter
+
+func get_ProgressBar() -> Sprite2D:
+	return $ProgressBar
 
 func remove_BoardTile(tile: Tile) -> void:
 	if(tile.is_on_Board()):

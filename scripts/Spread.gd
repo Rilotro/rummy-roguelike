@@ -39,7 +39,7 @@ func Spread(selected_tiles: Array[Tile]) -> void:
 func Add_Spread_Score(selected_tiles: Array[Tile]) -> void:
 	var new_points: int = 0
 	for tile in selected_tiles:
-		new_points += tile.on_spread()
+		new_points += tile.on_spread(Vector2(0, 0), Spread_Rows[Spread_Rows.size()-1])
 		await get_tree().create_timer(1).timeout
 	var BigScore: RichTextLabel = RichTextLabel.new()
 	add_child(BigScore)

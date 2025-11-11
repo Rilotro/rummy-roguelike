@@ -257,15 +257,6 @@ func reposition_Tile(tile: Tile) -> void:
 	var HL_onSpread: int = -1
 	var S: Node2D
 	
-	#var P1: Vector2 = S.global_position + Vector2(-100*cos(parentRot), -100*sin(parentRot))
-	#var P2: Vector2 = S.global_position + Vector2(100*cos(parentRot), 100*sin(parentRot))
-	
-	#var D1: float = abs(cos(parentRot-PI/2)*(P1.y-end_pos.y) + sin(parentRot-PI/2)*(P1.x-end_pos.x))
-	#var D2: float = abs(cos(parentRot-PI/2)*(P2.y-end_pos.y) + sin(parentRot-PI/2)*(P2.x-end_pos.x))
-	
-	#var L1: Vector2 = Vector2(tan(parentRot-PI/2), P1.y - tan(parentRot-PI/2)*P1.x)
-	#var L2: Vector2 = Vector2(tan(parentRot-PI/2), P2.y - tan(parentRot-PI/2)*P2.x)
-	
 	for player in get_parent().get_parent().players:
 		S = player.player_Node.Spread
 		parentRot = player.player_Node.rotation
@@ -279,16 +270,9 @@ func reposition_Tile(tile: Tile) -> void:
 				var row_D1: float = abs(cos(parentRot)*(row_LL.y-curr_pos.y) - sin(parentRot)*(row_LL.x-curr_pos.x))
 				var row_D2: float = abs(cos(parentRot)*(row_UL.y-curr_pos.y) - sin(parentRot)*(row_UL.x-curr_pos.x))
 				
-				#var row_Y: float = $"../Spread".global_position.y - 40*i
-				#end_pos = (row_LL + row_UL)/2.0
 				if(i >= S.Spread_Rows.size()-1):
-					#if(end_pos.y <= row_Y):
-					#end_pos.y = row_Y
-					#HL_size = Vector2(S.Spread_Rows[i].Tiles.size()*30*abs(cos(parentRot)), S.Spread_Rows[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
 					HL_onSpread = i
 				elif(row_D1 <= 40 && row_D2 <= 40):
-					#end_pos.y = row_Y
-					#HL_size = Vector2(S.Spread_Rows[i].Tiles.size()*30*abs(cos(parentRot)), S.Spread_Rows[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
 					HL_onSpread = i
 					break
 				
@@ -298,7 +282,6 @@ func reposition_Tile(tile: Tile) -> void:
 	
 	if(end_pos.x > X_Bounds.x):
 		end_pos.x = X_Bounds.x
-		#if(SR.size() > 0 && D1 <= 200.0 && D2 <= 200.0):
 	elif(end_pos.x < X_Bounds.y):
 		end_pos.x = X_Bounds.y
 	
@@ -358,13 +341,12 @@ func reposition_Tile(tile: Tile) -> void:
 				tween.tween_property(tile, "rotation", 2*PI+origRot, 0.05)
 				await tween.finished
 				if(S.get_parent().is_updatingPos):
-					print("HERE0")
 					tile.rotation = origRot
 					tween = get_tree().create_tween()
 		
 		EP_HighLight.queue_free()
 		await get_tree().create_timer(0.5).timeout
-		var new_points:int = tile.on_spread(PT_finalpos)
+		var new_points: int = tile.on_spread(PT_finalpos, S.Spread_Rows[HL_onSpread])
 		await get_tree().create_timer(0.8).timeout
 		
 		var TMP_RTL: RichTextLabel = RichTextLabel.new()

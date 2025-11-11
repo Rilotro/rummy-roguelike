@@ -85,28 +85,42 @@ func tile_move():
 var PointText: RichTextLabel
 var SR: Node2D
 
-func on_spread(PT_finalpos: Vector2 = Vector2(0, 0)) -> int:
+func on_spread(PT_finalpos: Vector2 = Vector2(0, 0), Row: Spread_Info = null, flags: Dictionary = {"Architect": false}) -> int:
 	var parentRot: float = Player.rotation
 	if(PT_finalpos == Vector2(0, 0)):
 		PT_finalpos = Vector2(50*sin(parentRot), -40*cos(parentRot))
 	var TD: Tile_Info = $Body.Tile_Data
 	var final_points: int = TD.points
 	
-	if(TD.joker_id < 0):
-		if(TD.effects["duplicate"] && Player.is_MainInstance):
-			var modified_effects: Dictionary = TD.effects
-			modified_effects["duplicate"] = false
-			Player.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
-		
-		if(TD.effects["winged"] && Player.is_MainInstance):
-			Player.Draw()
+	if(flags["Architect"]):
+		final_points = 5
 	else:
-		match TD.joker_id:
-			1:
-				final_points += 10*(Player.selected_tiles.size()-1)
-			2:
-				if(Player.is_MainInstance):
-					Player.get_parent().Gain_Freebie(1)
+		if(TD.joker_id < 0):
+			if(TD.effects["duplicate"] && Player.is_MainInstance):
+				var modified_effects: Dictionary = TD.effects
+				modified_effects["duplicate"] = false
+				Player.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
+			
+			if(TD.effects["winged"] && Player.is_MainInstance):
+				Player.Draw()
+		else:
+			match TD.joker_id:
+				1:
+					final_points += 10*(Player.selected_tiles.size()-1)
+				2:
+					if(Player.is_MainInstance):
+						Player.get_parent().Gain_Freebie(1)
+				3:
+					Player.get_parent().addItemBarUses()
+					#for item in Player.get_parent().getItems():
+						#if(item.uses > -1):
+							#final_points += 5*item.uses
+				4:
+					if(Row != null):
+						for spreadTile in Row.Tiles:
+							final_points += spreadTile.getTileData().points
+		
+		getTileData().points = final_points
 	
 	SR = preload("res://scenes/sparkle_road.tscn").instantiate()
 	var EW: Sprite2D = preload("res://scenes/Explosion_Wave.tscn").instantiate()

@@ -111,6 +111,14 @@ func change_info(new_info: Tile_Info) -> void:
 				$TileNumber.text = ""
 				$Joker_Face.texture = load("res://jokers/Banker.png")
 				$Joker_Face.visible = true
+			3:
+				$TileNumber.text = ""
+				$Joker_Face.texture = load("res://jokers/Architect.png")
+				$Joker_Face.visible = true
+			4:
+				$TileNumber.text = ""
+				$Joker_Face.texture = load("res://jokers/Vampire.png")
+				$Joker_Face.visible = true
 
 func changeHighLight(new_color: Color) -> void:
 	$HighLight.modulate = new_color

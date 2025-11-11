@@ -71,6 +71,9 @@ func client_NewScore(client_id: int, newScore: int):
 func getTurn() -> bool:
 	return PB.my_turn
 
+func get_ItemBar() -> Node2D:
+	return $ItemBar
+
 func Start_Turn(GameOver: bool = false) -> void:
 	if(GameOver):
 		if(HighLevelNetworkHandler.is_multiplayer):
@@ -115,8 +118,11 @@ func newScore(newScore: int, client_ID: int):
 		if(HighLevelNetworkHandler.is_multiplayer):
 			$MultiplayerSynchronizer.handle_newScore(newScore, client_ID)
 
-func addShopUses():
+func addShopUses() -> void:
 	$Shop.addShopUses()
+
+func addItemBarUses() -> void:
+	$ItemBar.addItemBarUses()
 
 func used_PassiveItem(item_ID: int):
 	$ItemBar.used_PassiveItem(item_ID)

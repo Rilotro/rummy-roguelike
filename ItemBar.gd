@@ -3,6 +3,8 @@ extends Node2D
 var items: Array[Item]
 var ItemSlot_base: PackedScene = preload("res://ItemSelection.tscn")
 
+signal item_used
+
 func _ready() -> void:
 	for i in range(3):
 		var new_ItemSlot: Item_Selection = ItemSlot_base.instantiate()
@@ -35,12 +37,27 @@ func add_item(new_item: Item):
 				$Slots.get_child(end_point - i - 1).REgenerate_selection(new_item)
 				break
 
+func addItemBarUses() -> void:
+	for item in $Slots.get_children():
+		if("item_info" in item && item.item_info != null && item.item_info.uses >  1):
+			item.item_info.uses += 1
+
+func getItems() -> Array[Item]:
+	var Items: Array[Item]
+	for item in $Slots.get_children():
+		if("item_info" in item && item.item_info != null):
+			Items.append(item.item_info)
+	
+	return Items
+
 func item_select(Item_Slot: Item_Selection, item: Item, _cost: int) -> void:
 	if(item != null && !item.passive):
 		var was_used: bool = item.useItem(get_parent())
 		if(was_used):
-			if(item.consumable && item.uses <= 0):
-				Item_Slot.remove_item()
+			if(item.consumable):
+				item_used.emit()
+				if(item.uses <= 0):
+					Item_Slot.remove_item()
 
 func used_PassiveItem(item_id: int):
 	for item in $Slots.get_children():
@@ -51,6 +68,7 @@ func used_PassiveItem(item_id: int):
 					if(item.item_info.uses <= 0):
 						item.remove_item()
 					Item.flags["Midas Touch"] -= 1
+					item_used.emit()
 					break
 
 func MonkeyPawUsed() -> void:
