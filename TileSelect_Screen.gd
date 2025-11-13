@@ -24,6 +24,7 @@ func start_select(selection_nr: int, flags: Dictionary = {"BoardAdd": false, "Po
 					color = -1
 			#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			setTile = Tile_Info.new(number, color, flags["Replacement"].getTileData().joker_id, flags["Replacement"].getTileData().rarity, null, flags["Replacement"].getTileData().effects)
+		new_selection.parentEffector = self
 		new_selection.REgenerate_selection(setTile)
 		$HBoxContainer.add_child(new_selection)
 	visible = true

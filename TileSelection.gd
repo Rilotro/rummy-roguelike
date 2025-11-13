@@ -7,12 +7,17 @@ var tile_cost: int = 5
 
 var cost: bool = true
 
+var parentEffector: Node
+
 func _on_pressed() -> void:
-	get_parent().get_parent().tile_select(self, $Body.Tile_Data, tile_cost)
+	parentEffector.tile_select(self, $Body.Tile_Data, tile_cost)
 	if(cost):
 		$SOLD.visible = true
 	$Body._on_control_mouse_exited()
 	disabled = true
+
+func get_TileData() -> Tile_Info:
+	return $Body.Tile_Data
 
 func no_cost() -> void:
 	cost = false
@@ -79,6 +84,7 @@ func REgenerate_selection(setTile: Tile_Info = null) -> int:
 				$Cost_Text.text = str(tile_cost)
 		
 		$Body.change_info(setTile)
+		return setTile.joker_id
 	elif(joker_tile):
 		var joker_id: int = randi_range(0, 4)
 		while(HighLevelNetworkHandler.is_singleplayer && joker_id == 4):
@@ -98,6 +104,7 @@ func REgenerate_selection(setTile: Tile_Info = null) -> int:
 					tile_cost = randi_range(45, 75)
 			$Cost_Text.text = str(tile_cost)
 		$Body.change_info(Tile_Info.new(0, 0, joker_id))
+		return joker_id
 	else:
 		var tile_rarity: String
 		var is_rainbow: bool = false
@@ -145,7 +152,7 @@ func REgenerate_selection(setTile: Tile_Info = null) -> int:
 			rand_col = -1
 		#-------------------------------------------------------------------------------------------------------------------------------------------
 		$Body.change_info(Tile_Info.new(rand_num, rand_col, -1, tile_rarity, null, {"rainbow": is_rainbow, "duplicate": is_duplicate, "winged": is_winged}))
-	return -1
+		return -1
 
 func _on_control_mouse_entered() -> bool:
 	return !disabled

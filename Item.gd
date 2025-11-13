@@ -14,6 +14,8 @@ var usedThisRound: int = 0
 static var flags = {"Wrench": 0, "Midas Touch": 0, "Burning Shoes": 0}
 static var singularItems: Array[int]
 
+static var is_HammerTime: bool = false
+
 func _init(new_id: int = 0) -> void:
 	id = new_id
 	match new_id:
@@ -24,15 +26,15 @@ func _init(new_id: int = 0) -> void:
 			instant = false
 			consumable = true
 			name = "Bag of Tiles"
-			description = "[b]Choose one of three Tiles[/b] to add in the [i]Top 5 Positions[/i] of your [b]Deck[/b][br][font_size=12][color=gray]Can only be [b]Used [i]Once[/i][/b] per [b]Round[/b][/color][/font_size]"
+			description = "[b]Choose one of three Tiles[/b] to add in the [i]Top 5 Positions[/i] of your [b]Deck[/b][br][font_size=10][color=gray]Can only be [b]Used [i]Once[/i][/b] per [b]Round[/b][/color][/font_size]"
 		1:
 			item_image = load("res://Items/Slot_Hammer.png")
-			uses = 1
+			uses = 2
 			passive = false
-			instant = true
+			instant = false
 			consumable = true
-			name = "Slot Hammer"
-			description = "Add one [b]Item Slot[/b]. [color=Gray](You can only have up to 10 item slots)[/color]"
+			name = "Architect's Hammer"
+			description = "Add one [b]Slot[/b] in the [b]Shop[/b] or in the [b]Item Bar[/b]. [color=Gray](You can only have up to 10 item slots)[/color]"
 		2: 
 			item_image = load("res://Items/Workshop_Wrench.png")
 			uses = -1
@@ -67,12 +69,12 @@ func _init(new_id: int = 0) -> void:
 			description = "Whenever you [b]Draw Tiles[/b], [b]Draw[/b] [i]an additional[/i] [b]Tile[/b]"
 		6:
 			item_image = load("res://Items/Monkey's Paw.png")
-			uses = -1
+			uses = 3
 			passive = false
 			instant = false
-			consumable = false
-			name = "Monkey's Paw"#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-			description = "On Use - [font_size=12]Select a [b]Tile[/b] from your [b]Board[/b] that has [b]Bronze-or-Higher Rarity[/b] to [b]De-Rarify[/b], then [b]Choose one of three Tiles[/b] with the [i]same [b]Rarity[/b] and [b]Effects[/b][/i] to [b]Replace[/b] the [b]Selected Tile[/b] with[/font_size].[br][font_size=12][color=gray]Can only be [b]Used[/b] 3 times per [b]Round[/b][/color][/font_size]"
+			consumable = true#"On Use - [font_size=12]Select a [b]Tile[/b] from your [b]Board[/b] that has [b]Bronze-or-Higher Rarity[/b] to [b]De-Rarify[/b], then [b]Choose one of three Tiles[/b] with the [i]same [b]Rarity[/b] and [b]Effects[/b][/i] to [b]Replace[/b] the [b]Selected Tile[/b] with[/font_size].[br][font_size=12][color=gray]Can only be [b]Used[/b] 3 times per [b]Round[/b][/color][/font_size]"
+			name = "Monkey's Paw"#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			description = "On Use - Select a [b]Tile[/b] to [b]de-Rarify[/b], then [b]Choose one of three Tiles[/b], with [i]the same [b]Rarity[/b] and [b]Effects[/b][/i] as the [b]Selected Tile[/b], to [b]Replace the Selected Tile[/b].[br][font_size=10][color=gray]Can only be [b]Used[/b] 3 times per [b]Round[/b][/color][/font_size]"
 	if(uses > 0):
 		uses += flags["Wrench"]
 
@@ -94,9 +96,10 @@ func useItem(Game: Node2D) -> bool:
 			else:
 				return false
 		1:
-			for i in range(uses):
-				Game.add_ItemSlot()
-			uses = 0
+			#for i in range(uses):
+				#Game.add_ItemSlot()
+			is_HammerTime = !is_HammerTime
+			Game.HammerTime(is_HammerTime)
 		2:
 			Game.addShopUses()
 		3:
@@ -106,6 +109,7 @@ func useItem(Game: Node2D) -> bool:
 		6:
 			if(Game.PB.discarding):
 				return false
+			
 			if(usedThisRound < 3):
 				Tile.MonkeyPaw = !Tile.MonkeyPaw
 				Game.PB.show_possible_selections(Tile.MonkeyPaw)
@@ -115,6 +119,7 @@ func useItem(Game: Node2D) -> bool:
 					usedThisRound -= 1
 			else:
 				return false
+	
 	usedThisRound += 1
 	return true
 

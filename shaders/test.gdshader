@@ -5,12 +5,16 @@ void vertex() {
 }
 
 void fragment() {
-	if(COLOR.r == 1.0 && COLOR.g == 174.0/255.0 && COLOR.b == 201.0/255.0){
-		COLOR.a = 0.0;
+	COLOR = vec4(1, 1, 1, 0);
+	float dist = sqrt(pow(UV.x-25.0, 2) + pow(UV.y-25.0, 2));
+	if(dist <= 19.0 && dist >= 14.0){
+		COLOR = vec4(0, 0, 1, 1);
+	}
+	
+	if(dist <= 23.0 && dist >= 19.0){
+		float angle = acos((UV.x-25.0)/(dist*sign(UV.y-25.0)));
+		if(int((angle)*4.8 - 3.0*TIME) % 3 == 1){// - 3.0*TIME
+			COLOR = vec4(0, 0, 1, 1);
+		}
 	}
 }
-
-//void light() {
-//	// Called for every pixel for every light affecting the CanvasItem.
-//	// Uncomment to replace the default light processing function with this one.
-//}

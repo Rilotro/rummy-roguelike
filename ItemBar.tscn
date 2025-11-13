@@ -1,8 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://bftt3sh7ylbn2"]
+[gd_scene load_steps=4 format=3 uid="uid://bftt3sh7ylbn2"]
 
 [ext_resource type="Script" uid="uid://co1qse4ge28dp" path="res://ItemBar.gd" id="1_mry7p"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_l5ixw"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_a3h80"]
 
 [node name="ItemBar" type="Node2D"]
 script = ExtResource("1_mry7p")
@@ -13,10 +15,32 @@ texture = SubResource("CanvasTexture_l5ixw")
 region_enabled = true
 region_rect = Rect2(0, 0, 1152, 70)
 
+[node name="ItemBar_Highlight" type="Sprite2D" parent="."]
+visible = false
+self_modulate = Color(0, 0.2901961, 0.8666667, 1)
+position = Vector2(288, 0)
+texture = SubResource("CanvasTexture_a3h80")
+region_enabled = true
+region_rect = Rect2(0, 0, 576, 70)
+
 [node name="Slots" type="HBoxContainer" parent="."]
 custom_minimum_size = Vector2(570, 60)
 offset_top = -30.0
 offset_right = 570.0
 offset_bottom = 30.0
-theme_override_constants/separation = 10
+mouse_filter = 2
+theme_override_constants/separation = 9
 alignment = 2
+
+[node name="ItemBar_Sensor" type="Control" parent="."]
+visible = false
+custom_minimum_size = Vector2(576, 70)
+layout_mode = 3
+anchors_preset = 0
+offset_top = -35.0
+offset_right = 576.0
+offset_bottom = 35.0
+metadata/_edit_use_anchors_ = true
+
+[connection signal="mouse_entered" from="ItemBar_Sensor" to="." method="_on_ItemBar_Sensor_mouse_entered"]
+[connection signal="mouse_exited" from="ItemBar_Sensor" to="." method="_on_ItemBar_Sensor_mouse_exited"]

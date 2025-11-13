@@ -12,7 +12,7 @@ var tip_timer: float = 0
 var tip_openned: bool = false
 var tip_UI: Control
 
-#@export var id: int = 0
+var parentEffector: Node
 
 func _process(delta: float) -> void:
 	if(mouse_inside):
@@ -25,7 +25,7 @@ func _process(delta: float) -> void:
 			tip_UI.z_index = 3
 
 func _on_pressed() -> void:
-	get_parent().get_parent().item_select(self, item_info, item_cost)
+	parentEffector.item_select(self, item_info, item_cost)
 	if(cost):
 		$SOLD.visible = true
 		disabled = true
@@ -105,13 +105,20 @@ func REgenerate_selection(new_item: Item = null) -> int:
 	
 	return item_info.id
 
+func Outline(on: bool = true):
+	$Outline.visible = on
 
 func _on_mouse_entered() -> void:
 	mouse_inside = true
+	if($Outline.visible):
+		$Outline.set_instance_shader_parameter("speed", 5.0)
 
 
 func _on_mouse_exited() -> void:
 	mouse_inside = false
+	if($Outline.visible):
+		$Outline.set_instance_shader_parameter("speed", 0.0)
+	
 	tip_timer = 0
 	if(tip_openned):
 		tip_openned = false

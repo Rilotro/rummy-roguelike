@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://b2avtnchm6la0"]
+[gd_scene load_steps=10 format=3 uid="uid://b2avtnchm6la0"]
 
 [ext_resource type="Script" uid="uid://b6ks66paov3ks" path="res://scripts/GameScene.gd" id="1_w5aja"]
 [ext_resource type="PackedScene" uid="uid://bftt3sh7ylbn2" path="res://ItemBar.tscn" id="2_onqr8"]
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://bqo6ci6u6f6fo" path="res://Shop.tscn" id="5_kk2rg"]
 [ext_resource type="Script" uid="uid://bwx4f5nipcceq" path="res://scripts/Multiplayer_Synchronizer.gd" id="6_rurhu"]
 [ext_resource type="PackedScene" uid="uid://chet0dxnbb2qs" path="res://Player_Board.tscn" id="7_kk2rg"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_kk2rg"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_b5spy"]
 properties/0/path = NodePath("Player_Turn_Announcer:text")
@@ -21,6 +23,15 @@ properties/2/replication_mode = 1
 
 [node name="GameScene" type="Node2D"]
 script = ExtResource("1_w5aja")
+
+[node name="BackGround_Obfuscator" type="Sprite2D" parent="."]
+visible = false
+self_modulate = Color(0, 0, 0, 0.39215687)
+z_index = 1
+position = Vector2(576, 359)
+texture = SubResource("CanvasTexture_kk2rg")
+region_enabled = true
+region_rect = Rect2(0, 0, 1152, 578)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(576, 324)

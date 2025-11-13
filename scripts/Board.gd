@@ -112,7 +112,7 @@ func show_possible_selections(selected_tiles: Array[Tile], MonkeyPaw: bool = fal
 		for other_tile in Board:
 			if(other_tile != null && selected_tiles.find(other_tile) < 0):
 				other_tile.possible_Spread_highlight(false)
-				if(MonkeyPaw):
+				if(MonkeyPaw && other_tile.getTileData().rarity != "porcelain" && other_tile.getTileData().rarity != ""):
 					other_tile.possible_Spread_highlight(true)
 				elif(selected_tiles.size() > 0):
 					if(other_tile.getTileData().joker_id >= 0):

@@ -55,8 +55,12 @@ func _ready() -> void:
 		PB.Activate_Draw()
 
 func _process(delta: float) -> void:
+	if(Item.is_HammerTime && HammerSprite != null):
+		HammerSprite.global_position = get_global_mouse_position()
 	if(Input.is_action_just_pressed("Debug_Draw")):
-		if(!$TileSelect_Screen.visible):
+		if(!$TileSelect_Screen.visible && PB.my_turn && !PB.discarding):
+			#Item.is_HammerTime = !Item.is_HammerTime
+			#HammerTime(Item.is_HammerTime)
 			$TileSelect_Screen.start_select(3, {"BoardAdd": true, "Position": -1, "Replacement": null})
 
 @rpc("any_peer", "call_local", "reliable")
@@ -120,6 +124,37 @@ func newScore(newScore: int, client_ID: int):
 
 func addShopUses() -> void:
 	$Shop.addShopUses()
+
+var HammerSprite: Sprite2D
+
+func HammerTime(is_HammerTime: bool = false, Target: Node = null) -> void:
+	if(Target != null):
+		var tween = get_tree().create_tween()
+		tween.tween_property(HammerSprite, "global_position", Target.global_position, 1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(HammerSprite, "rotation", deg_to_rad(-60), 0.6)
+		tween.tween_property(HammerSprite, "rotation", deg_to_rad(90), 0.2)
+		await get_tree().create_timer(1.8).timeout
+	
+	$BackGround_Obfuscator.visible = is_HammerTime
+	#$ItemBar_Sensor.visible = is_HammerTime
+	$ItemBar.HammerTime(is_HammerTime, Target)
+	$Shop.HammerTime(is_HammerTime, Target)
+	
+	if(Target != null):
+		$Shop.visible = false
+		$ItemBar.HammerUsed()
+	
+	if(is_HammerTime):
+		HammerSprite = Sprite2D.new()
+		HammerSprite.texture = load("res://Items/Slot_Hammer.png")
+		add_child(HammerSprite)
+		#move_child(HammerSprite, 0)
+		HammerSprite.z_index = 3
+		HammerSprite.global_position = get_global_mouse_position()
+		$Turn_Button.text = "Shop"
+	else:
+		HammerSprite.queue_free()
+		$Turn_Button.text = "End Turn"
 
 func addItemBarUses() -> void:
 	$ItemBar.addItemBarUses()
@@ -213,7 +248,7 @@ func End_Turn():
 var shop_openned: bool = false
 
 func _on_Turn_Button_pressed() -> void:
-	if(PB.my_turn):
+	if(PB.my_turn && !Item.is_HammerTime):
 		if(PB.is_discarding()):
 			$Turn_Button.text = "Cancel"
 			$Turn_Button.self_modulate = Color(1, 0, 0, 1)

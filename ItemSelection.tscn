@@ -1,18 +1,24 @@
-[gd_scene load_steps=7 format=3 uid="uid://dgswt76jwdg63"]
+[gd_scene load_steps=8 format=3 uid="uid://dgswt76jwdg63"]
 
 [ext_resource type="Script" uid="uid://sqskv6ak4kdy" path="res://ItemSelection.gd" id="1_j8qva"]
-[ext_resource type="Shader" uid="uid://bsdbmq322sb1n" path="res://shaders/test.gdshader" id="2_lgkca"]
+[ext_resource type="Shader" uid="uid://cu5l34m04rpxe" path="res://shaders/DashedOutline.gdshader" id="2_lgkca"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_f511j"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_fxidx"]
-shader = ExtResource("2_lgkca")
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_qgppb"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_svtxo"]
 texture = SubResource("CanvasTexture_qgppb")
 modulate_color = Color(0, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fxidx"]
+shader = ExtResource("2_lgkca")
+shader_parameter/direction = -1.0
+shader_parameter/frequency = 40.0
+shader_parameter/radius = 50.0
+shader_parameter/line_thickness = 0.03
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_kxt6h"]
 
 [node name="ItemSelection" type="Button"]
 self_modulate = Color(1, 1, 1, 0)
@@ -43,7 +49,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ItemSprite" type="Sprite2D" parent="."]
-material = SubResource("ShaderMaterial_fxidx")
 position = Vector2(19.5, 30)
 scale = Vector2(0.3, 0.3)
 
@@ -66,6 +71,15 @@ fit_content = true
 scroll_active = false
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Outline" type="Sprite2D" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_fxidx")
+instance_shader_parameters/speed = 0.0
+position = Vector2(19.5, 30)
+texture = SubResource("CanvasTexture_kxt6h")
+region_enabled = true
+region_rect = Rect2(0, 0, 39, 60)
 
 [connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

@@ -34,13 +34,16 @@ func _process(delta: float) -> void:
 			LC_timer = 0.0
 			parentEffector.reposition_Tile(self)
 		elif(mouse_still_inside):
-			if(is_on_Board() && MonkeyPaw && getTileData().Rarify("", false)):
+			if(is_on_Board() && MonkeyPaw && getTileData().Rarify("", false)):#getTileData().Rarify("", false)
 				MonkeyPaw = false
 				Player.get_parent().select_tiles(3, -1, self)
 				Player.show_possible_selections(false)
 				Player.get_parent().MonkeyPawUsed()
-				
-			elif(Player.my_turn && !Player.is_spreading && is_on_Board):
+				return
+			elif(MonkeyPaw):
+				return
+			
+			if(Player.my_turn && !Player.is_spreading && is_on_Board):
 				selected = !selected
 				possible_Spread_highlight(false)
 				Player.update_selected_tiles(self, selected)
