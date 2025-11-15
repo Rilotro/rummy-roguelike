@@ -245,21 +245,24 @@ func get_SpreadSize(SpreadNode: Node2D) -> Vector2:
 	
 	return SuffixSize + TileSize + PrefixSize
 
-func Architect_Check() -> void:
-	for tile in Tiles:
-		if(tile.getTileData().joker_id == 3):
-			var extraPoints: int = tile.on_spread(Vector2(0, 0), self, {"Architect": true})
-			await tile.get_tree().create_timer(0.8).timeout
-		
-			var TMP_RTL: RichTextLabel = RichTextLabel.new()
-			tile.Player.add_child(TMP_RTL)
-			TMP_RTL.text = "0"
-			TMP_RTL.visible = false
-			TMP_RTL.global_position = tile.Player.get_ProgressBar().global_position
-			await tile.UI_add_score(TMP_RTL, 0, 0)
-			TMP_RTL.queue_free()
-			
-			tile.Player.addPoints(extraPoints)
+func Architect_Check(peer_id: int) -> void:#peer_id: int
+	for player in Tiles[0].Player.get_parent().players:
+		if(player.player_Node == Tiles[0].Player && peer_id == player.player_id):
+	#if(Tiles[0].Player.is_MainInstance):
+			for tile in Tiles:
+				if(tile.getTileData().joker_id == 3):
+					var extraPoints: int = tile.on_spread(Vector2(0, 0), self, {"Architect": true})
+					await tile.get_tree().create_timer(0.8).timeout
+				
+					var TMP_RTL: RichTextLabel = RichTextLabel.new()
+					tile.Player.add_child(TMP_RTL)
+					TMP_RTL.text = "0"
+					TMP_RTL.visible = false
+					TMP_RTL.global_position = tile.Player.get_ProgressBar().global_position
+					await tile.UI_add_score(TMP_RTL, 0, 0)
+					TMP_RTL.queue_free()
+					
+					tile.Player.addPoints(extraPoints)
 
 static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool = false) -> String:
 	if(selected_tiles.size() < 3 && !highlight):

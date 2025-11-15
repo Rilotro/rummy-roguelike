@@ -20,8 +20,8 @@ func _process(delta: float) -> void:
 		if(tip_timer >= 1 && !tip_openned):
 			tip_openned = true
 			tip_UI = preload("res://UI_Tip.tscn").instantiate()
-			tip_UI.initialise_tip(self)
 			get_tree().root.get_child(0).add_child(tip_UI)
+			tip_UI.initialise_tip(self)
 			tip_UI.z_index = 3
 
 func _on_pressed() -> void:
@@ -40,7 +40,7 @@ func no_cost() -> void:
 func check_access(currentCurrency: int) -> void:
 	if(free):
 		disabled = false
-		$Cost_Text.text = "0"
+		#$Cost_Text.text = "0"
 		$Cost_Text.modulate = Color(1, 1, 0, 1)
 	else:
 		$Cost_Text.text = str(item_cost)
@@ -64,6 +64,7 @@ func freebie(is_free: bool, currency: int) -> void:
 func remove_item():
 	item_info = null
 	$ItemSprite.texture = null
+	$Outline.visible = false
 
 func change_Sprite(new_Sprite: Texture) -> void:
 	$ItemSprite.texture = new_Sprite
@@ -104,6 +105,9 @@ func REgenerate_selection(new_item: Item = null) -> int:
 		$Cost_Text.text = str(item_cost)
 	
 	return item_info.id
+
+func OutlineColor(color: Color = Color(1, 1, 1, 1)) -> void:
+	$Outline.set_instance_shader_parameter("color", color)
 
 func Outline(on: bool = true):
 	$Outline.visible = on

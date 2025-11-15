@@ -7,6 +7,8 @@ signal item_used
 
 const MAX_ITEM_SLOTS = 12
 
+var MidasSparkle: Node2D
+
 func _ready() -> void:
 	for i in range(3):
 		var new_ItemSlot: Item_Selection = ItemSlot_base.instantiate()
@@ -15,6 +17,8 @@ func _ready() -> void:
 		new_ItemSlot.parentEffector = self
 
 func _process(delta: float) -> void:
+	if(MidasSparkle != null):
+		MidasSparkle.global_position = get_global_mouse_position()
 	if(Input.is_action_just_pressed("Left_Click")):
 		if(inside_IB_S):
 			still_inside_IB_S = true
@@ -23,15 +27,13 @@ func _process(delta: float) -> void:
 		if(inside_IB_S && still_inside_IB_S && $Slots.get_child_count() < MAX_ITEM_SLOTS):
 			still_inside_IB_S = false
 			Item.is_HammerTime = false
-			get_parent().HammerTime(false, $Slots)
+			get_parent().HammerTime(false, $Slots, Vector2(0, 35))
 
 func add_item(new_item: Item):
 	var end_point: int = $Slots.get_children().size()
 	match new_item.id:
 		2:
 			Item.flags["Wrench"] += 1
-		3:
-			Item.flags["Midas Touch"] += new_item.uses
 		4:
 			Item.flags["Beaver Teeth"] = true
 		5:
@@ -73,17 +75,39 @@ func getItems() -> Array[Item]:
 	
 	return Items
 
+func get_Slots() -> HBoxContainer:
+	return $Slots
+
 func item_select(Item_Slot: Item_Selection, item: Item, _cost: int) -> void:
 	if(item != null && !item.passive):
 		var was_used: bool = item.useItem(get_parent())
 		if(was_used):
-			if(item.consumable):
-				match item.id:
-					0:
-						item_used.emit()
+			#if(item.consumable):
+			match item.id:
+				0:
+					item_used.emit(multiplayer.get_unique_id())
+				1:
+					Item_Slot.OutlineColor(Color(1, 0, 0, 1))
+				3:
+					Item_Slot.OutlineColor(Color(1, 0, 0, 1))
+					MidasSparkle = load("res://scenes/sparkle_road.tscn").instantiate()
+					get_parent().add_child(MidasSparkle)
+					MidasSparkle.change_road(get_global_mouse_position(), Vector2(20, 20), 0.0)
+					MidasSparkle.is_TopLevel = true
+				6:
+					Item_Slot.OutlineColor(Color(1, 0, 0, 1))
 				
-				if(item.uses <= 0):
-					Item_Slot.remove_item()
+			if(item.uses <= 0 && item.consumable):
+				Item_Slot.remove_item()
+		else:
+			match item.id:
+				1:
+					Item_Slot.OutlineColor(Color(1, 1, 1, 1))
+				3:
+					Item_Slot.OutlineColor(Color(1, 1, 1, 1))
+					MidasSparkle.queue_free()
+				6:
+					Item_Slot.OutlineColor(Color(1, 1, 1, 1))
 
 func used_PassiveItem(item_id: int):
 	for item in $Slots.get_children():
@@ -94,7 +118,7 @@ func used_PassiveItem(item_id: int):
 					if(item.item_info.uses <= 0):
 						item.remove_item()
 					Item.flags["Midas Touch"] -= 1
-					item_used.emit()
+					item_used.emit(multiplayer.get_unique_id())
 					break
 
 func HammerTime(is_HammerTime: bool = false, Target: Node = null) -> void:
@@ -110,20 +134,39 @@ func HammerTime(is_HammerTime: bool = false, Target: Node = null) -> void:
 			$ItemBar_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
 	else:
 		$BarBody.self_modulate.a = 1
+		
 
 func HammerUsed() -> void:
 	for Slot in $Slots.get_children():
 		if("item_info" in Slot && Slot.item_info != null && Slot.item_info.id == 1):
 			Slot.item_info.uses -= 1
+			item_used.emit(multiplayer.get_unique_id())
 			if(Slot.item_info.uses <= 0):
 				Slot.remove_item()
+			else:
+				Slot.OutlineColor(Color(1, 1, 1, 1))
+			break
+
+func MidasTouchUsed() -> void:
+	for Slot in $Slots.get_children():
+		if("item_info" in Slot && Slot.item_info != null && Slot.item_info.id == 3):
+			Slot.item_info.uses -= 1
+			item_used.emit(multiplayer.get_unique_id())
+			if(Slot.item_info.uses <= 0):
+				Slot.remove_item()
+			else:
+				Slot.OutlineColor(Color(1, 1, 1, 1))
+			break
+	
+	MidasSparkle.queue_free()
 
 func MonkeyPawUsed() -> void:
 	for Slot in $Slots.get_children():#-------------------------------------------------------------------------------------------------
 		if("item_info" in Slot && Slot.item_info != null && Slot.item_info.id == 6):
 			Slot.item_info.usedThisRound += 1
-			item_used.emit()
+			item_used.emit(multiplayer.get_unique_id())
 			Slot.change_Sprite(load("res://Items/MonkeyPawUses/Monkey's Paw" + str(Slot.item_info.usedThisRound) + ".png"))
+			Slot.OutlineColor(Color(1, 1, 1, 1))
 			if(Slot.item_info.usedThisRound == 3):
 				Slot.item_info.description = "I hope you got what you wished for..."
 			break
@@ -141,6 +184,7 @@ func add_ItemSlot() -> void:
 	new_ItemSlot.no_cost()
 	$Slots.add_child(new_ItemSlot)
 	$Slots.move_child(new_ItemSlot, 0)
+	new_ItemSlot.parentEffector = self
 
 var inside_IB_S: bool = false
 var still_inside_IB_S: bool = false

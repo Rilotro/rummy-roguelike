@@ -130,8 +130,9 @@ offset_bottom = 57.4
 [node name="Sprite2D" type="Sprite2D" parent="Exit_Shop"]
 material = SubResource("ShaderMaterial_f511j")
 position = Vector2(12.9, 12.9)
-scale = Vector2(25, 25)
 texture = SubResource("CanvasTexture_c0ofq")
+region_enabled = true
+region_rect = Rect2(0, 0, 25, 25)
 
 [node name="Currency_Text" type="RichTextLabel" parent="."]
 layout_mode = 0

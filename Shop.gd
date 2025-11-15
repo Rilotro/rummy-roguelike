@@ -1,17 +1,24 @@
 extends Control
 
-#var buttons: Array[Tile_Info]
+#var buttons: Array[Tile_Info]-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 var TipTexts: Array[String] = ["You need to select [b]3 or more Tiles[/b] in a [b]Same Color[/b] or [b]Same Number[/b] pattern to [b]Spread[/b]",
 							   "Once you have [b]Discarded[/b] enough [b]Tiles[/b], you can [b]Spread[/b] using a single [b]Tile[/b] from the [b]Discard River[/b]",
 							   "When you [b]Spread[/b] using a [b]Tile[/b] from the [b]Discard River[/b], [i]all[/i] [b]Tiles Discarded[/b] after that [b]one[/b] are [b]Drained[/b] into your [b]Board[/b]",
 							   "Winning [b]Points[/b] also wins you [b]Currency[/b] to use in the [b]Shop[/b], so keep [b]Spreading Tiles[/b]!",
 							   "When you [i]run out of [b]Tiles[/b][/i] in your [b]Deck[/b] you [b][color=red]LOSE[/color][/b]",
 							   "Don't worry about [i]running out of space[/i] on your [b]Board[/b], new [b]Rows[/b] are created [i]automaticaly[/i]",
-							   "Take note of your [b]Score[/b] and the [b]Progress Bar[/b] to your [i]left[/i], with each new [b]Level[/b] you [i][b]Draw[/b] more [b]Tiles[/b][/i] from your [b]Deck[/b] and also get more [b]Tiles[/b] of greater value in the [b]Shop[/b]",
+							   "Take note of your [b]Score[/b] and the [b]Progress Bar[/b] [i]atop[/i] your [b]Board[/b], with each new [b]Level[/b] you gain more [i]boons and curses[/i], like [b]Drawing[/b] more [b]Tiles[/b]",
 							   "Each time you [b]Drain the River[/b] the number of [b]Tiles[/b] that need to be [b]Discarded[/b] to [i]do it again[/i] [b]increases[/b]",
 							   "Each [b]Tile Rarity[/b] awards [i]different amounts[/i] of [b]Points[/b], in ascending order: [b]Porcelain[/b], [b]Bronze[/b], [b]Silver[/b] and [b]Gold[/b]",
 							   "[rainbow freq=1.0 sat=0.8 val=0.8 speed=0.0]The Joker[/rainbow] counts as any [b]Tile[/b]",
-							   "When you [b]Buy[/b] a [b]Tile[/b] it is added somewhere below the [i]top 10 [b]Tiles[/b][/i] and above the [i]bottom 10 [b]Tiles[/b][/i] of the deck, if there are more than [i]20[/i] [b]Tiles[/b] in the [b]Deck[/b]"]
+							   "When you [b]Buy[/b] a [b]Tile[/b] it is added somewhere below the [i]top 10 [b]Positions[/b][/i] and above the [i]bottom 10 [b]Positions[/b][/i] of the deck, if there are more than [i]20[/i] [b]Tiles[/b] in the [b]Deck[/b]",
+							   "The chances for [b]Tiles[/b] with [b]Effects[/b] and higher [b]Rarity[/b] to appear increase with your [b]Level[/b]",
+							   "When [b]Consumable Items[/b] [i]run out of [b]Uses[/b][/i], they dissapear",
+							   "You can [b]Append Board Tiles[/b] to [b]Spread Rows[/b], if they are [b]Eligible[/b], and gain their [b]Points[/b] and [b]On Spread Effects[/b] that way",
+							   "[b]Append Eligibility Rules[/b] are the same as [b]Spread Eligibility Rules[/b]",
+							   "If you [b]Append[/b] a [b]Tile[/b] to [b]Another Player's Spread Row[/b], the [b]Tile[/b] becomes a [b]Leech[/b] and will limit that [b]Player's[/b] ability to [b]Append[/b] to that [b]Row[/b]",
+							   "[b]Leeches[/b] can be stacked, even if they don't originate from the same [b]Player[/b]",
+							   "Once [b]Bought[/b], some [b]Items[/b] won't show up in the [b]Shop[/b] [i]again[/b]"]
 
 var TipCheck: Array[bool]
 
@@ -64,6 +71,7 @@ func _process(delta: float) -> void:
 func add_TileSelection() -> void:
 	var new_TileSelection: Button = load("res://TileSelection.tscn").instantiate()
 	$Tile_Selections/TileSelections.add_child(new_TileSelection)
+	new_TileSelection.parentEffector = self
 	new_TileSelection.REgenerate_selection()
 	
 	await get_tree().create_timer(0.001).timeout
@@ -78,6 +86,7 @@ func add_TileSelection() -> void:
 func add_JokerSelection() -> void:
 	var new_JokerSelection: Button = load("res://TileSelection.tscn").instantiate()
 	$Tile_Selections/JokerSelections.add_child(new_JokerSelection)
+	new_JokerSelection.parentEffector = self
 	new_JokerSelection.joker_tile = true
 	var joker_ids: Array[int]
 	for JokerSlot in $Tile_Selections/JokerSelections.get_children():
@@ -101,6 +110,7 @@ func add_JokerSelection() -> void:
 func add_ItemSelection() -> void:
 	var new_ItemSelection: Button = load("res://ItemSelection.tscn").instantiate()
 	$Tile_Selections/ItemSelections.add_child(new_ItemSelection)
+	new_ItemSelection.parentEffector = self
 	
 	var item_ids: Array[int]
 	for ItemSlot in $Tile_Selections/JokerSelections.get_children():
@@ -121,6 +131,15 @@ func add_ItemSelection() -> void:
 		var Separation: int = $Tile_Selections/ItemSelections.get_theme_constant("separation")
 		var SeparationCount: int = $Tile_Selections/ItemSelections.get_child_count()-2
 		$Tile_Selections/ItemSelections.add_theme_constant_override("separation", int((Separation*SeparationCount - SizeDiff)/SeparationCount))
+
+func get_TileSelections() -> HBoxContainer:
+	return $Tile_Selections/TileSelections
+
+func get_JokerSelecions() -> VBoxContainer:
+	return $Tile_Selections/JokerSelections
+
+func get_ItemSelections() -> HBoxContainer:
+	return $Tile_Selections/ItemSelections
 
 func REgenerate_selections() -> void:
 	var joker_ids: Array[int]
@@ -164,6 +183,7 @@ func tile_select(_button: Button, tile_bought: Tile_Info, cost: int) -> void:
 		freebies -= 1
 	else:
 		currency -= cost
+		$"../ShopCurrency".text = "Current Funds: " + str(currency)
 		update_currency(0)
 	get_parent().buy_tile(tile_bought)
 	if(freebies <= 0):
@@ -178,6 +198,7 @@ func item_select(button: Button, item_bought: Item, cost: int) -> void:
 		freebies -= 1
 	else:
 		currency -= cost
+		$"../ShopCurrency".text = "Current Funds: " + str(currency)
 		update_currency(0)
 	match item_bought.id:
 		2:

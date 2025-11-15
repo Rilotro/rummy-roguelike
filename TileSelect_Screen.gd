@@ -12,6 +12,7 @@ func start_select(selection_nr: int, flags: Dictionary = {"BoardAdd": false, "Po
 	for i in range(selection_nr):
 		var new_selection: Tile_Selection = Tile_Selection_Base.instantiate()
 		new_selection.no_cost()
+		#new_selection.joker_tile = true
 		var setTile: Tile_Info = null
 		if(flags["Replacement"] != null):
 			var number: int = 0

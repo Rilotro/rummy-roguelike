@@ -29,8 +29,8 @@ func _process(delta: float) -> void:
 		if(tip_timer >= 1.0 && !tip_openned):
 			tip_openned = true
 			tip_UI = preload("res://UI_Tip.tscn").instantiate()
-			tip_UI.initialise_tip(self)
 			get_tree().root.get_child(0).add_child(tip_UI)
+			tip_UI.initialise_tip(self)
 			tip_UI.z_index = 3
 			#tip_UI.global_position = global_position + $TileBody.scale*scale/2 - Vector2(0, tip_UI.size.y/2)
 

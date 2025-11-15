@@ -75,6 +75,7 @@ vertical_alignment = 1
 [node name="Outline" type="Sprite2D" parent="."]
 visible = false
 material = SubResource("ShaderMaterial_fxidx")
+instance_shader_parameters/color = Color(1, 1, 1, 1)
 instance_shader_parameters/speed = 0.0
 position = Vector2(19.5, 30)
 texture = SubResource("CanvasTexture_kxt6h")

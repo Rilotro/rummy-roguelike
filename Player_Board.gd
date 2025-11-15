@@ -63,9 +63,9 @@ func Draw(count: int = 1) -> void:
 		return
 	
 	for i in range(count):
-		if(Item.flags["Midas Touch"] > 0):
-			if(Tile_Deck[0].Rarify("gold")):
-				get_parent().used_PassiveItem(3)
+		#if(Item.flags["Midas Touch"] > 0):
+			#if(Tile_Deck[0].Rarify("gold")):
+				#get_parent().used_PassiveItem(3)
 		
 		Board.Draw(Tile_Deck[0])
 		Tile_Deck.remove_at(0)
@@ -129,11 +129,12 @@ func update_selected_tiles(tile: Tile, selected: bool) -> void:
 	else:
 		update_discard_requirement(selected_tiles.size())
 
-func show_possible_selections(MonkeyPaw: bool = false) -> void:
-	$"../Turn_Button".disabled = MonkeyPaw
-	if(MonkeyPaw):
+func show_possible_selections(MonkeyPaw: bool = false, MidasTouch: bool = false) -> void:
+	$"../Turn_Button".disabled = MonkeyPaw || MidasTouch
+	if(MonkeyPaw || MidasTouch):
 		selected_tiles.clear()
-	Board.show_possible_selections(selected_tiles, MonkeyPaw)
+	
+	Board.show_possible_selections(selected_tiles, MonkeyPaw, MidasTouch)
 
 func addPoints(newPoints: int) -> void:
 	Score += newPoints
@@ -348,7 +349,7 @@ func peer_PostSpread(peerTile: Tile_Info, Spread_Row: int, player: Node2D):
 				tween = get_tree().create_tween()
 	
 	await get_tree().create_timer(0.5).timeout
-	var new_points:int = newTile.on_spread(PT_finalpos)
+	var new_points:int = newTile.on_spread(PT_finalpos, SR[Spread_Row])
 	await get_tree().create_timer(0.8).timeout
 	
 	var TMP_RTL: RichTextLabel = RichTextLabel.new()

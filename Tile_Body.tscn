@@ -79,6 +79,7 @@ offset_left = -12.5
 offset_top = 5.5
 offset_right = 12.5
 offset_bottom = 17.5
+mouse_filter = 2
 theme_override_constants/separation = 2
 alignment = 1
 
@@ -87,6 +88,7 @@ visible = false
 modulate = Color(0, 0, 0, 1)
 custom_minimum_size = Vector2(11, 12)
 layout_mode = 2
+mouse_filter = 2
 
 [node name="Duplicate" type="Sprite2D" parent="HBoxContainer/DuplicateIcon"]
 self_modulate = Color(1, 1, 1, 0.39215687)
@@ -106,6 +108,7 @@ visible = false
 modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
 custom_minimum_size = Vector2(11, 12)
 layout_mode = 2
+mouse_filter = 2
 
 [node name="Sprite2D" type="Sprite2D" parent="HBoxContainer/WingedIcon"]
 position = Vector2(5.5, 6)

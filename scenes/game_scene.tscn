@@ -37,12 +37,24 @@ region_rect = Rect2(0, 0, 1152, 578)
 position = Vector2(576, 324)
 
 [node name="Turn_Button" type="Button" parent="."]
-offset_left = 10.0
-offset_top = 14.0
-offset_right = 123.0
-offset_bottom = 56.0
-theme_override_font_sizes/font_size = 24
+custom_minimum_size = Vector2(78, 31)
+offset_left = 46.5
+offset_top = 12.0
+offset_right = 124.5
+offset_bottom = 43.0
+theme_override_font_sizes/font_size = 16
 text = "End Turn"
+
+[node name="ShopCurrency" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(161, 23)
+offset_left = 5.0
+offset_top = 45.0
+offset_right = 166.0
+offset_bottom = 68.0
+text = "Current Funds: 0"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
 
 [node name="Player_Turn_Announcer" type="RichTextLabel" parent="."]
 self_modulate = Color(1, 1, 1, 0)

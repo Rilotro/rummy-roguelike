@@ -83,13 +83,14 @@ func updateTilePos(duration: float = 0.3) -> void:
 					Board_Tiles[j][i].moveTile(curr_pos)
 					await get_tree().create_timer(duration).timeout
 
-func show_possible_selections(selected_tiles: Array[Tile], MonkeyPaw: bool = false) -> void:
+func show_possible_selections(selected_tiles: Array[Tile], MonkeyPaw: bool = false, MidasTouch: bool = false) -> void:
 	var is_sequence: bool = false
 	var common_value: int = -1
 	var last_number: int = -1
 	var colors: Array[int]
 	var nonJoker_count: int = 0
 	var nonJoker_index: int = -1
+	var EOS_reached: bool = false
 	
 	for i in range(selected_tiles.size()):
 		if(selected_tiles[selected_tiles.size()-1-i].getTileData().joker_id < 0):
@@ -97,6 +98,12 @@ func show_possible_selections(selected_tiles: Array[Tile], MonkeyPaw: bool = fal
 			nonJoker_index = selected_tiles.size()-1-i
 			if(last_number == -1):
 				last_number = selected_tiles[selected_tiles.size()-1-i].getTileData().number+i
+				if(last_number >= 14):
+					last_number = 1
+					EOS_reached = true
+				
+		elif(last_number == 1):
+			EOS_reached = true
 		colors.append(selected_tiles[i].getTileData().color)
 	
 	if(nonJoker_count > 1):
@@ -107,34 +114,46 @@ func show_possible_selections(selected_tiles: Array[Tile], MonkeyPaw: bool = fal
 		elif(flag.contains("color:")):
 			is_sequence = true
 			common_value = flag.split(":")[1].to_int()
+			if(last_number == 1):
+				EOS_reached = true
 	
 	for Board in Board_Tiles:
 		for other_tile in Board:
 			if(other_tile != null && selected_tiles.find(other_tile) < 0):
 				other_tile.possible_Spread_highlight(false)
-				if(MonkeyPaw && other_tile.getTileData().rarity != "porcelain" && other_tile.getTileData().rarity != ""):
+				if(MonkeyPaw && other_tile.getTileData().joker_id < 0 && other_tile.getTileData().rarity != "porcelain" && other_tile.getTileData().rarity != ""):
 					other_tile.possible_Spread_highlight(true)
-				elif(selected_tiles.size() > 0):
-					if(other_tile.getTileData().joker_id >= 0):
+				
+				if(MidasTouch && other_tile.getTileData().joker_id < 0 && other_tile.getTileData().rarity != "gold"):
+					other_tile.possible_Spread_highlight(true)
+				
+				if(!MonkeyPaw && !MidasTouch && selected_tiles.size() > 0):
+					if(nonJoker_count == 0):
 						other_tile.possible_Spread_highlight(true)
-					elif(nonJoker_count == 0):
-						other_tile.possible_Spread_highlight(true)
-					elif(nonJoker_count == 1):
-						if(other_tile.getTileData().number == selected_tiles[nonJoker_index].getTileData().number):
-							if(other_tile.getTileData().effects["rainbow"] || selected_tiles[nonJoker_index].getTileData().effects["rainbow"] || other_tile.getTileData().color != selected_tiles[nonJoker_index].getTileData().color):
-								other_tile.possible_Spread_highlight(true)
-						elif(other_tile.getTileData().number - last_number == 1 || (last_number == 13 && other_tile.getTileData().number == 1)):
-							if(other_tile.getTileData().effects["rainbow"] || selected_tiles[nonJoker_index].getTileData().effects["rainbow"] || other_tile.getTileData().color == selected_tiles[nonJoker_index].getTileData().color):
-								other_tile.possible_Spread_highlight(true)
-					elif(nonJoker_count > 1):
-						if(common_value > 0):
-							if(is_sequence):
-								if(other_tile.getTileData().color == common_value || other_tile.getTileData().effects["rainbow"]):
-									if(other_tile.getTileData().number == last_number+1 || (other_tile.getTileData().number == 1 && last_number == 13)):
-										other_tile.possible_Spread_highlight(true)
-							else:
-								if(other_tile.getTileData().number == common_value && (other_tile.getTileData().effects["rainbow"] || colors.find(other_tile.getTileData().color) < 0)):
+					elif(!EOS_reached || colors.size() < 4):
+						if(nonJoker_count == 1):
+							if(other_tile.getTileData().joker_id >= 0):
+								if(!EOS_reached || colors.size() < 4):
 									other_tile.possible_Spread_highlight(true)
+							elif(other_tile.getTileData().number == selected_tiles[nonJoker_index].getTileData().number):
+								if(colors.size() < 4 && other_tile.getTileData().color != selected_tiles[nonJoker_index].getTileData().color):
+									other_tile.possible_Spread_highlight(true)
+							elif(!EOS_reached && (other_tile.getTileData().number - last_number == 1 || (last_number == 13 && other_tile.getTileData().number == 1))):
+								if(other_tile.getTileData().effects["rainbow"] || selected_tiles[nonJoker_index].getTileData().effects["rainbow"] || other_tile.getTileData().color == selected_tiles[nonJoker_index].getTileData().color):
+									other_tile.possible_Spread_highlight(true)
+						elif(nonJoker_count > 1):
+							if(common_value > 0):
+								if(is_sequence):
+									if(other_tile.getTileData().joker_id >= 0 && !EOS_reached):
+										other_tile.possible_Spread_highlight(true)
+									elif(other_tile.getTileData().color == common_value || other_tile.getTileData().effects["rainbow"]):
+										if(!EOS_reached && (other_tile.getTileData().number == last_number+1 || (other_tile.getTileData().number == 1 && last_number == 13))):
+											other_tile.possible_Spread_highlight(true)
+								else:
+									if(other_tile.getTileData().joker_id >= 0 && colors.size() < 4):
+										other_tile.possible_Spread_highlight(true)
+									elif(other_tile.getTileData().number == common_value && colors.size() < 4 && (other_tile.getTileData().effects["rainbow"] || colors.find(other_tile.getTileData().color) < 0)):
+										other_tile.possible_Spread_highlight(true)
 
 func get_actual_size_board(board: int) -> int:
 	if(board < 0 || board >= Board_Tiles.size()):
@@ -219,7 +238,7 @@ func HighLightEndPos(tile: Tile):
 		EP_HighLight = preload("res://scenes/sparkle_road.tscn").instantiate()
 		add_child(EP_HighLight)
 		#EP_HighLight.change_polarity(true)
-		EP_HighLight.change_road(end_pos, HL_size, 0.1, get_tree().create_tween(), Tween.TRANS_LINEAR, Tween.EASE_IN_OUT, end_pos, HL_size)
+		EP_HighLight.change_road(end_pos, HL_size, 0.0)
 		if(HL_onSpread == -1):
 			EP_HighLight.change_polarity(true)
 			EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2

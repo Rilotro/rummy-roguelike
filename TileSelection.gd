@@ -26,7 +26,7 @@ func no_cost() -> void:
 func check_access(currentCurrency: int) -> void:
 	if(free):
 		disabled = false
-		$Cost_Text.text = "0"
+		#$Cost_Text.text = "0"
 		$Cost_Text.modulate = Color(1, 1, 0, 1)
 	else:
 		$Cost_Text.text = str(tile_cost)

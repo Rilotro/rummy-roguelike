@@ -7,7 +7,8 @@ var stats: Array[int] = [0, 0, 0, 0]#in order: Score, Biggest Spread (Score-Wise
 
 var PB: Node2D
 
-func _ready() -> void:
+func _ready() -> void:#multiplayer.get_unique_id()
+	$ItemBar.item_used.connect(ItemUsed)
 	PB = $Player_Board
 	players.append(PlayerData.new(multiplayer.get_unique_id(), 0, PB))
 	if(HighLevelNetworkHandler.is_multiplayer):
@@ -78,6 +79,9 @@ func getTurn() -> bool:
 func get_ItemBar() -> Node2D:
 	return $ItemBar
 
+func get_Shop() -> Control:
+	return $Shop
+
 func Start_Turn(GameOver: bool = false) -> void:
 	if(GameOver):
 		if(HighLevelNetworkHandler.is_multiplayer):
@@ -118,29 +122,43 @@ func select_tiles(nr_tiles: int = 3, DeckIndex: int = -1, Replacement: Tile = nu
 
 func newScore(newScore: int, client_ID: int):
 	if(client_ID == multiplayer.get_unique_id()):
+		var old_curr: int = $Shop.currency
 		$Shop.update_currency(newScore)
+		#var tween = 
+		get_tree().create_tween().tween_method(func(x: int): $ShopCurrency.text = "Current Funds: " + str(x), old_curr, $Shop.currency, 1)
+		$ShopCurrency.text = "Current Funds: " + str($Shop.currency)
+		#$ShopCurrency.global_position.x = $Turn_Button.global_position.x + $Turn_Button.size.x/2.0 - $ShopCurrency.size.x/2.0
 		if(HighLevelNetworkHandler.is_multiplayer):
 			$MultiplayerSynchronizer.handle_newScore(newScore, client_ID)
 
 func addShopUses() -> void:
 	$Shop.addShopUses()
 
+var emitting: bool = false
+func ItemUsed(peer_id: int)-> void:
+	if(peer_id == multiplayer.get_unique_id()):
+		$MultiplayerSynchronizer.handle_ItemUsed(peer_id)
+	elif(!emitting):
+		emitting = true
+		$ItemBar.item_used.emit(peer_id)
+		emitting = false
+
 var HammerSprite: Sprite2D
 
-func HammerTime(is_HammerTime: bool = false, Target: Node = null) -> void:
+func HammerTime(is_HammerTime: bool = false, Target: Node = null, displacement: Vector2 = Vector2(0, 0)) -> void:
 	if(Target != null):
 		var tween = get_tree().create_tween()
-		tween.tween_property(HammerSprite, "global_position", Target.global_position, 1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(HammerSprite, "global_position", Target.global_position+displacement, 1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tween.tween_property(HammerSprite, "rotation", deg_to_rad(-60), 0.6)
-		tween.tween_property(HammerSprite, "rotation", deg_to_rad(90), 0.2)
-		await get_tree().create_timer(1.8).timeout
+		tween.tween_property(HammerSprite, "rotation", deg_to_rad(60), 0.2)
+		await tween.finished
 	
 	$BackGround_Obfuscator.visible = is_HammerTime
-	#$ItemBar_Sensor.visible = is_HammerTime
 	$ItemBar.HammerTime(is_HammerTime, Target)
 	$Shop.HammerTime(is_HammerTime, Target)
 	
 	if(Target != null):
+		await get_tree().create_timer(0.2).timeout
 		$Shop.visible = false
 		$ItemBar.HammerUsed()
 	
@@ -174,6 +192,9 @@ func buy_item(item_bought: Item) -> void:
 
 func Gain_Freebie(freebies: int = 1) -> void:
 	$Shop.Gain_Freebie(freebies)
+
+func MidasTouchUsed() -> void:
+	$ItemBar.MidasTouchUsed()
 
 func MonkeyPawUsed() -> void:
 	$ItemBar.MonkeyPawUsed()

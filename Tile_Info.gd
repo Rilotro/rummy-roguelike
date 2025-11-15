@@ -36,23 +36,23 @@ func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarit
 		match joker_id:
 			0:
 				joker_name = "The Joker"
-				joker_description = "Counts as any [i]number[/i] and any [i]color[/i]"
+				joker_description = "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i]"
 				points = 50
 			1:
 				joker_name = "The Partygoer"
-				joker_description = "[b]On Spread[/b] - I have [b]+10 Points[/b] for each [i]other[/i] [b]Tile[/b] in the [b]Row[/b]"
+				joker_description = "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - I have [b]+10 Points[/b] for each [i]other[/i] [b]Tile[/b] in the [b]Row[/b]"
 				points = 10
 			2:
 				joker_name = "The Banker"
-				joker_description = "[b]On Spread[/b] - The next [b]Item[/b] or [b]Tile[/b] you buy in the [b]Shop[/b] is [b]Free[/b]"
+				joker_description = "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - The next [b]Item[/b] or [b]Tile[/b] you buy in the [b]Shop[/b] is [b]Free[/b]"
 				points = 5
 			3:
 				joker_name = "The Architect"
-				joker_description = "[b]On Spread[/b] - All your [b]Consumable Items[/b] gain [b]+1 Uses[/b].[br][b]While Spread[/b] - When you [b]Use[/b] a [b]Consumable[/b], [b]Gain +5 Points[/b]"
+				joker_description = "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - All your [b]Consumable Items[/b] gain [b]+1 Uses[/b].[br][b]While Spread[/b] - When you [b]Use[/b] a [b]Consumable[/b], [b]Gain +5 Points[/b]"
 				points = 10
 			4:
 				joker_name = "The Vampire"
-				joker_description = "[b]On Spread[/b] - If I am a [b]Leech[/b], I [b]Gain Points[/b] equal to the [b]Points[/b] in the [b]Row[/b] I'm [b]Leeching[/b]"
+				joker_description = "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - If I am a [b]Leech[/b], I [b]Gain Points[/b] equal to the ammount of [b]Spread Points[/b] in the [b]Row[/b] I'm [b]Leeching[/b]"
 				points = 0
 	elif(rarity == "gold"):
 		points = 50

@@ -5,10 +5,10 @@ void vertex() {
 }
 
 void fragment() {
-	if((UV.x < UV.y+0.05) && (UV.x > UV.y-0.05)){
+	if((UV.x < UV.y+1.25) && (UV.x > UV.y-1.25)){
 		COLOR = vec4(1, 1, 1, 1);
 	}
-	else if(UV.x > 0.95-UV.y && UV.x < 1.05 - UV.y){
+	else if(UV.x > 23.75-UV.y && UV.x < 26.25 - UV.y){
 		COLOR = vec4(1, 1, 1, 1);
 	}
 	else{

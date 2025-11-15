@@ -5,13 +5,7 @@ void vertex() {
 }
 
 void fragment() {
-	//if(UV.x >= 0.996 || UV.x <= 0.004 || UV.y >= 0.99 || UV.y <= 0.02){
-		//COLOR = vec4(0, 0, 0, 1);
-	//}
-	//else{
-	COLOR = vec4(0.1 + 0.3*sin(PI*UV.y), 0.1 + 0.3*sin(PI*UV.y), 0.8, 1);
-	//}
-	
+	COLOR = vec4(0.1 + 0.3*sin(PI*UV.y/30.0), 0.1 + 0.3*sin(PI*UV.y/30.), 0.8, 1);
 }
 
 //void light() {

@@ -7,11 +7,19 @@ var LB_density: int = 10
 var rect_offset: Vector2 = Vector2(0, 0)
 var checkPolarity_atReady: bool = true
 
-func change_road(end_pos: Vector2, end_size: Vector2, duration: float, tween = get_tree().create_tween(), tween_trans = Tween.TRANS_LINEAR, tween_ease = Tween.EASE_IN_OUT, start_pos = global_position, start_size = size) -> void:
-	global_position = start_pos
-	size = start_size
-	tween.tween_property(self, "size", end_size, duration).set_trans(tween_trans).set_ease(tween_ease)
-	tween.parallel().tween_property(self, "global_position", end_pos, duration).set_trans(tween_trans).set_ease(tween_ease)
+var is_TopLevel: bool = false
+
+#func _ready() -> void:
+	#var tween = get_tree().create_tween()
+	#tween.tween_property(self, "global_position", Vector2(500, 500), 5)
+
+func change_road(end_pos: Vector2, end_size: Vector2, duration: float, tween = get_tree().create_tween(), tween_trans = Tween.TRANS_LINEAR, tween_ease = Tween.EASE_IN_OUT) -> void:
+	if(duration == 0):
+		global_position = end_pos
+		size = end_size
+	else:
+		tween.tween_property(self, "size", end_size, duration).set_trans(tween_trans).set_ease(tween_ease)
+		tween.parallel().tween_property(self, "global_position", end_pos, duration).set_trans(tween_trans).set_ease(tween_ease)
 
 func _process(delta: float) -> void:
 	var Sparkle_count: int = randi_range(LB_density, HB_density)
@@ -27,6 +35,7 @@ func _process(delta: float) -> void:
 			
 			new_Sparkle = Sparkle.instantiate()
 			add_child(new_Sparkle)
+			new_Sparkle.top_level = is_TopLevel
 			if(checkPolarity_atReady):
 				checkPolarity_atReady = false
 				if(!new_Sparkle.material.get_shader_parameter("is_positive")):

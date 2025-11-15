@@ -48,6 +48,15 @@ func handle_spread(client_ID: int, spread_tiles: Array) -> void:
 		get_parent().peer_spread(client_ID, spread_tiles)
 
 @rpc("any_peer", "call_local", "reliable")
+func handle_ItemUsed(client_ID: int) -> void:
+	if(client_ID == multiplayer.get_unique_id() && !is_handling):
+		is_handling = true
+		handle_ItemUsed.rpc(client_ID)
+		is_handling = false
+	elif(multiplayer.get_unique_id() != client_ID):
+		get_parent().ItemUsed(client_ID)
+
+@rpc("any_peer", "call_local", "reliable")
 func handle_PostSpread(client_ID: int, tile_spread, playerIndex: int, spread_row: int)-> void:
 	if(client_ID == multiplayer.get_unique_id() && !is_handling):
 		is_handling = true

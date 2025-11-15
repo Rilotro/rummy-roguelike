@@ -18,6 +18,7 @@ var Player: Node2D
 var parentEffector: Node2D
 
 static var MonkeyPaw: bool = false
+static var MidasTouch: bool = false
 
 func change_info(new_info: Tile_Info):
 	$Body.change_info(new_info)
@@ -34,13 +35,28 @@ func _process(delta: float) -> void:
 			LC_timer = 0.0
 			parentEffector.reposition_Tile(self)
 		elif(mouse_still_inside):
-			if(is_on_Board() && MonkeyPaw && getTileData().Rarify("", false)):#getTileData().Rarify("", false)
+			if(is_on_Board() && MonkeyPaw && getTileData().joker_id < 0 && getTileData().Rarify("", false)):#getTileData().Rarify("", false)
 				MonkeyPaw = false
 				Player.get_parent().select_tiles(3, -1, self)
-				Player.show_possible_selections(false)
+				Player.show_possible_selections()
 				Player.get_parent().MonkeyPawUsed()
 				return
 			elif(MonkeyPaw):
+				return
+			
+			if(is_on_Board() && MidasTouch && getTileData().joker_id < 0 && getTileData().Rarify("gold")):
+				MidasTouch = false
+				var color: int = getTileData().number
+				if(getTileData().effects["rainbow"]):
+					color = randi_range(1, 4)
+				
+				var new_info: Tile_Info = Tile_Info.new(getTileData().number, color, getTileData().joker_id, getTileData().rarity, null)
+				change_info(new_info)
+				Player.show_possible_selections()
+				Player.get_parent().MidasTouchUsed()
+				add_child(load("res://scenes/Explosion_Wave.tscn").instantiate())
+				return
+			elif(MidasTouch):
 				return
 			
 			if(Player.my_turn && !Player.is_spreading && is_on_Board):
@@ -126,8 +142,7 @@ func on_spread(PT_finalpos: Vector2 = Vector2(0, 0), Row: Spread_Info = null, fl
 		getTileData().points = final_points
 	
 	SR = preload("res://scenes/sparkle_road.tscn").instantiate()
-	var EW: Sprite2D = preload("res://scenes/Explosion_Wave.tscn").instantiate()
-	add_child(EW)
+	add_child(load("res://scenes/Explosion_Wave.tscn").instantiate())
 	add_child(SR)
 	
 	PointText = RichTextLabel.new()
@@ -192,7 +207,7 @@ func UI_add_score(BigScore: RichTextLabel, BigPoints: int, Spread_size: int) -> 
 		await tween.finished
 		var BS_SR: Node2D = preload("res://scenes/sparkle_road.tscn").instantiate()
 		BigScore.add_child(BS_SR)
-		BS_SR.change_road(BigScore.global_position+BigScore.custom_minimum_size/2, BigScore.custom_minimum_size, 0.01, get_tree().create_tween(), Tween.TRANS_LINEAR, Tween.EASE_IN_OUT, BigScore.global_position, BigScore.custom_minimum_size)
+		BS_SR.change_road(BigScore.global_position+BigScore.custom_minimum_size/2, BigScore.custom_minimum_size, 0.0)#, BigScore.global_position, BigScore.custom_minimum_size)
 		BS_SR.HB_density = 2
 		BS_SR.LB_density = -2
 		PointText.queue_free()
