@@ -353,10 +353,10 @@ func reposition_Tile(tile: Tile) -> void:
 		if(S.get_parent() == get_parent()):
 			await S.get_parent().updateTilePos(0.1)
 		else:
-			var tween = get_tree().create_tween()
 			S.get_parent().updateTilePos(0.1)
 			var origRot: float = tile.rotation
 			while(S.get_parent().is_updatingPos):
+				var tween = get_tree().create_tween()
 				tween.tween_property(tile, "rotation", 2*PI+origRot, 0.05)
 				await tween.finished
 				if(S.get_parent().is_updatingPos):
