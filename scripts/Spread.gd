@@ -31,8 +31,6 @@ func Spread(selected_tiles: Array[Tile]) -> void:
 	
 	$"../../Turn_Button".disabled = true
 	await updateTilePos()
-	#$Control.custom_minimum_size = Vector2(200, 35 + 40*(Spread_Rows.size()-1))
-	#$Control.position = Vector2(-100, -17.5 - 40*(Spread_Rows.size()-1))
 	await get_tree().create_timer(0.2).timeout
 	await Add_Spread_Score(selected_tiles)
 	$"../../Turn_Button".disabled = false

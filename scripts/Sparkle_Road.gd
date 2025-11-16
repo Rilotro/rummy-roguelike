@@ -13,11 +13,13 @@ var is_TopLevel: bool = false
 	#var tween = get_tree().create_tween()
 	#tween.tween_property(self, "global_position", Vector2(500, 500), 5)
 
-func change_road(end_pos: Vector2, end_size: Vector2, duration: float, tween = get_tree().create_tween(), tween_trans = Tween.TRANS_LINEAR, tween_ease = Tween.EASE_IN_OUT) -> void:
+func change_road(end_pos: Vector2, end_size: Vector2, duration: float, tween = null, tween_trans = Tween.TRANS_LINEAR, tween_ease = Tween.EASE_IN_OUT) -> void:
 	if(duration == 0):
 		global_position = end_pos
 		size = end_size
 	else:
+		if(tween == null):
+			tween = get_tree().create_tween()
 		tween.tween_property(self, "size", end_size, duration).set_trans(tween_trans).set_ease(tween_ease)
 		tween.parallel().tween_property(self, "global_position", end_pos, duration).set_trans(tween_trans).set_ease(tween_ease)
 

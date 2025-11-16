@@ -212,9 +212,10 @@ func UI_add_score(BigScore: RichTextLabel, BigPoints: int, Spread_size: int) -> 
 		BS_SR.LB_density = -2
 		PointText.queue_free()
 		SR.queue_free()
-		tween = get_tree().create_tween()
-		tween.set_parallel(false)
-		tween.tween_method(update_BigScore.bind(BigScore), 0, BigPoints, 0.5 + 0.3*(Spread_size-1))
+		var tween1 = get_tree().create_tween()
+		tween1.set_parallel(false)
+		tween1.tween_method(update_BigScore.bind(BigScore), 0, BigPoints, 0.5 + 0.3*(Spread_size-1))
+		await tween1.finished
 	else:
 		await tween.finished
 		PointText.queue_free()
