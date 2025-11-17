@@ -60,8 +60,6 @@ func _process(delta: float) -> void:
 		HammerSprite.global_position = get_global_mouse_position()
 	if(Input.is_action_just_pressed("Debug_Draw")):
 		if(!$TileSelect_Screen.visible && PB.my_turn && !PB.discarding):
-			#Item.is_HammerTime = !Item.is_HammerTime
-			#HammerTime(Item.is_HammerTime)
 			$TileSelect_Screen.start_select(3, {"BoardAdd": true, "Position": -1, "Replacement": null})
 
 @rpc("any_peer", "call_local", "reliable")

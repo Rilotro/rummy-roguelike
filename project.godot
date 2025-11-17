@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 HighLevelNetworkHandler="*res://MultiPlayer/example/high_level_network_handler.gd"
+Descriprions="*res://scripts/Descriprions.gd"
 
 [editor_plugins]
 
