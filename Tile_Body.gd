@@ -28,10 +28,10 @@ func _process(delta: float) -> void:
 		tip_timer += delta
 		if(tip_timer >= 1.0 && !tip_openned):
 			tip_openned = true
-			tip_UI = preload("res://UI_Tip.tscn").instantiate()
+			tip_UI = UITip.new(UITip.UIType.TILE, self)#preload("res://UI_Tip.tscn").instantiate()
 			get_tree().root.get_child(0).add_child(tip_UI)
-			tip_UI.initialise_tip(self)
-			tip_UI.z_index = 3
+			#tip_UI.initialise_tip(self)
+			#tip_UI.z_index = 3
 			#tip_UI.global_position = global_position + $TileBody.scale*scale/2 - Vector2(0, tip_UI.size.y/2)
 
 func acc_size() -> Vector2:
@@ -51,51 +51,57 @@ func possible_Spread_highlight(activate: bool) -> void:
 		$HighLight.modulate = Color(0, 0, 0, 1)
 		Spread_highligh = false
 
-func change_info(new_info: Tile_Info) -> void:
+func change_info(new_info: Tile_Info = Tile_Data) -> void:
 	Tile_Data = new_info
 	
 	if(Tile_Data.joker_id < 0):
 		$TileNumber.text = str(Tile_Data.number)
-		if(Tile_Data.effects["rainbow"]):
+		if(Tile_Data.effects.find(Tile_Info.Effect.RAINBOW) >= 0):
 			$TileNumber.set_instance_shader_parameter("is_rainbow", true)
 		else:
 			$TileNumber.set_instance_shader_parameter("is_rainbow", false)
-			match Tile_Data.color:
-				1:
-					$TileNumber.modulate = Color(0, 0, 0, 1)
-					$HBoxContainer/DuplicateIcon.modulate = Color(0, 0, 0, 1)
-					$HBoxContainer/WingedIcon.modulate = Color(0.021, 0.021, 0.021, 1)
-				2:
-					$TileNumber.modulate = Color(0, 0, 1, 1)
-					$HBoxContainer/DuplicateIcon.modulate = Color(0, 0, 1, 1)
-					$HBoxContainer/WingedIcon.modulate = Color(0, 0, 1, 1)
-				3:
-					$TileNumber.modulate = Color(0, 1, 0, 1)
-					$HBoxContainer/DuplicateIcon.modulate = Color(0, 1, 0, 1)
-					$HBoxContainer/WingedIcon.modulate = Color(0, 1, 0, 1)
-				4:
-					$TileNumber.modulate = Color(1, 0, 0, 1)
-					$HBoxContainer/DuplicateIcon.modulate = Color(1, 0, 0, 1)
-					$HBoxContainer/WingedIcon.modulate = Color(1, 0, 0, 1)
+			#match Tile_Data.color:
+				#1:
+					#$TileNumber.modulate = Color(0, 0, 0, 1)
+					#$HBoxContainer/DuplicateIcon.modulate = Color(0, 0, 0, 1)
+					#$HBoxContainer/WingedIcon.modulate = Color(0.021, 0.021, 0.021, 1)
+				#2:
+					#$TileNumber.modulate = Color(0, 0, 1, 1)
+					#$HBoxContainer/DuplicateIcon.modulate = Color(0, 0, 1, 1)
+					#$HBoxContainer/WingedIcon.modulate = Color(0, 0, 1, 1)
+				#3:
+					#$TileNumber.modulate = Color(0, 1, 0, 1)
+					#$HBoxContainer/DuplicateIcon.modulate = Color(0, 1, 0, 1)
+					#$HBoxContainer/WingedIcon.modulate = Color(0, 1, 0, 1)
+				#4:
+					#$TileNumber.modulate = Color(1, 0, 0, 1)
+					#$HBoxContainer/DuplicateIcon.modulate = Color(1, 0, 0, 1)
+					#$HBoxContainer/WingedIcon.modulate = Color(1, 0, 0, 1)
+			
+			$TileNumber.modulate = Tile_Data.color
+			$HBoxContainer/DuplicateIcon.modulate = Tile_Data.color
+			$HBoxContainer/WingedIcon.modulate = Tile_Data.color
+			if(Tile_Data.color == Color.BLACK):
+				$HBoxContainer/WingedIcon.modulate += Color(0.021, 0.021, 0.021, 0)
 		
-		if(Tile_Data.effects["duplicate"]):
+		if(Tile_Data.effects.find(Tile_Info.Effect.DUPLICATE) >= 0):
 			$HBoxContainer/DuplicateIcon.visible = true
 		else:
 			$HBoxContainer/DuplicateIcon.visible = false
 		
-		if(Tile_Data.effects["winged"]):
+		if(Tile_Data.effects.find(Tile_Info.Effect.WINGED) >= 0):
 			$HBoxContainer/WingedIcon.visible = true
 		else:
 			$HBoxContainer/WingedIcon.visible = false
 		
 		match new_info.rarity:
-			"gold":
+			Tile_Info.Rarity.GOLD:
 				$TileBody.self_modulate = Color(1,0.843,0, 1)
-			"silver":
+			Tile_Info.Rarity.SILVER:
 				$TileBody.self_modulate = Color(0.75,0.75,0.75, 1)
-			"bronze":
+			Tile_Info.Rarity.BRONZE:
 				$TileBody.self_modulate = Color(0.804, 0.498, 0.196, 1)
-			"porcelain":
+			Tile_Info.Rarity.PORCELAIN:
 				$TileBody.self_modulate = Color(1, 1, 1, 1)
 	else:
 		match Tile_Data.joker_id:

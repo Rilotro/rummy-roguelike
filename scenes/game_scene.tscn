@@ -21,8 +21,13 @@ properties/2/path = NodePath(".:playerScores")
 properties/2/spawn = true
 properties/2/replication_mode = 1
 
-[node name="GameScene" type="Node2D"]
+[node name="GameScene" type="Node2D" node_paths=PackedStringArray("ItemBar", "TurnButton", "BG_Obfuscator", "Shop", "tileSelectScreen")]
 script = ExtResource("1_w5aja")
+ItemBar = NodePath("ItemBar")
+TurnButton = NodePath("Turn_Button")
+BG_Obfuscator = NodePath("BackGround_Obfuscator")
+Shop = NodePath("Shop")
+tileSelectScreen = NodePath("TileSelect_Screen")
 
 [node name="BackGround_Obfuscator" type="Sprite2D" parent="."]
 visible = false

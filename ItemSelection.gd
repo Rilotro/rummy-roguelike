@@ -19,14 +19,15 @@ func _process(delta: float) -> void:
 		tip_timer += delta
 		if(tip_timer >= 1 && !tip_openned):
 			tip_openned = true
-			tip_UI = preload("res://UI_Tip.tscn").instantiate()
+			tip_UI = UITip.new(UITip.UIType.ITEM, self)
+			#tip_UI = preload("res://UI_Tip.tscn").instantiate()
 			get_tree().root.get_child(0).add_child(tip_UI)
-			tip_UI.initialise_tip(self)
-			tip_UI.z_index = 3
+			#tip_UI.initialise_tip(self)
+			#tip_UI.z_index = 3
 
 func _on_pressed() -> void:
 	parentEffector.item_select(self, item_info, item_cost)
-	if(cost):
+	if(cost && !parentEffector.get_parent().getTurn()):
 		$SOLD.visible = true
 		disabled = true
 
@@ -76,10 +77,7 @@ func REgenerate_selection(new_item: Item = null) -> int:
 	var id: int
 	
 	if(new_item == null):
-		id = randi_range(0, 6)
-		while(Item.singularItems.find(id) >= 0):
-			id = randi_range(0, 6)
-		item_info = Item.new(id)
+		item_info = Item.getRandomItem(parentEffector.get_parent(), true)
 	else:
 		id = new_item.id
 		item_info = new_item
@@ -87,21 +85,10 @@ func REgenerate_selection(new_item: Item = null) -> int:
 	$ItemSprite.texture = item_info.item_image
 	
 	if(cost):
-		match id:
-			0:
-				item_cost = randi_range(30, 50)
-			1:
-				item_cost = randi_range(15, 30)
-			2:
-				item_cost = randi_range(45, 70)
-			3:
-				item_cost = randi_range(70, 100)
-			4:
-				item_cost = randi_range(55, 80)
-			5:
-				item_cost = randi_range(25, 40)
-			6:
-				item_cost = randi_range(60, 85)
+		item_cost = item_info.getShopPrice()
+		
+		item_cost = 0
+		
 		$Cost_Text.text = str(item_cost)
 	
 	return item_info.id

@@ -14,17 +14,19 @@ var curr_EPH: Sprite2D
 
 static var select_Color: Color = Color(1, 1, 0, 1)
 
-var Player: Node2D
+var player: Player
 var parentEffector: Node2D
 
-static var MonkeyPaw: bool = false
-static var MidasTouch: bool = false
+#var itemViable: bool = false
 
-func change_info(new_info: Tile_Info):
-	$Body.change_info(new_info)
+func change_info(new_info: Tile_Info = null):
+	if(new_info == null):
+		$Body.change_info()
+	else:
+		$Body.change_info(new_info)
 
-func REparent(new_Player: Node2D, new_parentEffector: Node2D) -> void:
-	Player = new_Player
+func REparent(new_Player: Player, new_parentEffector: Node2D) -> void:
+	player = new_Player
 	parentEffector = new_parentEffector
 
 func _process(delta: float) -> void:
@@ -35,41 +37,25 @@ func _process(delta: float) -> void:
 			LC_timer = 0.0
 			parentEffector.reposition_Tile(self)
 		elif(mouse_still_inside):
-			if(is_on_Board() && MonkeyPaw && getTileData().joker_id < 0 && getTileData().Rarify("", false)):#getTileData().Rarify("", false)
-				MonkeyPaw = false
-				Player.get_parent().select_tiles(3, -1, self)
-				Player.show_possible_selections()
-				Player.get_parent().MonkeyPawUsed()
-				return
-			elif(MonkeyPaw):
+			if(player.get_parent().usingItem != null):#getTileData().Rarify("", false)    && Player.get_parent().usingItem.isTileViable(self)
+				player.get_parent().usingItem.item_info.useOnTile(self)
+				#Player.get_parent().endItemUse(true)
 				return
 			
-			if(is_on_Board() && MidasTouch && getTileData().joker_id < 0 && getTileData().Rarify("gold")):
-				MidasTouch = false
-				var color: int = getTileData().number
-				if(getTileData().effects["rainbow"]):
-					color = randi_range(1, 4)
-				
-				var new_info: Tile_Info = Tile_Info.new(getTileData().number, color, getTileData().joker_id, getTileData().rarity, null)
-				change_info(new_info)
-				Player.show_possible_selections()
-				Player.get_parent().MidasTouchUsed()
-				add_child(load("res://scenes/Explosion_Wave.tscn").instantiate())
-				return
-			elif(MidasTouch):
+			if(player.get_parent().usingItem != null):
 				return
 			
-			if(Player.my_turn && !Player.is_spreading && is_on_Board):
+			if(player.my_turn && !player.is_spreading && is_on_Board()):
 				selected = !selected
 				possible_Spread_highlight(false)
-				Player.update_selected_tiles(self, selected)
+				player.update_selected_tiles(self, selected)
 				if(selected):
 					$Body.changeHighLight(select_Color)
 				elif(!$Body.Spread_highligh):
 					$Body.changeHighLight(Color(0, 0, 0, 1))
-			elif(Player.my_turn && !Player.is_spreading && "Discard_River" in parentEffector && !Player.discarding):
+			elif(player.my_turn && !player.is_spreading && "Discard_River" in parentEffector && !player.discarding):
 				selected = !selected
-				Player.update_selected_tiles(self, selected)
+				player.update_selected_tiles(self, selected)
 				if(selected):
 					$Body.changeHighLight(Color(0, 1, 0, 1))
 				else:
@@ -82,7 +68,7 @@ func _process(delta: float) -> void:
 	if(Input.is_action_pressed("Left_Click")):
 		if(mouse_still_inside):
 			if(mouse_entered):
-				if(LC_timer < 0.2 && is_on_Board() && Player.my_turn):
+				if(LC_timer < 0.2 && is_on_Board()):# && Player.my_turn
 					LC_timer += delta
 					if(LC_timer >= 0.2):
 						z_index = 1
@@ -94,8 +80,21 @@ func _process(delta: float) -> void:
 			mouse_still_inside = false
 			tile_move()
 
-func possible_Spread_highlight(activate: bool) -> void:
+func possible_Spread_highlight(activate: bool, isItemViable: bool = false) -> void:
 	$Body.possible_Spread_highlight(activate)
+
+func checkForChisel(Game: Node2D) -> void:
+	for item in Game.get_ItemBar().get_Slots().get_children():
+		if("item_info" in item && item.item_info != null):
+			if(item.item_info.id == 8 && getTileData().joker_id < 0 && getTileData().rarity != Tile_Info.Rarity.GOLD):
+				getTileData().Rarify(true)
+				Game.get_ItemBar().used_PassiveItem(item.get_index(), true)
+				var EW: Sprite2D = load("res://scenes/Explosion_Wave.tscn").instantiate()
+				add_child(EW)
+				#move_child(EW, 0)
+				change_info(getTileData())
+				await get_tree().create_timer(1.0).timeout
+				
 
 func tile_move():
 	global_position = get_global_mouse_position()
@@ -104,8 +103,12 @@ func tile_move():
 var PointText: RichTextLabel
 var SR: Node2D
 
+var is_animatingPoints: bool = false
+signal PointsAnimationDone
+
 func on_spread(PT_finalpos: Vector2 = Vector2(0, 0), Row: Spread_Info = null, flags: Dictionary = {"Architect": false}) -> int:
-	var parentRot: float = Player.rotation
+	is_animatingPoints = true
+	var parentRot: float = player.rotation
 	if(PT_finalpos == Vector2(0, 0)):
 		PT_finalpos = Vector2(50*sin(parentRot), -40*cos(parentRot))
 	var TD: Tile_Info = $Body.Tile_Data
@@ -115,22 +118,23 @@ func on_spread(PT_finalpos: Vector2 = Vector2(0, 0), Row: Spread_Info = null, fl
 		final_points = 5
 	else:
 		if(TD.joker_id < 0):
-			if(TD.effects["duplicate"] && Player.is_MainInstance):
-				var modified_effects: Dictionary = TD.effects
-				modified_effects["duplicate"] = false
-				Player.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, null, modified_effects))
+			if(TD.effects.find(Tile_Info.Effect.DUPLICATE) >= 0 && player.is_MainInstance):
+				var modified_effects: Array[Tile_Info.Effect] = TD.effects.duplicate()
+				#modified_effects["duplicate"] = false
+				modified_effects.erase(Tile_Info.Effect.DUPLICATE)
+				player.add_tile_to_deck(Tile_Info.new(TD.number, TD.color, TD.joker_id, TD.rarity, modified_effects, null))
 			
-			if(TD.effects["winged"] && Player.is_MainInstance):
-				Player.Draw()
+			if(TD.effects.find(Tile_Info.Effect.WINGED) >= 0 && player.is_MainInstance):
+				player.Draw()
 		else:
 			match TD.joker_id:
 				1:
-					final_points += 10*(Player.selected_tiles.size()-1)
+					final_points += 10*(player.selected_tiles.size()-1)
 				2:
-					if(Player.is_MainInstance):
-						Player.get_parent().Gain_Freebie(1)
+					if(player.is_MainInstance):
+						player.get_parent().Gain_Freebie(1)
 				3:
-					Player.get_parent().addItemBarUses()
+					player.get_parent().addItemBarUses()
 					#for item in Player.get_parent().getItems():
 						#if(item.uses > -1):
 							#final_points += 5*item.uses
@@ -182,7 +186,7 @@ func UI_add_score(BigScore: RichTextLabel, BigPoints: int, Spread_size: int) -> 
 	SR.HB_density = 3
 	SR.LB_density = -2
 	
-	var parentRot: float = Player.rotation
+	var parentRot: float = player.rotation
 	
 	var XSizeDistance_BS: Vector2 = Vector2(BigScore.custom_minimum_size.x*cos(parentRot), BigScore.custom_minimum_size.x*sin(parentRot))/2.0
 	var YSizeDistance_BS: Vector2 = Vector2(-BigScore.custom_minimum_size.y*sin(parentRot), BigScore.custom_minimum_size.y*cos(parentRot))/2.0
@@ -220,6 +224,9 @@ func UI_add_score(BigScore: RichTextLabel, BigPoints: int, Spread_size: int) -> 
 		await tween.finished
 		PointText.queue_free()
 		SR.queue_free()
+	
+	is_animatingPoints = false
+	PointsAnimationDone.emit()
 
 func update_BigScore(BigPoints:int, BigScore: RichTextLabel):
 	BigScore.text = "+" + str(BigPoints)
@@ -234,6 +241,7 @@ func moveTile(endPos: Vector2, duration: float = 0.5, local: bool = false) -> vo
 		tween.tween_property(self, "position", endPos, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	else:
 		tween.tween_property(self, "global_position", endPos, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	
 	await tween.finished
 	z_index = 0
 	is_being_moved = false

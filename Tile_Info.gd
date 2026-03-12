@@ -3,22 +3,35 @@ extends Resource
 class_name Tile_Info
 
 var number: int
-var color: int
+var color: Color
 var joker_id: int
-var rarity: String
+var rarity: Rarity
 
 var potential_colors: Array[int]
 var potential_number: Array[int]
 
 var points: int = 0
 
-var effects: Dictionary
+var effects: Array[Effect]
 
 static var level: int = 0
 var joker_name: String
-#var joker_description: String
 
-func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarity: String = "porcelain", orig: Tile_Info = null, new_effects: Dictionary = {"rainbow": false, "duplicate": false, "winged": false}) -> void:
+static var TileColors: Array[Color] = [Color.BLACK, Color.RED, Color.GREEN, Color.BLUE]
+
+enum Rarity{
+	PORCELAIN, BRONZE, SILVER, GOLD
+}
+
+enum Effect{
+	RAINBOW, DUPLICATE, WINGED
+}
+
+#enum TileColor{
+	#BLACK, 
+#}
+
+func _init(i_number: int = 0, i_color: Color = Color.BLACK, i_joker_id: int = -1, tile_rarity: Rarity = Rarity.PORCELAIN, new_effects: Array[Effect] = [], orig: Tile_Info = null) -> void:
 	if(orig != null):
 		number = orig.number
 		color = orig.color
@@ -26,6 +39,8 @@ func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarit
 		rarity = orig.rarity
 		effects = orig.effects
 	else:
+		assert(TileColors.find(i_color) >= 0, "this Color is NOT a valid Tile Color! (see Tile_Info.TileColors for the valid Tile Colors)")
+		
 		number = i_number
 		color = i_color
 		joker_id = i_joker_id
@@ -54,67 +69,162 @@ func _init(i_number: int = 0, i_color: int = 0, i_joker_id: int = -1, tile_rarit
 				joker_name = "The Vampire"
 				#joker_description = "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - If I am a [b]Leech[/b], I [b]Gain Points[/b] equal to the ammount of [b]Spread Points[/b] in the [b]Row[/b] I'm [b]Leeching[/b]"
 				points = 0
-	elif(rarity == "gold"):
-		points = 50
-	elif(rarity == "silver"):
-		points = 25
-	elif(rarity == "bronze"):
-		points = 10
-	else:
-		points = 5
+	
+	match rarity:
+		Rarity.PORCELAIN:
+			points = 5
+		Rarity.BRONZE:
+			points = 10
+		Rarity.SILVER:
+			points = 25
+		Rarity.GOLD:
+			points = 50
 
-func Rarify(set_rarity: String = "", direction: bool = true) -> bool:
+func getColorString() -> String:
+	if(effects.has(Tile_Info.Effect.RAINBOW)):
+		return StringsManager.EffectStrings["RAINBOW"]["NAME"]
+	
+	match color:
+		Color.BLACK:
+			return StringsManager.EffectStrings["color"]["black"]
+		Color.RED:
+			return StringsManager.EffectStrings["color"]["red"]
+		Color.GREEN:
+			return StringsManager.EffectStrings["color"]["green"]
+		Color.BLUE:
+			return StringsManager.EffectStrings["color"]["blue"]
+	
+	return ""
+
+func getKeywords() -> String:
 	if(joker_id >= 0):
-		return false
+		return (StringsManager.JokerStrings["joker"]) + " - " + str(points) + " points"
+	
+	var keywords: String = StringsManager.EffectStrings["rarity"][Tile_Info.Rarity.keys()[rarity]]
+	
+	for effect in effects:
+		if(effect == Effect.RAINBOW):
+			continue
+		
+		keywords += ", " + StringsManager.EffectStrings[Tile_Info.Effect.keys()[effect]]["NAME"]
+	
+	keywords += " - " + str(points) + " points"
+	
+	return keywords
+
+func getDescription() -> String:
+	if(joker_id >= 0):
+		return StringsManager.JokerStrings[joker_name]["DESCRIPTION"]
+	
+	var fullDescription: String = ""
+	var firstText: bool = true
+	
+	for effect in effects:
+		if(firstText):
+			firstText = false
+		else:
+			fullDescription += "[br]"
+		
+		fullDescription += "[b]" + StringsManager.EffectStrings[Tile_Info.Effect.keys()[effect]]["NAME"] + "[/b] - "
+		fullDescription += StringsManager.EffectStrings[Tile_Info.Effect.keys()[effect]]["DESCRIPTION"]
+	
+	return fullDescription
+
+func setRarity(set_rarity: Rarity = Rarity.PORCELAIN) -> void:
+	if(joker_id >= 0):
+		return
 	
 	match set_rarity:
-		"":
-			match rarity:
-				"porcelain":
-					if(direction):
-						rarity = "bronze"
-						points = 10
-					else:
-						return false
-				"bronze":
-					if(direction):
-						rarity = "silver"
-						points = 25
-					else:
-						rarity = "porcelain"
-						points = 5
-				"silver":
-					if(direction):
-						rarity = "gold"
-						points = 50
-					else:
-						rarity = "bronze"
-						points = 10
-				"gold":
-					if(direction):
-						return false
-					else:
-						rarity = "silver"
-						points = 25
-		"porcelain":
-			if(rarity == "porcelain"):
-				return false
-			rarity = "porcelain"
+		Rarity.PORCELAIN:
+			rarity = Rarity.PORCELAIN
 			points = 5
-		"bronze":
-			if(rarity == "bronze"):
-				return false
-			rarity = "bronze"
+		Rarity.BRONZE:
+			rarity = Rarity.BRONZE
 			points = 10
-		"silver":
-			if(rarity == "silver"):
-				return false
-			rarity = "silver"
+		Rarity.SILVER:
+			rarity = Rarity.SILVER
 			points = 25
-		"gold":
-			if(rarity == "gold"):
-				return false
-			rarity = "gold"
+		Rarity.GOLD:
+			rarity = Rarity.GOLD
 			points = 50
+
+func Rarify(direction: bool = true) -> void:
+	if(joker_id >= 0):
+		return
 	
-	return true
+	match rarity:
+		Rarity.PORCELAIN:
+			if(direction):
+				rarity = Rarity.BRONZE
+				points = 10
+		Rarity.BRONZE:
+			if(direction):
+				rarity = Rarity.SILVER
+				points = 25
+			else:
+				rarity = Rarity.PORCELAIN
+				points = 5
+		Rarity.SILVER:
+			if(direction):
+				rarity = Rarity.GOLD
+				points = 50
+			else:
+				rarity = Rarity.BRONZE
+				points = 10
+		Rarity.GOLD:
+			if(!direction):
+				rarity = Rarity.SILVER
+				points = 25
+
+static func getShopCost(tile: Tile_Info) -> int:
+	var cost: int = 0
+	
+	if(tile.joker_id >= 0):
+		match tile.joker_id:
+				0:
+					cost = randi_range(30, 50)
+				1:
+					cost = randi_range(15, 35)
+				2:
+					cost = randi_range(60, 85)
+				3:
+					cost = randi_range(35, 70)
+				4:
+					cost = randi_range(45, 75)
+	else:
+		match tile.rarity:
+			Tile_Info.Rarity.PORCELAIN:
+				cost = randi_range(2, 12)
+			Tile_Info.Rarity.BRONZE:
+				cost = randi_range(8, 17)
+			Tile_Info.Rarity.SILVER:
+				cost = randi_range(12, 27)
+			Tile_Info.Rarity.GOLD:
+				cost = randi_range(24, 31)
+		
+		if(tile.effects.find(Tile_Info.Effect.RAINBOW)):
+			cost += randi_range(4, 13)
+		
+		if(tile.effects.find(Tile_Info.Effect.DUPLICATE)):
+			cost += randi_range(6, 17)
+		
+		if(tile.effects.find(Tile_Info.Effect.WINGED)):
+			cost += randi_range(5, 10)
+	
+	return cost
+
+static func getRandomTile(effectsChance: int = -1) -> Tile_Info:
+	var newNumber: int = randi_range(1, 13)
+	var newColor: Color = TileColors.pick_random()
+	var newRarity: Rarity = Rarity.values().pick_random()
+	var newEffects: Array[Effect] = []
+	
+	if(effectsChance > -1):
+		var effectIndex: int = randi_range(0, Effect.size()+effectsChance)
+		var newEffect: Effect# = Effect.values()[effectIndex]
+		while(effectIndex < Effect.size() && newEffects.find(Effect.values()[effectIndex]) < 0):
+			newEffect = Effect.values()[effectIndex]
+			newEffects.append(newEffect)
+			effectIndex = randi_range(0, Effect.size()+effectsChance)
+	
+	return Tile_Info.new(newNumber, newColor, -1, newRarity, newEffects)

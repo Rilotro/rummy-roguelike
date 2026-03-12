@@ -6,8 +6,8 @@ var Tiles: Array[Tile]
 var same_color: bool
 var same_number: bool
 var the_number: int = -1
-var the_color: int = -1
-var colors: Array[int]
+var the_color: Color = Color.WHITE
+var colors: Array[Color]
 
 var prefixedLeeches: Array[Tile]
 var suffixedLeeches: Array[Tile]
@@ -16,9 +16,9 @@ func _init(new_row: Array[Tile]) -> void:
 	Tiles = new_row.duplicate()
 	
 	#multiplayer.peer_connected.connect(player_joined)
-	Tiles[0].Player.get_parent().get_ItemBar().item_used.connect(Architect_Check)
+	Tiles[0].player.get_parent().get_ItemBar().item_used.connect(Architect_Check)
 	
-	var temp_color: int = -1
+	var temp_color: Color = Color.WHITE
 	var temp_number: int = -1
 	var is_color: bool = true
 	var is_number: bool = true
@@ -26,20 +26,20 @@ func _init(new_row: Array[Tile]) -> void:
 	
 	for tile in new_row:
 		if(tile.getTileData().joker_id >= 0):
-			colors.append(-1)
+			colors.append(Color.WHITE)
 		else:
-			if(temp_color == -1):
-				if(!tile.getTileData().effects["rainbow"]):
+			if(temp_color == Color.WHITE):
+				if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) < 0):
 					temp_color = tile.getTileData().color
 					colors.append(tile.getTileData().color)
 				#else:
 					#colors.append(-1)
-			elif(!tile.getTileData().effects["rainbow"] && tile.getTileData().color != temp_color):
+			elif(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) < 0 && tile.getTileData().color != temp_color):
 				is_color = false
 				colors.append(tile.getTileData().color)
 			
-			if(tile.getTileData().effects["rainbow"]):
-				colors.append(-1)
+			if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+				colors.append(Color.WHITE)
 			
 			if(temp_number == -1):
 				temp_number = tile.getTileData().number
@@ -126,7 +126,7 @@ func is_postSpread_Eligible(tile: Tile, is_HomeSpread: bool = true):
 					if(Tiles[TSize-i-1] != lastTile && Tiles[TSize-i-1].getTileData().joker_id < 0):
 						lastNumber = Tiles[TSize-i-1].getTileData().number + suffixedLeeches.size() + i
 		
-		if(tile.getTileData().effects["rainbow"] || tile.getTileData().color == the_color):
+		if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0 || tile.getTileData().color == the_color):
 			if(tile.getTileData().number == firstNumber-1):
 				if(prefixedLeeches.size() == 0 || !is_HomeSpread):
 					return true
@@ -140,7 +140,7 @@ func is_postSpread_Eligible(tile: Tile, is_HomeSpread: bool = true):
 	
 	if(same_number):
 		if(tile.getTileData().number == the_number && colors.size() < 4):
-			if(tile.getTileData().effects["rainbow"] || colors.find(tile.getTileData().color) < 0):
+			if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0 || colors.find(tile.getTileData().color) < 0):
 				if(suffixedLeeches.size() >= 1 && prefixedLeeches.size() >= 1):
 					if(!is_HomeSpread):
 						return true
@@ -161,7 +161,7 @@ func append_postSpread(new_Tile: Tile) -> Vector2:
 		lastTile = suffixedLeeches[suffixedLeeches.size()-1]
 	
 	if(new_Tile.getTileData().joker_id >= 0):
-		colors.append(-1)
+		colors.append(Color.WHITE)
 		var S: Vector2 = Tiles[0].parentEffector.global_position
 		var D: float = cos(PI/2-parentRot)*(S.y-new_Tile.global_position.y) + sin(PI/2-parentRot)*(S.x-new_Tile.global_position.x)
 		if(D >= 0):
@@ -222,8 +222,8 @@ func append_postSpread(new_Tile: Tile) -> Vector2:
 					final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
 		
 		if(same_number):
-			if(new_Tile.getTileData().effects["rainbow"]):
-				colors.append(-1)
+			if(new_Tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+				colors.append(Color.WHITE)
 			else:
 				colors.append(new_Tile.getTileData().color)
 			if(new_Tile.rotation == 0):
@@ -248,9 +248,10 @@ func get_SpreadSize(SpreadNode: Node2D) -> Vector2:
 func Architect_Check(peer_id: int) -> void:#peer_id: int
 	for player in Tiles[0].Player.get_parent().players:
 		if(player.player_Node == Tiles[0].Player && peer_id == player.player_id):
-	#if(Tiles[0].Player.is_MainInstance):
 			for tile in Tiles:
 				if(tile.getTileData().joker_id == 3):
+					if(tile.is_animatingPoints):
+						await tile.PointsAnimationDone
 					var extraPoints: int = tile.on_spread(Vector2(0, 0), self, {"Architect": true})
 					await tile.get_tree().create_timer(0.8).timeout
 				
@@ -263,6 +264,8 @@ func Architect_Check(peer_id: int) -> void:#peer_id: int
 					TMP_RTL.queue_free()
 					
 					tile.Player.addPoints(extraPoints)
+			
+			break
 
 static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool = false) -> String:
 	if(selected_tiles.size() < 3 && !highlight):
@@ -271,11 +274,11 @@ static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool =
 	var same_number: bool = true
 	var same_color: bool = true
 	var all_diff_color: bool = true
-	var temp_color: int = -1
+	var temp_color: Color = Color.WHITE
 	var temp_number: int = -1
 	var last_number: int = -1
 	var is_ordered: bool = true
-	var colors: Array[int]
+	var colors: Array[Color]
 	#var out_of_bounds: bool = false
 	var sequence: Array[int]
 	var joker_count: int = 0
@@ -285,7 +288,7 @@ static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool =
 		tile = selected_tiles[i]
 		if(tile.getTileData().joker_id >= 0):
 			joker_count += 1
-			colors.append(-1)
+			colors.append(Color.WHITE)
 			if(last_number == -1):
 				for j in range(selected_tiles.size()-i-1):
 					if(selected_tiles[i+j+1].getTileData().joker_id < 0):
@@ -302,12 +305,12 @@ static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool =
 				
 				sequence.append(last_number)
 		else:
-			if(temp_color == -1):
+			if(temp_color == Color.WHITE):
 				temp_color = tile.getTileData().color
 				colors.append(tile.getTileData().color)
 			else:
-				if(tile.getTileData().effects["rainbow"]):
-					colors.append(-1)
+				if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+					colors.append(Color.WHITE)
 				elif(tile.getTileData().color != temp_color):
 					same_color = false
 					if(colors.find(tile.getTileData().color) >= 0):

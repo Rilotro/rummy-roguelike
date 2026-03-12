@@ -48,7 +48,6 @@ func start_client(Server_IP: String):
 	client_openned = true
 
 func new_player(id: int, player_username: String) -> void:
-	print("HERE2")
 	players[str(id)] = player_username
 
 func left_join() -> void:

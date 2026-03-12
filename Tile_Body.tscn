@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bux0j23a0ywry" path="res://jokers/Untitled.png" id="1_dm6w4"]
 [ext_resource type="Script" uid="uid://7xep6ybdkwej" path="res://Tile_Body.gd" id="1_ys2m5"]
 [ext_resource type="Shader" uid="uid://decnyweg1gkmx" path="res://RainbowNumber.gdshader" id="2_7f3rd"]
-[ext_resource type="Texture2D" uid="uid://cyf4tfuge2as6" path="res://Items/Winged.png" id="4_icy37"]
+[ext_resource type="Texture2D" uid="uid://cyf4tfuge2as6" path="res://Items/Sprites/Winged.png" id="4_icy37"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_je3b2"]
 

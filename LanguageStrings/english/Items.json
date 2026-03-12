@@ -1,0 +1,63 @@
+{
+	"item": "Item",
+	"passive": "passive",
+	"active": "active",
+	"uses": "uses",
+	
+	"Bag of Tiles": {
+		"NAME": "Bag of Tiles",
+		"DESCRIPTION": "[b]Choose one of three Tiles[/b] to add in the [i]Top 5 Positions[/i] of your [b]Deck[/b]",
+		"EXTENDED_DESCRIPTION": ["[br][font_size=10][color=gray]Can only be [b]Used [i]Once[/i][/b] per [b]Round ",
+								"[/b][/color][/font_size]"]
+	},
+	
+	"Architect's Hammer": {
+		"NAME": "Architect's Hammer",
+		"DESCRIPTION": "Add one [b]Slot[/b] in the [b]Shop[/b] or in the [b]Item Bar[/b].",
+		"EXTENDED_DESCRIPTION": ["[br][font_size=10][color=Gray](You can only have up to: ",
+								"Item Slots",
+								"Tile Selections",
+								"Joker Selections",
+								"Item Selections",
+								")[/color][/font_size]"]
+	},
+	
+	"Workshop Wrench": {
+		"NAME": "Workshop Wrench",
+		"DESCRIPTION": "All [b]Consumable Items[/b] have an extra [b]Use[/b]"
+	},
+	
+	"Touch of Midas": {
+		"NAME": "Touch of Midas",
+		"DESCRIPTION": "[b]Rarify[/b] a [b]non-Gold Board Tile[/b] up to [b]Gold[/b], [b]Remove[/b] all [b]Effects[/b] from it.[br][font_size=10][color=Gray](If the [b]Chosen Tile[/b] has [b]Rainbow Effect[/b], it gains a random [i]color[/i])[/color][/font_size]"
+	},
+	
+	"Beaver Teeth": {
+		"NAME": "Beaver Teeth",
+		"DESCRIPTION": "[b]Draining the River[/b] requires [b]40%[/b] less [b]Tiles[/b] to [b]Discard[/b]"
+	},
+	
+	"Burning Shoes": {
+		"NAME": "Burning Shoes",
+		"DESCRIPTION": "Whenever you [b]Draw Tiles[/b], [b]Draw[/b] [i]an additional[/i] [b]Tile[/b]"
+	},
+	
+	"Monkey's Paw": {
+		"NAME": "Monkey's Paw",
+		"DESCRIPTION": "Select a [b]Tile[/b] to [b]de-Rarify[/b], then [b]Choose one of three Tiles[/b], with [i]the same [b]Rarity[/b] and [b]Effects[/b][/i] as the [b]Selected Tile[/b], to [b]Replace the Selected Tile[/b].[br][font_size=10][color=gray]Can only be [b]Used[/b] 3 times per [b]Round[/b][/color][/font_size]"
+	},
+	
+	"Bottled Nostalgia": {
+		"NAME": "Bottled Nostalgia",
+		"DESCRIPTION": "On your next [b]Round End[/b], the [b]Tiles[/b] you would [b]Discard[/b] are [i]instead [b]Added[/b] back into your [b]Deck[/b][/i].[br][font_size=10][color=gray]Won't count as [b]Discarded Tiles[/b][/color][/font_size]",
+		"EXTENDED_DESCRIPTION": ["On your next ",
+								" [b]Round Ends[/b], the [b]Tiles[/b] you would [b]Discard[/b] are [i]instead [b]Added[/b] back into your [b]Deck[/b][/i].[br][font_size=10][color=gray]Won't count as [b]Discarded Tiles[/b][/color][/font_size]"]
+	},
+	
+	"Architect's Chisel": {
+		"NAME": "Architect's Chisel",
+		"DESCRIPTION": "The next non-[b]Joker[/b], non-[b]Gold[/b] [b]Tile[/b] you [b]Add[/b] into your [b]Deck[/b] is [b]Rarified[/b]",
+		"EXTENDED_DESCRIPTION": ["The next ",
+								" non-[b]Joker[/b], non-[b]Gold[/b] [b]Tiles[/b] you [b]Add[/b] into your [b]Deck[/b] are [b]Rarified[/b]"]
+	}
+}

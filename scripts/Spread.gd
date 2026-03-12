@@ -4,6 +4,8 @@ var Spread_Rows: Array[Spread_Info]
 
 var mouse_inside: bool = false
 
+var is_Spreading: bool = false
+
 func Spread(selected_tiles: Array[Tile]) -> void:
 	var new_Spread: Spread_Info = Spread_Info.new(selected_tiles)
 	Spread_Rows.append(new_Spread)
@@ -30,9 +32,11 @@ func Spread(selected_tiles: Array[Tile]) -> void:
 				tile.possible_Spread_highlight(false)
 	
 	$"../../Turn_Button".disabled = true
+	is_Spreading = true
 	await updateTilePos()
 	await get_tree().create_timer(0.2).timeout
 	await Add_Spread_Score(selected_tiles)
+	is_Spreading = false
 	$"../../Turn_Button".disabled = false
 
 func Add_Spread_Score(selected_tiles: Array[Tile]) -> void:

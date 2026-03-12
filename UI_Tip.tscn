@@ -12,7 +12,7 @@ shader = ExtResource("1_2q5ta")
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_yjyl7"]
 
-[node name="UI_Tip" type="Control"]
+[node name="UI_Tip" type="Control" node_paths=PackedStringArray("Body", "newSeparator", "Banner", "Banner_Text", "Keyword_Text", "Effects_Text")]
 custom_minimum_size = Vector2(250, 200)
 layout_mode = 3
 anchors_preset = 15
@@ -23,6 +23,12 @@ offset_bottom = -448.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_80ruj")
+Body = NodePath("Body")
+newSeparator = NodePath("Separator")
+Banner = NodePath("Banner")
+Banner_Text = NodePath("Banner_Text")
+Keyword_Text = NodePath("Keyword_Text")
+Effects_Text = NodePath("Effects_Text")
 
 [node name="Body" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0, 0.39215687, 1)

@@ -1,5 +1,14 @@
 extends Sprite2D
 
+class_name ExplosionWave
+
+func _init() -> void:
+	texture = CanvasTexture.new()
+	region_enabled = true
+	region_rect = Rect2(0, 0, 40, 40)
+	material = ShaderMaterial.new()
+	material.shader = load("res://shaders/Explosion_Wave.gdshader")
+
 func _ready() -> void:
 	modulate = Color(1, 1, 1, 1)
 	var tween = get_tree().create_tween()

@@ -18,8 +18,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+StringsManager="*res://LanguageStrings/StringsManager.gd"
 HighLevelNetworkHandler="*res://MultiPlayer/example/high_level_network_handler.gd"
-Descriprions="*res://scripts/Descriprions.gd"
 
 [editor_plugins]
 

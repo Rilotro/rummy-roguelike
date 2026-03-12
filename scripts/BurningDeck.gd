@@ -1,7 +1,7 @@
 extends Sprite2D
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-var FireSprites: Array[Texture] = [preload("res://Items/Deck_Fire1.png"), preload("res://Items/Deck_Fire2.png"), preload("res://Items/Deck_Fire3.png"), preload("res://Items/Deck_Fire4.png")]
+var FireSprites: Array[Texture] = [preload("res://Items/Sprites/Deck_Fire1.png"), preload("res://Items/Sprites/Deck_Fire2.png"), preload("res://Items/Sprites/Deck_Fire3.png"), preload("res://Items/Sprites/Deck_Fire4.png")]
 var fire_timer: float = 0
 var lastIndex: int = -1
 var fireCheck: Array[bool] = [false, false, false, false]

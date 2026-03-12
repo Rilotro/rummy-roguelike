@@ -16,13 +16,14 @@ shader = ExtResource("2_7ae35")
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_c0ofq"]
 
-[node name="Shop" type="Control"]
+[node name="Shop" type="Control" node_paths=PackedStringArray("Shop_BG")]
 custom_minimum_size = Vector2(1152, 648)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1152.0
 offset_bottom = 648.0
 script = ExtResource("1_c53l5")
+Shop_BG = NodePath("Shop_BackGround")
 
 [node name="Shop_BackGround" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0, 0, 0.39215687)

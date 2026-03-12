@@ -54,8 +54,9 @@ modulate_color = Color(1, 0, 0, 1)
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_2k4wd"]
 
-[node name="Player_Board" type="Node2D"]
+[node name="Player_Board" type="Node2D" node_paths=PackedStringArray("BurningDeckSprite")]
 script = ExtResource("1_n5ooj")
+BurningDeckSprite = NodePath("Deck_Counter/BurningDeck")
 
 [node name="Board" type="Node2D" parent="."]
 script = ExtResource("2_nnuxa")

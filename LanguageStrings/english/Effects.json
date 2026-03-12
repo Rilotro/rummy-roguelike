@@ -1,0 +1,32 @@
+{
+	"tile": "Tile",
+	
+	"color":{
+		"black": "black",
+		"red": "red",
+		"green": "green",
+		"blue": "blue"
+	},
+	
+	"rarity":{
+		"PORCELAIN": "porcelain",
+		"BRONZE": "bronze",
+		"SILVER": "silver",
+		"GOLD": "gold"
+	},
+	
+	"RAINBOW":{
+		"NAME": "rainbow",
+		"DESCRIPTION": "Counts as any [b]Color[/b].[br]"
+	},
+
+	"DUPLICATE":{
+		"NAME": "duplicate",
+		"DESCRIPTION": "[b]When Spread[/b], create a copy of this [b]Tile[/b] in your [b]Deck[/b], [i]without this [b]Effect[/b][/i].[br]"
+	},
+
+	"WINGED":{
+		"NAME": "winged",
+		"DESCRIPTION": "When [i]Removed from the [b]Board[/b][/i], [b]Draw[/b] one.[br]"
+	}
+}

@@ -1,5 +1,7 @@
 extends Node2D
 
+class_name Player
+
 var Base_Tile: PackedScene = preload("res://Tile.tscn")
 var Tile_Deck: Array[Tile_Info]
 
@@ -42,14 +44,14 @@ func artificialReady() -> void:
 	
 	var temp_Deck: Array[Tile_Info]
 	for number in range(1, 14):
-		for color in range(1, 5):
+		for color in Tile_Info.TileColors:
 			temp_Deck.append(Tile_Info.new(number, color))
 	for i in range(temp_Deck.size()):
 		var index: int = randi_range(0, temp_Deck.size()-1)
 		Tile_Deck.append(temp_Deck[index])
 		temp_Deck.remove_at(index)
 	#Tile_Deck.insert(randi_range(0, 7), Tile_Info.new(0, 0, 0))
-	Tile_Deck.insert(randi_range(0, 15), Tile_Info.new(0, 0, 0))
+	Tile_Deck.insert(randi_range(0, 15), Tile_Info.new(0, Color.BLACK, 0))
 	$Deck_Counter.text = str(Tile_Deck.size())
 	
 	Draw(14)
@@ -57,40 +59,21 @@ func artificialReady() -> void:
 		$Deck_Counter/Deck_Highlight.visible = true
 		$Deck_Counter/StartTurn_Draw.disabled = false
 
+signal PlayerDraw(count: int)
+@export var BurningDeckSprite: Sprite2D
+
 func Draw(count: int = 1) -> void:
 	#var acc_count: int = count + 
 	if(Tile_Deck.size() < count + Item.flags["Burning Shoes"]):
 		return
 	
 	for i in range(count):
-		#if(Item.flags["Midas Touch"] > 0):
-			#if(Tile_Deck[0].Rarify("gold")):
-				#get_parent().used_PassiveItem(3)
-		
 		Board.Draw(Tile_Deck[0])
 		Tile_Deck.remove_at(0)
+	
+	PlayerDraw.emit(count)
 	
 	$Deck_Counter.text = str(Tile_Deck.size())
-	if(Item.flags["Burning Shoes"]):
-		await get_tree().create_timer(1.3 + 0.1*(count-1)).timeout
-	
-	for i in range(Item.flags["Burning Shoes"]):
-		if(Item.flags["Midas Touch"] > 0):
-			if(Tile_Deck[0].Rarify("gold")):
-				get_parent().used_PassiveItem(3)
-		
-		Board.Draw(Tile_Deck[0])
-		Tile_Deck.remove_at(0)
-		$Deck_Counter.text = str(Tile_Deck.size())
-		var tween = get_tree().create_tween()
-		$Deck_Counter/BurningDeck.modulate.a = 0
-		$Deck_Counter/BurningDeck.visible = true
-		tween.tween_property($Deck_Counter/BurningDeck, "modulate:a", 1, 0.3)
-		tween.tween_property($Deck_Counter/BurningDeck, "modulate:a", 0, 0.5)
-		await tween.finished
-		$Deck_Counter/BurningDeck.visible = false
-		if(i < Item.flags["Burning Shoes"]-1):
-			await get_tree().create_timer(1.3).timeout
 
 func update_selected_tiles(tile: Tile, selected: bool) -> void:
 	if(tile.is_in_River()):
@@ -129,12 +112,12 @@ func update_selected_tiles(tile: Tile, selected: bool) -> void:
 	else:
 		update_discard_requirement(selected_tiles.size())
 
-func show_possible_selections(MonkeyPaw: bool = false, MidasTouch: bool = false) -> void:
-	$"../Turn_Button".disabled = MonkeyPaw || MidasTouch
-	if(MonkeyPaw || MidasTouch):
+func show_possible_selections(clear: bool = false) -> void:
+	#$"../Turn_Button".disabled = MonkeyPaw || MidasTouch
+	if(clear):
 		selected_tiles.clear()
 	
-	Board.show_possible_selections(selected_tiles, MonkeyPaw, MidasTouch)
+	Board.show_possible_selections(selected_tiles)
 
 func addPoints(newPoints: int) -> void:
 	Score += newPoints
@@ -146,7 +129,17 @@ func Progress() -> void:
 	if(is_MainInstance):
 		progressIndex += 1
 
-func add_tile_to_deck(tile_to_add: Tile_Info = null, DeckPos: int = -1) -> void:
+signal DeckAddTile(tile)
+
+func add_tile_to_deck(tile_to_add: Tile_Info = null, DeckPos: int = -1, animationTile: Tile = null) -> void:
+	DeckAddTile.emit(animationTile)
+	if(animationTile != null):
+		while(animationTile.is_being_moved):
+			await get_tree().create_timer(0.001).timeout
+		
+		await animationTile.moveTile($Deck_Counter.global_position + Vector2(20, 30), 0.6)
+		animationTile.queue_free()
+	
 	var deck_size: int = Tile_Deck.size()
 	var index: int
 	if(DeckPos >= 0 && DeckPos <= deck_size-1):
@@ -160,10 +153,7 @@ func add_tile_to_deck(tile_to_add: Tile_Info = null, DeckPos: int = -1) -> void:
 			index = randi_range(10, deck_size-11)
 	
 	if(tile_to_add == null):
-		var joker_id: int = randi_range(-3, 2)
-		var rand_num: int = randi_range(1, 13)
-		var rand_col: int = randi_range(1, 4)
-		tile_to_add = Tile_Info.new(rand_num, rand_col, joker_id)
+		tile_to_add = Tile_Info.getRandomTile()
 	
 	Tile_Deck.insert(index, tile_to_add)
 	$Deck_Counter.text = str(Tile_Deck.size())
@@ -232,7 +222,7 @@ func add_RiverPeerTiles(discarded_Tiles: Array[Tile_Info]) -> void:
 	for dT in discarded_Tiles:
 		new_tile = Base_Tile.instantiate()
 		add_child(new_tile)
-		new_tile.change_info(Tile_Info.new(0, 0, 0, "", dT))
+		new_tile.change_info(Tile_Info.new(0, Color.BLACK, 0, Tile_Info.Rarity.PORCELAIN, [], dT))
 		##new_tile.global_position = otherPlayerBoard
 		new_tile.global_position = Vector2(50, 320)
 		add_RiverTile(new_tile, true)
@@ -260,6 +250,9 @@ func get_DrainCounter() -> Sprite2D:
 
 func get_ProgressBar() -> Sprite2D:
 	return $ProgressBar
+
+func get_DeckCounter() -> RichTextLabel:
+	return $Deck_Counter
 
 func remove_BoardTile(tile: Tile) -> void:
 	if(tile.is_on_Board()):
@@ -290,9 +283,9 @@ func updateTilePos(duration: float = 0.3) -> void:
 	await Spread.updateTilePos(duration)
 	is_updatingPos = false
 
-func Beaver():
-	River.DT_multiplier = 3
-	update_DrainCounter()
+#func Beaver():
+	#River.DT_multiplier = 3
+	#update_DrainCounter()
 
 var is_spreading: bool = false
 
@@ -315,7 +308,7 @@ func peerSpread(peer_SpreadTiles: Array[Tile_Info]):
 	for ST in peer_SpreadTiles:
 		new_tile = Base_Tile.instantiate()
 		add_child(new_tile)
-		new_tile.change_info(Tile_Info.new(0, 0, 0, "", ST))
+		new_tile.change_info(Tile_Info.new(0, Color.BLACK, 0, Tile_Info.Rarity.PORCELAIN, [], ST))
 		new_tile.REparent(self, self)
 		selected_tiles.append(new_tile)
 	
@@ -366,17 +359,25 @@ func Activate_Draw() -> void:
 	$Deck_Counter/Deck_Highlight.visible = true
 	$Deck_Counter/StartTurn_Draw.disabled = false
 
+signal RoundEnd
+
 func _on_Discard_Button_pressed() -> void:
-	discard()
 	$Discard_Button.visible = false
 	$Discard_Button.disabled = true
 	discarding = false
 	my_turn = false
+	get_parent().End_Turn()
 	
+	RoundEnd.emit()
+	
+	#if(Item.flags["Bottled Nostalgia"] <= 0):
+	discard()
 	if(HighLevelNetworkHandler.is_multiplayer):
 		get_parent().peer_discarded(multiplayer.get_unique_id(), selected_tiles)
-	
-	get_parent().End_Turn()
+	#else:
+		#get_parent().used_PassiveItem(7)
+		#for tile in selected_tiles:
+			#await add_tile_to_deck(tile.getTileData(), -1, tile)
 	
 	selected_tiles.clear()
 

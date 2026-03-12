@@ -1,5 +1,7 @@
 extends Control
 
+class_name Shop
+
 #var buttons: Array[Tile_Info]-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 var TipTexts: Array[String] = ["You need to select [b]3 or more Tiles[/b] in a [b]Same Color[/b] or [b]Same Number[/b] pattern to [b]Spread[/b]",
 							   "Once you have [b]Discarded[/b] enough [b]Tiles[/b], you can [b]Spread[/b] using a single [b]Tile[/b] from the [b]Discard River[/b]",
@@ -28,6 +30,12 @@ const MAX_TILE_SELECTIONS: int = 10
 const MAX_JOKER_SELECTIONS: int = 3
 const MAX_ITEM_SELECTIONS: int = 8
 
+var TileSelections: Array[Tile_Selection]
+var JokerSelections: Array[Tile_Selection]
+var ItemSelections: Array[Item_Selection]
+
+@export var Shop_BG: Sprite2D
+
 func _ready() -> void:
 	#.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	TipCheck.resize(TipTexts.size())
@@ -40,6 +48,16 @@ func _ready() -> void:
 		for button in Selections.get_children():
 			if("tile_cost" in button || "item_info" in button):
 				button.parentEffector = self
+	
+	TileSelections.append($Tile_Selections/TileSelections/Tile_Selection_1)
+	TileSelections.append($Tile_Selections/TileSelections/Tile_Selection_2)
+	TileSelections.append($Tile_Selections/TileSelections/Tile_Selection_3)
+	
+	JokerSelections.append($Tile_Selections/JokerSelections/Joker_Selection)
+	
+	ItemSelections.append($Tile_Selections/ItemSelections/ItemSelection)
+	ItemSelections.append($Tile_Selections/ItemSelections/ItemSelectio2)
+	ItemSelections.append($Tile_Selections/ItemSelections/ItemSelection3)
 
 func _process(delta: float) -> void:
 	if(Input.is_action_just_pressed("Left_Click")):
@@ -55,18 +73,30 @@ func _process(delta: float) -> void:
 	if(Input.is_action_just_released("Left_Click")):
 		if(inside_TS_S && still_inside_TS_S && $Tile_Selections/TileSelections.get_child_count()-1 < MAX_TILE_SELECTIONS):
 			still_inside_TS_S = false
-			Item.is_HammerTime = false
-			get_parent().HammerTime(false, $Tile_Selections/TileSelections)
+			var Game: GameScene = get_parent()
+			if(Game.usingItem != null && Game.usingItem.item_info.target == Item.ItemTarget.ANY_HIGHLIGHT):
+				Game.usingItem.item_info.useOnHighlight($Tile_Selections/TileSelections, Vector2(0, 35))
+				await get_tree().create_timer(1.8).timeout
+				add_TileSelection()
+			#get_parent().HammerTime(false, $Tile_Selections/TileSelections)
 		
 		if(inside_JS_S && still_inside_JS_S && $Tile_Selections/JokerSelections.get_child_count()-1 < MAX_JOKER_SELECTIONS):
 			still_inside_JS_S = false
-			Item.is_HammerTime = false
-			get_parent().HammerTime(false, $Tile_Selections/JokerSelections)
+			var Game: GameScene = get_parent()
+			if(Game.usingItem != null && Game.usingItem.item_info.target == Item.ItemTarget.ANY_HIGHLIGHT):
+				Game.usingItem.item_info.useOnHighlight($Tile_Selections/JokerSelections, Vector2(0, 35))
+				await get_tree().create_timer(1.8).timeout
+				add_JokerSelection()
+			#get_parent().HammerTime(false, $Tile_Selections/JokerSelections)
 		
 		if(inside_IS_S && still_inside_IS_S && $Tile_Selections/ItemSelections.get_child_count()-1 < MAX_ITEM_SELECTIONS):
 			still_inside_IS_S = false
-			Item.is_HammerTime = false
-			get_parent().HammerTime(false, $Tile_Selections/ItemSelections)
+			var Game: GameScene = get_parent()
+			if(Game.usingItem != null && Game.usingItem.item_info.target == Item.ItemTarget.ANY_HIGHLIGHT):
+				Game.usingItem.item_info.useOnHighlight($Tile_Selections/ItemSelections, Vector2(0, 35))
+				await get_tree().create_timer(1.8).timeout
+				add_ItemSelection()
+			#get_parent().HammerTime(false, $Tile_Selections/ItemSelections)
 
 func add_TileSelection() -> void:
 	var new_TileSelection: Button = load("res://TileSelection.tscn").instantiate()
@@ -82,6 +112,8 @@ func add_TileSelection() -> void:
 		var Separation: int = $Tile_Selections/TileSelections.get_theme_constant("separation")
 		var SeparationCount: int = $Tile_Selections/TileSelections.get_child_count()-2
 		$Tile_Selections/TileSelections.add_theme_constant_override("separation", int((Separation*SeparationCount - SizeDiff)/SeparationCount))
+	
+	TileSelections.append(new_TileSelection)
 
 func add_JokerSelection() -> void:
 	var new_JokerSelection: Button = load("res://TileSelection.tscn").instantiate()
@@ -106,6 +138,8 @@ func add_JokerSelection() -> void:
 		var Separation: int = $Tile_Selections/JokerSelections.get_theme_constant("separation")
 		var SeparationCount: int = $Tile_Selections/JokerSelections.get_child_count()-2
 		$Tile_Selections/JokerSelections.add_theme_constant_override("separation", int((Separation*SeparationCount - SizeDiff)/SeparationCount))
+	
+	JokerSelections.append(new_JokerSelection)
 
 func add_ItemSelection() -> void:
 	var new_ItemSelection: Button = load("res://ItemSelection.tscn").instantiate()
@@ -131,6 +165,8 @@ func add_ItemSelection() -> void:
 		var Separation: int = $Tile_Selections/ItemSelections.get_theme_constant("separation")
 		var SeparationCount: int = $Tile_Selections/ItemSelections.get_child_count()-2
 		$Tile_Selections/ItemSelections.add_theme_constant_override("separation", int((Separation*SeparationCount - SizeDiff)/SeparationCount))
+	
+	ItemSelections.append(new_ItemSelection)
 
 func get_TileSelections() -> HBoxContainer:
 	return $Tile_Selections/TileSelections
@@ -140,6 +176,13 @@ func get_JokerSelecions() -> VBoxContainer:
 
 func get_ItemSelections() -> HBoxContainer:
 	return $Tile_Selections/ItemSelections
+
+func getItemSlot(item: Item) -> Item_Selection:
+	for Slot in $Tile_Selections/ItemSelections.get_children():
+		if("item_info" in Slot && Slot.item_info != null && Slot.item_info == item):
+			return Slot
+	
+	return null
 
 func REgenerate_selections() -> void:
 	var joker_ids: Array[int]
@@ -179,13 +222,32 @@ func checkButtons() -> void:
 				button.check_access(currency)
 
 func tile_select(_button: Button, tile_bought: Tile_Info, cost: int) -> void:
+	if(get_parent().getTurn()):
+		return
+	
 	if(freebies > 0):
 		freebies -= 1
 	else:
 		currency -= cost
 		$"../ShopCurrency".text = "Current Funds: " + str(currency)
 		update_currency(0)
-	get_parent().buy_tile(tile_bought)
+	
+	var animationTile: Tile = load("res://Tile.tscn").instantiate()
+	add_child(animationTile)
+	animationTile.change_info(tile_bought)
+	animationTile.scale = Vector2(2, 2)
+	animationTile.global_position = _button.global_position + Vector2(25, 35)*animationTile.scale/2.0
+	
+	var displacement: Vector2 = Vector2(randf_range(-60, 60), randf_range(-70, 0))
+	while(displacement.length() < 50):
+		displacement = Vector2(randf_range(-60, 0), randf_range(-60, 30))
+	
+	var tween = get_tree().create_tween()
+	animationTile.moveTile(animationTile.global_position + displacement, 0.5)
+	tween.tween_property(animationTile, "scale", Vector2(1, 1), 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	await tween.finished
+	
+	get_parent().buy_tile(tile_bought, animationTile)
 	if(freebies <= 0):
 		for Selections in $Tile_Selections.get_children():
 			#if("tile_cost" in button || "item_info" in button):
@@ -194,22 +256,15 @@ func tile_select(_button: Button, tile_bought: Tile_Info, cost: int) -> void:
 					button.freebie(false, currency)
 
 func item_select(button: Button, item_bought: Item, cost: int) -> void:
+	if(get_parent().getTurn()):
+		return
+	
 	if(freebies > 0):
 		freebies -= 1
 	else:
 		currency -= cost
 		$"../ShopCurrency".text = "Current Funds: " + str(currency)
 		update_currency(0)
-	match item_bought.id:
-		2:
-			Item.singularItems.append(2)
-		4:
-			Item.singularItems.append(4)
-			Beaver_Break(button)
-		5:
-			Item.singularItems.append(5)
-		6:
-			Item.singularItems.append(6)
 	
 	get_parent().buy_item(item_bought)
 	if(freebies <= 0):
@@ -219,90 +274,32 @@ func item_select(button: Button, item_bought: Item, cost: int) -> void:
 					selection.freebie(false, currency)
 
 func Beaver_Break(IS: Button) -> void:
-	var tween =  get_tree().create_tween()
-	tween.set_parallel()
-	for shopUI in get_children():
-		tween.tween_property(shopUI, "modulate:a", 0, 0.5)
-	
-	var BTU: Sprite2D = Sprite2D.new()
-	var BTD: Sprite2D = Sprite2D.new()
-	BTU.texture = preload("res://Items/Beaver_Teeth_UP.png")
-	BTD.texture = preload("res://Items/Beaver_Teeth_DOWN.png")
-	
-	add_child(BTU)
-	add_child(BTD)
-	
-	BTU.scale = Vector2(0.3, 0.3)
-	BTD.scale = Vector2(0.3, 0.3)
-	
-	BTU.global_position = IS.global_position + Vector2(19.5, 30.0)
-	BTD.global_position = IS.global_position + Vector2(19.5, 30.0)
-	
-	tween.tween_property(BTU, "global_position", get_parent().PB.get_DrainCounter().global_position + Vector2(0, -25), 0.75)
-	tween.tween_property(BTU, "scale", Vector2(0.6, 0.6), 0.4)
-	tween.tween_property(BTD, "global_position", get_parent().PB.get_DrainCounter().global_position + Vector2(0, 25), 0.75)
-	tween.tween_property(BTD, "scale", Vector2(0.6, 0.6), 0.4)
-	
-	await tween.finished
-	tween =  get_tree().create_tween()
-	
-	tween.set_parallel()
-	
-	tween.tween_property(BTU, "global_position", get_parent().PB.get_DrainCounter().global_position, 0.01)
-	tween.tween_property(BTD, "global_position", get_parent().PB.get_DrainCounter().global_position, 0.01)
-	
-	await tween.finished
-	
-	const BGOrigAlpha: float = 100.0/255.0
-	$Shop_BackGround.self_modulate.a = 1
-	$Shop_BackGround.modulate.a = 1
-	await get_tree().create_timer(0.15).timeout
-	$Shop_BackGround.modulate.a = 0
-	await get_tree().create_timer(0.075).timeout
-	$Shop_BackGround.modulate.a = 1
-	await get_tree().create_timer(0.15).timeout
-	
-	BTU.queue_free()
-	BTD.queue_free()
-	
-	tween =  get_tree().create_tween()
-	tween.set_parallel()
-	tween.tween_property($Shop_BackGround, "self_modulate:a", BGOrigAlpha, 0.5)
-	var first: bool = true
-	for shopUI in get_children():
-		if(first):
-			first = false
-			continue
-		tween.tween_property(shopUI, "modulate:a", 1, 0.5)
+	pass
 
-func HammerTime(is_HammerTime: bool = false, Target: Node = null):
-	if(Target == $Tile_Selections/TileSelections):
-		add_TileSelection()
-	if(Target == $Tile_Selections/JokerSelections):
-		add_JokerSelection()
-	if(Target == $Tile_Selections/ItemSelections):
-		add_ItemSelection()
-	
-	$TileSelection_Sensor.visible = is_HammerTime
-	$JokerSelection_Sensor.visible = is_HammerTime
-	$ItemSelection_Sensor.visible = is_HammerTime
-	if(is_HammerTime):
+func ToggleHighlight(toggleTiles: bool = false, toggleJokers: bool = false, toggleItems: bool = false):
+	$TileSelection_Sensor.visible = toggleTiles
+	$JokerSelection_Sensor.visible = toggleJokers
+	$ItemSelection_Sensor.visible = toggleItems
+	if(toggleTiles):
 		move_child($ShopMain_BackGround, 0)
 		if($Tile_Selections/TileSelections.get_child_count()-1 >= MAX_TILE_SELECTIONS):
 			$Tile_Selections/TileSelections/TileSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
 		else:
 			$Tile_Selections/TileSelections/TileSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
-		
+	
+	if(toggleJokers):
 		if($Tile_Selections/JokerSelections.get_child_count()-1 >= MAX_JOKER_SELECTIONS):
 			$Tile_Selections/JokerSelections/JokerSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
 		else:
 			$Tile_Selections/JokerSelections/JokerSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
-		
+	
+	if(toggleItems):
 		if($Tile_Selections/ItemSelections.get_child_count()-1 >= MAX_ITEM_SELECTIONS):
 			$Tile_Selections/ItemSelections/TileSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
 		else:
 			$Tile_Selections/ItemSelections/TileSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
-	else:
+	
+	if(!toggleItems && !toggleJokers && !toggleTiles):
 		move_child($ShopMain_BackGround, 1)
 
 func addShopUses() -> void:
