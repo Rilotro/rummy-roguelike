@@ -1,0 +1,926 @@
+Player_Board:
+	
+	#var Base_Tile: PackedScene = preload("res://Tile.tscn")
+var Tile_Deck: Array[Tile_Info]
+
+var selected_tiles: Array[TileContainer]
+var mouse_timer: float = 0
+var move_active: bool = false
+var past_active: bool = false
+
+var debug_added: int = 0
+
+var Score: int = 0
+
+var discarding: bool = false
+
+var progressIndex: int = 0
+
+var my_turn: bool = false
+
+var is_MainInstance: bool = true
+@onready var GameBoard: Board = $Board
+@onready var Spread: Node2D = $Spread
+@onready var River: Node2D = $River
+
+func becomePeerBoard() -> void:
+	is_MainInstance = false
+	$Spread_Button.visible = false
+	$Spread_Button.disabled = true
+	$Discard_Button.visible = false
+	$Discard_Button.disabled = true
+	$Deck_Counter.visible = false
+	#$Drain_Counter.visible
+	
+
+func artificialReady() -> void:
+	#$ProgressBar.owner_id = multiplayer.get_unique_id()
+	$Spread_Button.visible = false
+	$Spread_Button.disabled = true
+	$Discard_Button.visible = false
+	$Discard_Button.disabled = true
+	
+	var temp_Deck: Array[Tile_Info]
+	for number in range(1, 14):
+		for color in Tile_Info.TileColors:
+			temp_Deck.append(Tile_Info.new(number, color))
+	for i in range(temp_Deck.size()):
+		var index: int = randi_range(0, temp_Deck.size()-1)
+		Tile_Deck.append(temp_Deck[index])
+		temp_Deck.remove_at(index)
+	#Tile_Deck.insert(randi_range(0, 7), Tile_Info.new(0, 0, 0))
+	Tile_Deck.insert(randi_range(0, 15), Tile_Info.new(0, Color.BLACK, 0))
+	$Deck_Counter.text = str(Tile_Deck.size())
+	
+	Draw(14)
+	if((HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned) || HighLevelNetworkHandler.is_singleplayer):
+		$Deck_Counter/Deck_Highlight.visible = true
+		$Deck_Counter/StartTurn_Draw.disabled = false
+
+signal PlayerDraw(count: int)
+@export var BurningDeckSprite: Sprite2D
+
+func Draw(count: int = 1) -> void:
+	#var acc_count: int = count + 
+	if(Tile_Deck.size() < count):
+		return
+	
+	for i in range(count):
+		GameBoard.Draw(Tile_Deck[0])
+		Tile_Deck.remove_at(0)
+	
+	PlayerDraw.emit(count)
+	
+	$Deck_Counter.text = str(Tile_Deck.size())
+
+func update_selected_tiles(tile: Tile, selected: bool) -> void:
+	if(tile.is_in_River()):
+		for other_tile in selected_tiles:
+			if(other_tile.is_in_River()):
+				other_tile.post_Spread()
+				selected_tiles.erase(other_tile)
+				break
+	
+	if(selected):
+		if(discarding):
+			if(selected_tiles.size() >= 1+progressIndex):
+				tile.post_Spread()
+				return
+		else:
+			if(tile.is_in_River() && !River.isDrainEligible()):
+				tile.post_Spread()
+				return
+			if(selected_tiles.is_empty()):
+				$Spread_Button.visible = true
+		selected_tiles.append(tile)
+	else:
+		selected_tiles.erase(tile)
+		if(selected_tiles.is_empty()):
+			if(!discarding):
+				$Spread_Button.visible = false
+	
+	if(!discarding):
+		GameBoard.show_possible_selections(selected_tiles)
+		var button_text: String = Spread_Info.check_spread_legality(selected_tiles)
+		$Spread_Button.text = button_text
+		if(button_text == "Spread!"):
+			$Spread_Button.disabled = false
+		else:
+			$Spread_Button.disabled = true
+	else:
+		update_discard_requirement(selected_tiles.size())
+
+func show_possible_selections(clear: bool = false) -> void:
+	#$"../Turn_Button".disabled = MonkeyPaw || MidasTouch
+	if(clear):
+		selected_tiles.clear()
+	
+	GameBoard.show_possible_selections(selected_tiles)
+
+func addPoints(newPoints: int) -> void:
+	Score += newPoints
+	$ProgressBar.uodateScore(Score)
+	if(is_MainInstance):
+		get_parent().newScore(newPoints, multiplayer.get_unique_id())
+
+func Progress() -> void:
+	if(is_MainInstance):
+		progressIndex += 1
+
+signal DeckAddTile(tile)
+
+func add_tile_to_deck(tile_to_add: Tile_Info = null, DeckPos: int = -1, animationTile: TileContainer = null) -> void:
+	DeckAddTile.emit(animationTile)
+	if(animationTile != null):
+		while(animationTile.is_being_moved):
+			await get_tree().create_timer(0.001).timeout
+		
+		await animationTile.moveTile(Vector2(20, 30))#$Deck_Counter.global_position + 
+		animationTile.queue_free()
+	
+	var deck_size: int = Tile_Deck.size()
+	var index: int
+	if(DeckPos >= 0 && DeckPos <= deck_size-1):
+		index = DeckPos
+	else:
+		if(deck_size == 0):
+			index = 0
+		elif(deck_size <= 20):
+			index = randi_range(0, deck_size-1)
+		else:
+			index = randi_range(10, deck_size-11)
+	
+	if(tile_to_add == null):
+		tile_to_add = Tile_Info.getRandomTile()
+	
+	Tile_Deck.insert(index, tile_to_add)
+	$Deck_Counter.text = str(Tile_Deck.size())
+
+func update_discard_requirement(selectedCount: int = 0):
+	var new_text: String = "[font_size=12]End Turn[/font_size]"
+	new_text += " [font_size=8](" + str(selectedCount)
+	new_text += "/" + str(1+progressIndex) + ")[/font_size]"
+	$Discard_Button/RichTextLabel.text = new_text
+
+func is_discarding() -> bool:
+	discarding = !discarding
+	if(discarding):
+		for tile in selected_tiles:
+			tile.post_Spread()
+		selected_tiles.clear()
+		show_possible_selections()
+		$Spread_Button.visible = false
+		$Spread_Button.disabled = true
+		Tile.select_Color = Color(1, 0, 0, 1)
+		
+		$Discard_Button.visible = true
+		$Discard_Button.disabled = false
+		update_discard_requirement()
+	else:
+		for tile in selected_tiles:
+			tile.post_Spread()
+		selected_tiles.clear()
+		Tile.select_Color = Color(1, 1, 0, 1)
+		$Discard_Button.visible = false
+		$Discard_Button.disabled = true
+	
+	return discarding
+
+func update_DrainCounter() -> void:
+	var new_text: String = "[font_size=15]Drain[/font_size] [font_size=10]("
+	new_text += str(River.tiles_discarded) + "/"
+	new_text += str(River.get_current_DrainThreshold()) + ")[/font_size]"
+	$Drain_Counter/Control/RichTextLabel.text = new_text
+	if(River.isDrainEligible()):
+		$Drain_Counter/Control/RichTextLabel.self_modulate = Color(0, 1, 0, 1)
+		$Drain_Counter.self_modulate = Color(1, 1, 1, 1)
+		$Drain_Counter/Locked.visible = false
+	else:
+		$Drain_Counter/Control/RichTextLabel.self_modulate = Color(1, 0, 0, 1)
+		$Drain_Counter.self_modulate = Color(0, 0, 0, 1)
+		$Drain_Counter/Locked.visible = true
+
+func discard() -> void:
+	for tile in selected_tiles:
+		remove_BoardTile(tile)
+		add_RiverTile(tile)
+		tile.post_Spread()
+	
+	update_DrainCounter()
+	updateTilePos()
+
+func add_BoardTile(tile: TileContainer) -> void:
+	GameBoard.add_BoardTile(tile)
+
+func add_RiverTile(tile: TileContainer, OPD: bool = false) -> void:
+	River.add_RiverTile(tile, !OPD)
+
+func add_RiverPeerTiles(discarded_Tiles: Array[Tile_Info]) -> void:
+	var new_tile: TileContainer
+	for dT in discarded_Tiles:
+		new_tile = TileContainer.new(Tile_Info.new(0, Color.BLACK, 0, Tile_Info.Rarity.PORCELAIN, [], dT), ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.RIVER) #Base_Tile.instantiate()
+		add_child(new_tile)
+		new_tile.global_position = Vector2(50, 320)
+		add_RiverTile(new_tile, true)
+	
+	updateTilePos()
+
+func get_BoardTile_index(tile: TileContainer) -> Vector2:
+	if(tile.is_on_Board()):
+		return GameBoard.get_BoardTile_index(tile)
+	return Vector2(-1, -1)
+
+func get_RiverTile_index(tile: TileContainer) -> int:
+	if(tile.is_in_River()):
+		return River.get_RiverTile_index(tile)
+	return -1
+
+func get_BoardTiles() -> Array[Array]:
+	return GameBoard.Board_Tiles
+
+func get_SpreadRows() -> Array[Spread_Info]:
+	return Spread.Spread_Rows
+
+func get_DrainCounter() -> Sprite2D:
+	return $Drain_Counter
+
+func get_ProgressBar() -> Sprite2D:
+	return $ProgressBar
+
+func get_DeckCounter() -> RichTextLabel:
+	return $Deck_Counter
+
+func remove_BoardTile(tile: TileContainer) -> void:
+	if(tile.is_on_Board()):
+		GameBoard.remove_BoardTile(tile)
+
+func remove_RiverTile(tile: Tile) -> void:
+	if(tile.is_in_River()):
+		River.remove_RiverTile(tile)
+
+func Drain_River(Drain_Start: int):
+	if(Drain_Start >= 0):
+		River.Drain_River(Drain_Start)
+		update_DrainCounter()
+		updateTilePos()
+		if(HighLevelNetworkHandler.is_multiplayer):
+			get_parent().peer_Drained(multiplayer.get_unique_id(), Drain_Start)
+
+func peer_Drained(Drain_Start: int) -> void:
+	if(Drain_Start >= 0):
+		River.Drain_River(Drain_Start, true)
+
+var is_updatingPos: bool = false
+
+func updateTilePos(duration: float = 0.3) -> void:
+	is_updatingPos = true
+	await GameBoard.updateTilePos(duration)
+	await River.updateTilePos(duration)
+	await Spread.updateTilePos(duration)
+	is_updatingPos = false
+
+#func Beaver():
+	#River.DT_multiplier = 3
+	#update_DrainCounter()
+
+var is_spreading: bool = false
+
+func _on_spread() -> void:
+	is_spreading = true
+	$Spread_Button.visible = false
+	$Spread_Button.disabled = true
+	if(HighLevelNetworkHandler.is_multiplayer):
+		var tiles_info: Array[Tile_Info]
+		for tile in selected_tiles:
+			tiles_info.append(tile.getTileData())
+		get_parent().peer_spread(multiplayer.get_unique_id(), tiles_info)
+	await Spread.Spread(selected_tiles)
+	selected_tiles.clear()
+	is_spreading = false
+
+func peerSpread(peer_SpreadTiles: Array[Tile_Info]):
+	var new_tile: TileContainer
+	#var peer_selected_tiles: Array[Tile]
+	for ST in peer_SpreadTiles:
+		new_tile = TileContainer.new(Tile_Info.new(0, Color.BLACK, 0, Tile_Info.Rarity.PORCELAIN, [], ST), ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.SPREAD) #Base_Tile.instantiate()
+		add_child(new_tile)
+		selected_tiles.append(new_tile)
+	
+	await Spread.Spread(selected_tiles)
+	selected_tiles.clear()
+	
+	updateTilePos()
+
+func peer_PostSpread(peerTile: Tile_Info, Spread_Row: int, player: Node2D):
+	var newTile: TileContainer = TileContainer.new(peerTile, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.SPREAD) #Base_Tile.instantiate()
+	
+	var SR: Array[Spread_Info] = player.get_SpreadRows()
+	
+	add_child(newTile)
+	newTile.reparent(player.Spread)
+	#newTile.REparent(player, player.Spread)
+	newTile.global_position = global_position
+	var PT_finalpos: Vector2 = SR[Spread_Row].append_postSpread(newTile)
+	if(player == self):
+		await player.updateTilePos(0.1)
+	else:
+		var tween = get_tree().create_tween()
+		player.updateTilePos(0.1)
+		var origRot: float = newTile.rotation
+		while(player.is_updatingPos):
+			tween.tween_property(newTile, "rotation", 2*PI+origRot, 0.05)
+			await tween.finished
+			if(player.is_updatingPos):
+				newTile.rotation = origRot
+				tween = get_tree().create_tween()
+	
+	await get_tree().create_timer(0.5).timeout
+	var new_points:int = newTile.on_spread(PT_finalpos, SR[Spread_Row])
+	await get_tree().create_timer(0.8).timeout
+	
+	var TMP_RTL: RichTextLabel = RichTextLabel.new()
+	add_child(TMP_RTL)
+	TMP_RTL.text = "0"
+	TMP_RTL.visible = false
+	TMP_RTL.global_position = $ProgressBar.global_position
+	await newTile.UI_add_score(TMP_RTL, 0, 0)
+	TMP_RTL.queue_free()
+	
+	addPoints(new_points)
+
+func Activate_Draw() -> void:
+	$Deck_Counter/Deck_Highlight.visible = true
+	$Deck_Counter/StartTurn_Draw.disabled = false
+
+func _on_Discard_Button_pressed() -> void:
+	$Discard_Button.visible = false
+	$Discard_Button.disabled = true
+	discarding = false
+	my_turn = false
+	get_parent().End_Turn()
+	
+	#if(Item.flags["Bottled Nostalgia"] <= 0):
+	discard()
+	if(HighLevelNetworkHandler.is_multiplayer):
+		get_parent().peer_discarded(multiplayer.get_unique_id(), selected_tiles)
+	#else:
+		#get_parent().used_PassiveItem(7)
+		#for tile in selected_tiles:
+			#await add_tile_to_deck(tile.getTileData(), -1, tile)
+	
+	selected_tiles.clear()
+
+func _on_start_turn_draw_pressed() -> void:
+	$Deck_Counter/Deck_Highlight.visible = false
+	$Deck_Counter/StartTurn_Draw.disabled = true
+	var GameOver: bool = !(Tile_Deck.size() >= 1+progressIndex)
+	get_parent().Start_Turn(GameOver)
+	if(!GameOver):
+		my_turn = true
+		Draw(1+progressIndex)
+
+Board:
+	
+	var Board_Tiles: Array[Array]
+#var Base_Tile: PackedScene = preload("res://Tile.tscn")
+var draw_delay: float = 0.0
+
+func _ready() -> void:
+	var upper_board: Array[TileContainer] = [null, null, null, null, null, null, null, null, null, null]
+	var lower_board: Array[TileContainer] = [null, null, null, null, null, null, null, null, null, null]
+	Board_Tiles.append(upper_board)
+	Board_Tiles.append(lower_board)
+
+func add_BoardTile(newTile: TileContainer) -> void:
+	var space: bool = false
+	for i in range(Board_Tiles.size()):
+		if(get_child(i).get_child_count() < 10):
+			space = true
+			break
+	
+	if(!space):
+		add_board()
+	
+	var rand_board: int = randi_range(0, Board_Tiles.size()-1)
+	while(get_child(rand_board).get_child_count() >= 10):
+		rand_board = randi_range(0, Board_Tiles.size()-1)
+	
+	var rand_place: int = randi_range(0, Board_Tiles[rand_board].size()-1)
+	
+	while(Board_Tiles[rand_board][rand_place] != null):
+		rand_place = randi_range(0, Board_Tiles[rand_board].size()-1)
+	
+	newTile.REparent(TileContainer.PlayerSpace.BOARD)
+	Board_Tiles[rand_board][rand_place] = newTile
+
+var TilesCurrentlyDraw: Array[Tile]
+
+func Draw(TI: Tile_Info):
+	var newTile: TileContainer = TileContainer.new(TI, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.BOARD)#Base_Tile.instantiate()
+	
+	var displacement: Vector2 = Vector2(randf_range(-60, 0), randf_range(-70, 30))
+	while(displacement.length() < 50):
+		displacement = Vector2(randf_range(-60, 0), randf_range(-60, 30))
+	
+	add_BoardTile(newTile)
+	
+	newTile.global_position = $"../Deck_Counter".global_position + $"../Deck_Counter".custom_minimum_size/2
+	
+	draw_delay += 0.1
+	await get_tree().create_timer(draw_delay).timeout
+	TilesCurrentlyDraw.append(newTile)
+	await newTile.moveTile(newTile.position + displacement)
+	await updateTilePos(0.4)
+	TilesCurrentlyDraw.erase(newTile)
+	draw_delay -= 0.1
+
+const BOARD_STARTING_COLOR: Color = Color(0.588, 0.431, 0.294, 1)
+
+func add_board() -> void:
+	#$"../ProgressBar".global_position.y -= 40
+	#$"../Spread_Button".global_position.y -= 40
+	#$"../Discard_Button".global_position.y -= 40
+	
+	var new_board: Sprite2D = Sprite2D.new()
+	new_board.texture = CanvasTexture.new()
+	new_board.region_enabled = true
+	new_board.region_rect = Rect2(Vector2(), Vector2(970, 120))
+	var index: int = Board_Tiles.size()
+	new_board.self_modulate = BOARD_STARTING_COLOR - (index*BOARD_STARTING_COLOR/5) #Color((BaseR - index*BaseR/5)/255, (BaseG - index*BaseG/5)/255, (BaseB - index*BaseB/5)/255, 1)
+	add_child(new_board)
+	new_board.position = position + Vector2(0, -120*index)
+	var new_Board_Tiles: Array[TileContainer] = [null, null, null, null, null, null, null, null, null, null]
+	Board_Tiles.append(new_Board_Tiles)
+
+func updateTilePos(duration: float = 0.3) -> void:
+	var curr_pos: Vector2
+	for i in range(Board_Tiles.size()):
+		for j in range(Board_Tiles[i].size()):
+			if(Board_Tiles[i][j] != null):
+				curr_pos = Vector2(95*j - 427.5, -120*i)
+				if(Board_Tiles[i][j].global_position != curr_pos && !Board_Tiles[i][j].isBeingMoved):
+					Board_Tiles[i][j].moveTile(curr_pos)
+					await get_tree().create_timer(duration).timeout
+
+func show_possible_selections(selected_tiles: Array[TileContainer]) -> void:
+	#var Game: GameScene = get_parent().get_parent()
+	var is_sequence: bool = false
+	var common_value: int = -1
+	var last_number: int = -1
+	var colors: Array[int]
+	var nonJoker_count: int = 0
+	var nonJoker_index: int = -1
+	var EOS_reached: bool = false
+	
+	for i in range(selected_tiles.size()):
+		if(selected_tiles[selected_tiles.size()-1-i].resource.joker_id < 0):
+			nonJoker_count += 1
+			nonJoker_index = selected_tiles.size()-1-i
+			if(last_number == -1):
+				last_number = selected_tiles[selected_tiles.size()-1-i].resource.number+i
+				if(last_number >= 14):
+					last_number = 1
+					EOS_reached = true
+				
+		elif(last_number == 1):
+			EOS_reached = true
+		colors.append(selected_tiles[i].resource.color)
+	
+	if(nonJoker_count > 1):
+		var flag: String = Spread_Info.check_spread_legality(selected_tiles, true)
+		if(flag.contains("number:")):
+			is_sequence = false
+			common_value = flag.split(":")[1].to_int()
+		elif(flag.contains("color:")):
+			is_sequence = true
+			common_value = flag.split(":")[1].to_int()
+			if(last_number == 1):
+				EOS_reached = true
+	
+	for Board in Board_Tiles:
+		for other_tile in Board:
+			if(other_tile != null && selected_tiles.find(other_tile) < 0):
+				other_tile.possible_Spread_highlight(false)
+				
+				if(GameScene.Game.usingItem != null):
+					if(GameScene.Game.usingItem.item_info.isTileValid(other_tile)):
+						other_tile.possible_Spread_highlight(true, true)
+				
+				if(GameScene.Game.usingItem == null && selected_tiles.size() > 0):
+					if(nonJoker_count == 0):
+						other_tile.possible_Spread_highlight(true)
+					elif(!EOS_reached || colors.size() < 4):
+						if(nonJoker_count == 1):
+							if(other_tile.resource.joker_id >= 0):
+								if(!EOS_reached || colors.size() < 4):
+									other_tile.possible_Spread_highlight(true)
+							elif(other_tile.resource.number == selected_tiles[nonJoker_index].resource.number):
+								if(colors.size() < 4 && other_tile.resource.color != selected_tiles[nonJoker_index].resource.color):
+									other_tile.possible_Spread_highlight(true)
+							elif(!EOS_reached && (other_tile.resource.number - last_number == 1 || (last_number == 13 && other_tile.resource.number == 1))):
+								if(other_tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0 || selected_tiles[nonJoker_index].resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0 || other_tile.resource.color == selected_tiles[nonJoker_index].resource.color):
+									other_tile.possible_Spread_highlight(true)
+						elif(nonJoker_count > 1):
+							if(common_value > 0):
+								if(is_sequence):
+									if(other_tile.resource.joker_id >= 0 && !EOS_reached):
+										other_tile.possible_Spread_highlight(true)
+									elif(other_tile.resource.color == common_value || other_tile.resource.effects["rainbow"]):
+										if(!EOS_reached && (other_tile.resource.number == last_number+1 || (other_tile.resource.number == 1 && last_number == 13))):
+											other_tile.possible_Spread_highlight(true)
+								else:
+									if(other_tile.resource.joker_id >= 0 && colors.size() < 4):
+										other_tile.possible_Spread_highlight(true)
+									elif(other_tile.resource.number == common_value && colors.size() < 4 && (other_tile.resource.effects["rainbow"] || colors.find(other_tile.resource.color) < 0)):
+										other_tile.possible_Spread_highlight(true)
+
+func get_actual_size_board(board: int) -> int:
+	if(board < 0 || board >= Board_Tiles.size()):
+		return -1
+	
+	var count: int = 0
+	for tile in Board_Tiles[board]:
+		if(tile != null):
+			count += 1
+	
+	return count
+
+var EP_HighLight: Node2D
+
+func HighLightEndPos(tile: TileContainer):
+	var curr_pos = tile.global_position
+	var end_pos: Vector2 = (curr_pos - Vector2(15, 28)).snapped(Vector2(30, 40)) + Vector2(15, 28)
+	var Y_Bounds: Vector2 = Vector2(global_position.y, global_position.y - 40*(Board_Tiles.size()-1))
+	var X_Bounds: Vector2 = Vector2(global_position.x + 135, global_position.x - 135)
+	var HL_size: Vector2 = Vector2(30, 40)
+	var HL_onSpread: int = -1
+	#var GamePlayers: Array[Node2D]
+	#var GameSpreads: Array[Node2D]
+	var parentRot: float
+	var S: Node2D
+	
+	if(get_parent().my_turn && !get_parent().Spread.is_Spreading):
+		for player in get_parent().get_parent().players:
+			S = player.player_Node.Spread
+			parentRot = player.player_Node.rotation
+			
+			if(S.Spread_Rows.size() > 0 && S.mouse_inside):
+				var row_LL: Vector2 = S.global_position + Vector2(-17.5*sin(parentRot), 17.5*cos(parentRot))
+				var row_UL: Vector2 = S.global_position + Vector2(-17.5*sin(parentRot), 17.5*cos(parentRot))
+				for i in range(S.Spread_Rows.size()):
+					row_LL = row_UL
+					row_UL += Vector2(35.0*sin(parentRot), -35.0*cos(parentRot))
+					
+					var row_D1: float = abs(cos(parentRot)*(row_LL.y-curr_pos.y) - sin(parentRot)*(row_LL.x-curr_pos.x))
+					var row_D2: float = abs(cos(parentRot)*(row_UL.y-curr_pos.y) - sin(parentRot)*(row_UL.x-curr_pos.x))
+					
+					end_pos = (row_LL + row_UL)/2.0
+					if(i >= S.Spread_Rows.size()-1):
+						HL_size = S.Spread_Rows[i].get_SpreadSize(S) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))#Vector2(S.Spread_Rows[i].Tiles.size()*30*abs(cos(parentRot)), S.Spread_Rows[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
+						HL_onSpread = i
+					elif(row_D1 <= 40 && row_D2 <= 40):
+						HL_size = S.Spread_Rows[i].get_SpreadSize(S) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))#Vector2(S.Spread_Rows[i].Tiles.size()*30*abs(cos(parentRot)), S.Spread_Rows[i].Tiles.size()*30*abs(sin(parentRot))) + Vector2(40*abs(sin(parentRot)), 40*abs(cos(parentRot)))
+						HL_onSpread = i
+						break
+					
+					row_UL += Vector2(5.0*sin(parentRot), -5.0*cos(parentRot))
+				if(HL_onSpread >= 0):
+					break
+	
+	if(HL_onSpread == -1):
+		if(end_pos.x > X_Bounds.x):
+			end_pos.x = X_Bounds.x
+		elif(end_pos.x < X_Bounds.y):
+			end_pos.x = X_Bounds.y
+		if(HL_onSpread == -1):
+			if(end_pos.y > Y_Bounds.x):
+				end_pos.y = Y_Bounds.x
+			elif(end_pos.y < Y_Bounds.y):
+				end_pos.y = Y_Bounds.y
+	
+	if(EP_HighLight == null):
+		EP_HighLight = preload("res://scenes/sparkle_road.tscn").instantiate()
+		add_child(EP_HighLight)
+		EP_HighLight.change_road(end_pos, HL_size, 0.0)
+		if(HL_onSpread == -1):
+			EP_HighLight.change_polarity(true)
+			EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2
+		else:
+			if(S.Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile, S == get_parent().Spread)):
+				EP_HighLight.change_polarity(true)
+			else:
+				EP_HighLight.change_polarity(false)
+			
+			EP_HighLight.rect_offset = (HL_size - Vector2(6, 6))/2.0
+	else:
+		EP_HighLight.change_road(end_pos, HL_size, 0.1)
+		if(HL_onSpread == -1):
+			EP_HighLight.change_polarity(true)
+			EP_HighLight.rect_offset = Vector2(24.0, 34.0)/2
+		else:
+			if(S.Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile, S == get_parent().Spread)):
+				EP_HighLight.change_polarity(true)
+			else:
+				EP_HighLight.change_polarity(false)
+			
+			EP_HighLight.rect_offset = (HL_size - Vector2(6, 6))/2.0
+
+func reposition_Tile(tile: Tile) -> void:
+	var curr_pos: Vector2 = tile.global_position
+	var orig_pos: Vector2
+	var parentRot: float
+	var end_pos: Vector2 = (curr_pos - Vector2(15, 28)).snapped(Vector2(30, 40)) + Vector2(15, 28)
+	var Spread_end_pos: Vector2
+	var Y_Bounds: Vector2 = Vector2(global_position.y, global_position.y - 40*(Board_Tiles.size()-1))
+	var X_Bounds: Vector2 = Vector2(global_position.x + 135, global_position.x - 135)
+	var HL_onSpread: int = -1
+	var S: Node2D
+	
+	if(get_parent().my_turn && !get_parent().Spread.is_Spreading):
+		for player in get_parent().get_parent().players:
+			S = player.player_Node.Spread
+			parentRot = player.player_Node.rotation
+			if(S.Spread_Rows.size() > 0 && S.mouse_inside):
+				var row_LL: Vector2 = S.global_position + Vector2(-17.5*sin(parentRot), 17.5*cos(parentRot))
+				var row_UL: Vector2 = S.global_position + Vector2(-17.5*sin(parentRot), 17.5*cos(parentRot))
+				for i in range(S.Spread_Rows.size()):
+					row_LL = row_UL
+					row_UL += Vector2(35.0*sin(parentRot), -35.0*cos(parentRot))
+					
+					var row_D1: float = abs(cos(parentRot)*(row_LL.y-curr_pos.y) - sin(parentRot)*(row_LL.x-curr_pos.x))
+					var row_D2: float = abs(cos(parentRot)*(row_UL.y-curr_pos.y) - sin(parentRot)*(row_UL.x-curr_pos.x))
+					
+					if(i >= S.Spread_Rows.size()-1):
+						HL_onSpread = i
+					elif(row_D1 <= 40 && row_D2 <= 40):
+						HL_onSpread = i
+						break
+					
+					row_UL += Vector2(5.0*sin(parentRot), -5.0*cos(parentRot))
+				if(HL_onSpread >= 0):
+					break
+	
+	if(end_pos.x > X_Bounds.x):
+		end_pos.x = X_Bounds.x
+	elif(end_pos.x < X_Bounds.y):
+		end_pos.x = X_Bounds.y
+	
+	if(end_pos.y > Y_Bounds.x):
+		end_pos.y = Y_Bounds.x
+	elif(end_pos.y < Y_Bounds.y):
+		end_pos.y = Y_Bounds.y
+	
+	var start_Board_index: Vector2
+	var end_Board_index: Vector2
+	var Board_Tile: Tile = null
+	
+	for i in range(Board_Tiles.size()):
+		for j in range(Board_Tiles[i].size()):
+			var Board_pos: Vector2 = Vector2(global_position.x - 135 + 30*j, global_position.y - 40*i)
+			if(Board_Tiles[i][j] == tile):
+				orig_pos = Board_pos
+				start_Board_index = Vector2(i, j)
+			if(end_pos == Board_pos):
+				Board_Tile = Board_Tiles[i][j]
+				end_Board_index = Vector2(i, j)
+	
+	var check_eli: bool = false
+	if(HL_onSpread != -1):
+		check_eli = S.Spread_Rows[HL_onSpread].is_postSpread_Eligible(tile, S == get_parent().Spread)
+	
+	if(HL_onSpread == -1 || !check_eli):
+		if(Board_Tile != null):
+			Board_Tiles[start_Board_index.x][start_Board_index.y] = Board_Tiles[end_Board_index.x][end_Board_index.y]
+			Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
+			Board_Tiles[start_Board_index.x][start_Board_index.y].moveTile(orig_pos, 0.2)
+			if(end_Board_index != start_Board_index):
+				Board_Tiles[start_Board_index.x][start_Board_index.y].reparent(get_child(start_Board_index.x))
+				Board_Tiles[end_Board_index.x][end_Board_index.y].reparent(get_child(end_Board_index.x))
+			await tile.moveTile(end_pos, 0.2)
+		else:
+			Board_Tiles[start_Board_index.x][start_Board_index.y] = null
+			Board_Tiles[end_Board_index.x][end_Board_index.y] = tile
+			if(end_Board_index != start_Board_index):
+				Board_Tiles[end_Board_index.x][end_Board_index.y].reparent(get_child(end_Board_index.x))
+			await tile.moveTile(end_pos, 0.2)
+		
+		EP_HighLight.queue_free()
+	else:
+		Board_Tiles[start_Board_index.x][start_Board_index.y] = null
+		get_parent().get_parent().peer_PostSpread(tile.resource, HL_onSpread, S.get_parent(), multiplayer.get_unique_id())
+		tile.reparent(S)
+		tile.REparent(S.get_parent(), S)
+		var PT_finalpos: Vector2 = S.Spread_Rows[HL_onSpread].append_postSpread(tile)
+		if(S.get_parent() == get_parent()):
+			await S.get_parent().updateTilePos(0.1)
+		else:
+			S.get_parent().updateTilePos(0.1)
+			var origRot: float = tile.rotation
+			while(S.get_parent().is_updatingPos):
+				var tween = get_tree().create_tween()
+				tween.tween_property(tile, "rotation", 2*PI+origRot, 0.05)
+				await tween.finished
+				if(S.get_parent().is_updatingPos):
+					tile.rotation = origRot
+					tween = get_tree().create_tween()
+		
+		EP_HighLight.queue_free()
+		await get_tree().create_timer(0.5).timeout
+		var new_points: int = tile.on_spread(PT_finalpos, S.Spread_Rows[HL_onSpread])
+		await get_tree().create_timer(0.8).timeout
+		
+		var TMP_RTL: RichTextLabel = RichTextLabel.new()
+		add_child(TMP_RTL)
+		TMP_RTL.text = "0"
+		TMP_RTL.visible = false
+		TMP_RTL.global_position = $"../ProgressBar".global_position
+		await tile.UI_add_score(TMP_RTL, 0, 0)
+		TMP_RTL.queue_free()
+		
+		get_parent().addPoints(new_points)
+
+func remove_BoardTile( tile: TileContainer) -> void:
+	var tileIndex: Vector2 = get_BoardTile_index(tile)
+	if(tileIndex.x >= 0 && tileIndex.y >= 0):
+		Board_Tiles[tileIndex.x][tileIndex.y] = null
+
+func get_BoardTile_index(tile: TileContainer) -> Vector2:
+	var index_X: int
+	
+	for index_Y in range(Board_Tiles.size()):
+		index_X = Board_Tiles[index_Y].find(tile)
+		if(index_X >= 0):
+			return Vector2(index_Y, index_X)
+	
+	return Vector2(-1, -1)
+
+Spread:
+	
+	var Spread_Rows: Array[Spread_Info]
+
+var mouse_inside: bool = false
+
+var is_Spreading: bool = false
+
+func Spread(selected_tiles: Array[Tile]) -> void:
+	var new_Spread: Spread_Info = Spread_Info.new(selected_tiles)
+	Spread_Rows.append(new_Spread)
+	var River_index: int = -1
+	for tile_to_remove in selected_tiles:
+		tile_to_remove.post_Spread()
+		get_parent().remove_BoardTile(tile_to_remove)
+		if(River_index == -1):
+			River_index = get_parent().get_RiverTile_index(tile_to_remove)
+		
+		get_parent().remove_RiverTile(tile_to_remove)
+		if(tile_to_remove.parentEffector == null):
+			add_child(tile_to_remove)
+		else:
+			tile_to_remove.reparent(self)
+		tile_to_remove.REparent(get_parent(), self)
+	
+	if(River_index >= 0):
+		get_parent().Drain_River(River_index)
+	
+	for BRow in get_parent().get_BoardTiles():
+		for tile in BRow:
+			if(tile != null):
+				tile.possible_Spread_highlight(false)
+	
+	$"../../Turn_Button".disabled = true
+	is_Spreading = true
+	await updateTilePos()
+	await get_tree().create_timer(0.2).timeout
+	await Add_Spread_Score(selected_tiles)
+	is_Spreading = false
+	$"../../Turn_Button".disabled = false
+
+func Add_Spread_Score(selected_tiles: Array[Tile]) -> void:
+	var new_points: int = 0
+	for tile in selected_tiles:
+		new_points += tile.on_spread(Vector2(0, 0), Spread_Rows[Spread_Rows.size()-1])
+		await get_tree().create_timer(1).timeout
+	var BigScore: RichTextLabel = RichTextLabel.new()
+	add_child(BigScore)
+	#Vector2(Spread_Info.MIDDLE_POS, 588-40*Spread_Rows.size())
+	#BigScore.global_position = final_score_pos - BigScore.custom_minimum_size/2
+	BigScore.custom_minimum_size = Vector2(90, 40)
+	var parentRot: float = get_parent().rotation
+	var RowDistance: Vector2 = Vector2(50*(Spread_Rows.size()+1)*sin(parentRot), -40*(Spread_Rows.size()+1)*cos(parentRot))
+	var XSizeDistance: Vector2 = Vector2(BigScore.custom_minimum_size.x*cos(parentRot), BigScore.custom_minimum_size.x*sin(parentRot))/2.0
+	var YSizeDistance: Vector2 = Vector2(-BigScore.custom_minimum_size.y*sin(parentRot), BigScore.custom_minimum_size.y*cos(parentRot))/2.0
+	BigScore.global_position = global_position + RowDistance - XSizeDistance - YSizeDistance
+	for tile in selected_tiles:
+		tile.UI_add_score(BigScore, new_points, selected_tiles.size())
+		await get_tree().create_timer(0.3).timeout
+	
+	await get_tree().create_timer(1.3).timeout
+	var tween = get_tree().create_tween()
+	#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	tween.tween_property(BigScore, "global_position", $"../ProgressBar".global_position - XSizeDistance - YSizeDistance, 1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	await tween.finished
+	BigScore.queue_free()
+	
+	get_parent().addPoints(new_points)
+
+func updateTilePos(duration: float = 0.3):#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	var curr_pos: Vector2
+	var parentRot: float = get_parent().rotation
+	for j in range(Spread_Rows.size()):
+		curr_pos = global_position - Spread_Rows[j].get_SpreadSize(self)/2.0 + Vector2(17.5*cos(parentRot), 17.5*sin(parentRot)) + Vector2(40*j*sin(parentRot), -40*j*cos(parentRot))
+		for tile in Spread_Rows[j].prefixedLeeches:
+			if(tile.global_position != curr_pos && !tile.is_being_moved):
+				tile.moveTile(curr_pos)
+				await get_tree().create_timer(duration).timeout
+			curr_pos +=  Vector2(35*cos(parentRot), 35*sin(parentRot))
+		curr_pos -=  Vector2(5*cos(parentRot), 5*sin(parentRot))
+		for tile in Spread_Rows[j].Tiles:
+			#curr_pos = Spread_Rows[j].get_Spread_StartPos(self) + Vector2((12.5 + 30*i)*cos(get_parent().rotation), (12.5 + 30*i)*sin(get_parent().rotation)) + Vector2(40*j*sin(get_parent().rotation), -40*j*cos(get_parent().rotation))
+			if(tile.global_position != curr_pos && !tile.is_being_moved):
+				tile.moveTile(curr_pos)
+				await get_tree().create_timer(duration).timeout
+			curr_pos +=  Vector2(30*cos(parentRot), 30*sin(parentRot))
+		for tile in Spread_Rows[j].suffixedLeeches:
+			if(tile.global_position != curr_pos && !tile.is_being_moved):
+				tile.moveTile(curr_pos)
+				await get_tree().create_timer(duration).timeout
+			curr_pos +=  Vector2(35*cos(parentRot), 35*sin(parentRot))
+
+func get_spread_pos(tile: Tile) -> Vector2:
+	var index_y = Spread_Rows.size()-1
+	if(index_y >= 0):
+		var index_x: int = Spread_Rows[index_y].Tiles.find(tile)
+		if(index_x >= 0):
+			return Vector2(750 + 30*index_x, 628 - 40*index_y)
+	return tile.orig_pos
+
+
+func _on_mouse_check_mouse_entered() -> void:
+	mouse_inside = true
+
+
+func _on_mouse_check_mouse_exited() -> void:
+	mouse_inside = false
+
+River:
+	
+	var Discard_River: Array[Tile]
+var DT_multiplier: int = 5
+var times_drained: int = 0
+var tiles_discarded: int = 0
+
+func isDrainEligible() -> bool:
+	return tiles_discarded >= DT_multiplier*(1+times_drained)
+
+func updateTilePos(duration: float = 0.3) -> void:
+	var curr_pos: Vector2
+	for k in range(Discard_River.size()):
+		var river_row: int = snapped(k/10, 1)
+		curr_pos = Vector2(400 + 30*(k - 10*river_row), 324 + 40*river_row)
+		if(Discard_River[k].global_position != curr_pos && !Discard_River[k].is_being_moved):
+			Discard_River[k].moveTile(curr_pos)
+			await get_tree().create_timer(duration).timeout
+
+func Drain_River(Drain_Start: int, OPD: bool = false) -> void:
+	if(Drain_Start >= 0):
+		var drain_threshold: int = DT_multiplier*(1+times_drained)
+		tiles_discarded -= drain_threshold
+		times_drained += 1
+		drain_threshold += DT_multiplier
+		
+		if(!OPD):
+			for i in range(Drain_Start, Discard_River.size()):
+				get_parent().add_BoardTile(Discard_River[i])
+		
+		var new_River: Array[Tile]
+		for i in range(Drain_Start):
+			new_River.append(Discard_River[i])
+		
+		if(OPD):
+			for i in range(Drain_Start, Discard_River.size()):
+				await Discard_River[i].moveTile(Vector2(50, 320), 0.3)
+				Discard_River[i].queue_free()
+		
+		Discard_River = new_River
+
+func peer_Drained() -> void:
+	var drain_threshold: int = DT_multiplier*(1+times_drained)
+	tiles_discarded -= drain_threshold
+	times_drained += 1
+	drain_threshold += DT_multiplier
+
+func get_current_DrainThreshold() -> int:
+	return DT_multiplier*(1+times_drained)
+
+func add_RiverTile(tile: Tile, discarded: bool = true) -> void:
+	Discard_River.append(tile)
+	tile.reparent(self)
+	tile.REparent(get_parent(), self)
+	if(discarded):
+		tiles_discarded += 1
+
+func get_RiverTile_index(tile: Tile) -> int:
+	return Discard_River.find(tile)
+
+func remove_RiverTile(tile: Tile) -> void:
+	Discard_River.erase(tile)

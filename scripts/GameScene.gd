@@ -9,21 +9,33 @@ var stats: Array[int] = [0, 0, 0, 0]#in order: Score, Biggest Spread (Score-Wise
 
 var PB: Player
 
-var usingItem: Item_Selection = null
+var usingItem: ItemContainer = null
 
 @export var ItemBar: GameBar
 @export var TurnButton: Button
 @export var BG_Obfuscator: Sprite2D
-@export var Shop: Shop
+@export var GameShop: Shop
 @export var tileSelectScreen: SelectScreen
 
-#var currentItemTarget: ItemTarget = ItemTarget.NO_ITEM
+static var Game: GameScene
 
 signal StartOfTurn
 
+func _init() -> void:
+	Game = self#Vector2(600, 628) child #8
+	#var PS: PackedScene = preload("res://Player_Board.tscn")
+	PB = Player.new()
+	add_child(PB)
+	PB.position = Vector2(576, 588)
+	PB.name = "PlayerObject"
+	#PB = $Player_Board
+
 func _ready() -> void:#multiplayer.get_unique_id()
-	$ItemBar.item_used.connect(ItemUsed)
-	PB = $Player_Board
+	#var tween2 = create_tween()
+	#tween2.tween_property(self, "self_modulate:a", 0, 1).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_IN)
+	ItemBar.item_used.connect(ItemUsed)
+	#PB = $Player_Board
+	move_child(PB, 8)
 	players.append(PlayerData.new(multiplayer.get_unique_id(), 0, PB))
 	if(HighLevelNetworkHandler.is_multiplayer):
 		if(HighLevelNetworkHandler.server_openned):
@@ -31,7 +43,7 @@ func _ready() -> void:#multiplayer.get_unique_id()
 		
 		var players_added: int = 0
 		for id in multiplayer.get_peers():
-			var new_PB: Node2D = preload("res://Player_Board.tscn").instantiate()
+			var new_PB: Player = Player.new()#preload("res://Player_Board.tscn").instantiate()
 			add_child(new_PB)
 			new_PB.becomePeerBoard()
 			players.append(PlayerData.new(id, 0, new_PB))
@@ -51,14 +63,14 @@ func _ready() -> void:#multiplayer.get_unique_id()
 					new_PB.rotation = deg_to_rad(270)
 	
 	$Turn_Button.text = "Shop"
-	$Shop.visible = false
-	$Shop.REgenerate_selections()
+	GameShop.visible = false
+	GameShop.REgenerate_selections()
 	
 	var nex_X_size: Vector2 = $Discard_Tip.get_theme_font("normal_font").get_string_size($Discard_Tip.text)
 	$Discard_Tip.size = nex_X_size
 	$Discard_Tip.global_position.x -= nex_X_size.x/2
 	
-	PB.artificialReady()
+	#PB.artificialReady()
 	
 	if(HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned):
 		$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(1)] + "'s Turn"
@@ -66,8 +78,10 @@ func _ready() -> void:#multiplayer.get_unique_id()
 		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
 		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
 		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
-	elif(HighLevelNetworkHandler.is_singleplayer):
-		PB.Activate_Draw()
+	#elif(HighLevelNetworkHandler.is_singleplayer):
+		#PB.Activate_Draw()
+	
+	ItemBar.addModifier(BagOfTiles.new(self))
 
 func _process(delta: float) -> void:
 	if(usingItem != null):
@@ -76,8 +90,9 @@ func _process(delta: float) -> void:
 	#if(HammerSprite != null):
 		#HammerSprite.global_position = get_global_mouse_position()
 	if(Input.is_action_just_pressed("Debug_Draw")):
-		if(!$TileSelect_Screen.visible && PB.my_turn && !PB.discarding):
-			$TileSelect_Screen.start_select(3, {"BoardAdd": true, "Position": -1, "Replacement": null})
+		PB.Draw()
+		#if(!$TileSelect_Screen.visible && PB.my_turn && !PB.discarding):
+			#$TileSelect_Screen.start_select(SelectScreen.SelectOption.BOARD_ADD_TILE, 3, {"EffectsChance": 0})
 
 @rpc("any_peer", "call_local", "reliable")
 func client_NewScore(client_id: int, newScore: int):
@@ -90,6 +105,7 @@ func client_NewScore(client_id: int, newScore: int):
 
 func getTurn() -> bool:
 	return PB.my_turn
+
 
 func Start_Turn(GameOver: bool = false) -> void:
 	if(GameOver):
@@ -127,23 +143,28 @@ func Next_Turn(peer_ID: int, next_peer: int = -1):
 		elif(next_peer < 0):
 			$MultiplayerSynchronizer.handle_NextTurn(multiplayer.get_unique_id())
 
-func select_tiles(selectType: SelectScreen.SelectOption, nr_tiles: int, selectFlags: Dictionary):
-	tileSelectScreen.start_select(selectType, nr_tiles, selectFlags)
+func select_tiles(selectType: SelectScreen.SelectOption, selectionOptions: Vector3i, selectFlags: Dictionary):
+	tileSelectScreen = SelectScreen.new(selectType, selectionOptions, selectFlags)
+	add_child(tileSelectScreen)
+	tileSelectScreen.position = Vector2(576, 324)
+	#tileSelectScreen.position
+	
+	#tileSelectScreen.start_select(selectType, nr_tiles, selectFlags)
 	#$TileSelect_Screen.start_select(nr_tiles, {"BoardAdd": false, "Position": DeckIndex, "Replacement": Replacement})
 
 func newScore(newScore: int, client_ID: int):
 	if(client_ID == multiplayer.get_unique_id()):
-		var old_curr: int = $Shop.currency
-		$Shop.update_currency(newScore)
+		var old_curr: int = GameShop.currency
+		GameShop.update_currency(newScore)
 		#var tween = 
-		get_tree().create_tween().tween_method(func(x: int): $ShopCurrency.text = "Current Funds: " + str(x), old_curr, $Shop.currency, 1)
-		$ShopCurrency.text = "Current Funds: " + str($Shop.currency)
+		get_tree().create_tween().tween_method(func(x: int): $ShopCurrency.text = "Current Funds: " + str(x), old_curr, GameShop.currency, 1)
+		$ShopCurrency.text = "Current Funds: " + str(GameShop.currency)
 		#$ShopCurrency.global_position.x = $Turn_Button.global_position.x + $Turn_Button.size.x/2.0 - $ShopCurrency.size.x/2.0
 		if(HighLevelNetworkHandler.is_multiplayer):
 			$MultiplayerSynchronizer.handle_newScore(newScore, client_ID)
 
 func addShopUses() -> void:
-	Shop.addShopUses()
+	GameShop.addShopUses()
 
 var emitting: bool = false
 
@@ -157,14 +178,14 @@ func ItemUsed(peer_id: int)-> void:
 
 #var HammerSprite: Sprite2D
 
-func startIteamUse(item: Item_Selection):
+func startIteamUse(item: ItemContainer):
 	usingItem = item
 	
 	if(item.item_info.target == Item.ItemTarget.VIABLE_BOARD_TILE):#Item.hasSpecialHighlight.find(item.item_info.id) >= 0):
 		PB.show_possible_selections(true)
 
 func endItemUse() -> void:
-	var tempItem: Item_Selection = usingItem
+	var tempItem: ItemContainer = usingItem
 	usingItem = null
 	
 	$Turn_Button.disabled = false
@@ -175,35 +196,6 @@ func endItemUse() -> void:
 	
 	ItemBar.endItemUse(tempItem)
 
-#func HammerTime(is_HammerTime: bool = false, Target: Node = null, displacement: Vector2 = Vector2(0, 0)) -> void:
-	#if(Target != null):
-		#var tween = get_tree().create_tween()
-		#tween.tween_property(HammerSprite, "global_position", Target.global_position+displacement, 1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		#tween.tween_property(HammerSprite, "rotation", deg_to_rad(-60), 0.6)
-		#tween.tween_property(HammerSprite, "rotation", deg_to_rad(60), 0.2)
-		#await tween.finished
-	#
-	#$BackGround_Obfuscator.visible = is_HammerTime
-	#$ItemBar.HammerTime(is_HammerTime, Target)
-	#$Shop.HammerTime(is_HammerTime, Target)
-	#
-	#if(Target != null):
-		#await get_tree().create_timer(0.2).timeout
-		#$Shop.visible = false
-		#$ItemBar.HammerUsed()
-	#
-	#if(is_HammerTime):
-		#HammerSprite = Sprite2D.new()
-		#HammerSprite.texture = load("res://Items/Slot_Hammer.png")
-		#add_child(HammerSprite)
-		##move_child(HammerSprite, 0)
-		#HammerSprite.z_index = 3
-		#HammerSprite.global_position = get_global_mouse_position()
-		#$Turn_Button.text = "Shop"
-	#else:
-		#HammerSprite.queue_free()
-		#$Turn_Button.text = "End Turn"
-
 func addItemBarUses() -> void:
 	$ItemBar.addItemBarUses()
 
@@ -213,15 +205,15 @@ func used_PassiveItem(item_ID: int):
 func add_ItemSlot() -> void:
 	$ItemBar.add_ItemSlot()
 
-func buy_tile(tile_bought: Tile_Info, animationTile: Tile = null) -> void:
+func buy_tile(tile_bought: Tile_Info, animationTile: TileContainer = null) -> void:
 	stats[3] += 1
-	$Player_Board.add_tile_to_deck(tile_bought, -1, animationTile)
+	PB.add_tile_to_deck(tile_bought, -1, animationTile)
 
 func buy_item(item_bought: Item) -> void:
-	$ItemBar.add_item(item_bought)
+	ItemBar.add_item(item_bought)
 
 func Gain_Freebie(freebies: int = 1) -> void:
-	$Shop.Gain_Freebie(freebies)
+	GameShop.Gain_Freebie(freebies)
 
 var Base_Tile: PackedScene = preload("res://Tile.tscn")
 
@@ -280,14 +272,19 @@ func peer_Drained(peer_id: int, Drain_pos: int) -> void:
 				player.player_Node.River.peer_Drained()
 				player.player_Node.update_DrainCounter()
 
+signal EndOfRound
+
 func End_Turn():
 	TurnButton.text = "Shop"
 	TurnButton.self_modulate = Color(1, 1, 1, 1)
 	Tile.select_Color = Color(1, 1, 0, 1)
-	Shop.REgenerate_selections()
+	GameShop.REgenerate_selections()
 	
 	var tween = get_tree().create_tween()
 	tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
+	
+	EndOfRound.emit()
+	
 	Next_Turn(multiplayer.get_unique_id())
 
 var shop_openned: bool = false
@@ -329,8 +326,8 @@ func _on_Turn_Button_pressed() -> void:
 			var tween = get_tree().create_tween()
 			tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
 		
-		$Shop.checkButtons()
-		$Shop.visible = true
+		GameShop.checkButtons()
+		GameShop.visible = true
 
 func exit_shop() -> void:
-	$Shop.visible = false
+	GameShop.visible = false

@@ -16,7 +16,7 @@ func effectOnGet() -> void:
 	Item.singularItems.append(4)
 	onGetAnimation()
 	
-	Item.flags["Beaver Teeth"] = true
+	#Item.flags["Beaver Teeth"] = true
 	
 	#Game.PB.Beaver()
 	Game.PB.River.DT_multiplier = 3

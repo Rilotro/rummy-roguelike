@@ -12,7 +12,7 @@ func _init(newGame: GameScene) -> void:
 	
 	super(8, "Architect's Chisel", newGame)
 	
-	Game.PB.DeckAddTile.connect(EffectOnDeckAddTile)#-------------------------------------
+	#GameScene.Game.PB.DeckAddTile.connect(EffectOnDeckAddTile)#-------------------------------------
 
 func getDescription() -> String:
 	if(uses == 1):

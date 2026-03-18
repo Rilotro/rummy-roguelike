@@ -18,6 +18,12 @@ var player: Player
 var parentEffector: Node2D
 
 #var itemViable: bool = false
+@export var Body: TileBody
+
+func _init(tile_info: Tile_Info) -> void:
+	Body = TileBody.new(tile_info)
+	Body.name = "Body"
+	add_child(Body)
 
 func change_info(new_info: Tile_Info = null):
 	if(new_info == null):

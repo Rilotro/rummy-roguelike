@@ -5,78 +5,249 @@ class_name SelectScreen
 @onready var Tile_Selection_Base: PackedScene = preload("res://TileSelection.tscn")
 var is_starting: bool = false
 var separation: float = -50
+var extendedSeparation: float = -50
+var rowSeparation: float = -50
+var extendedSep_startingIndex: int = 0
 
 var currentFlags: Dictionary
 var currentOption: SelectOption
 var DeckAdd_position: int = -1
 
+static var Selections: Array[Resource]
+static var finalSelections: Array[Resource]
+var minMAXOptions: Vector2i#X is the minimum ammount of choices, default should be 1
+						   #Y is the MAXimum ammount of choices, default is -1, meaning any ammount of choices
+
+signal selectionEnded
+
+var separationTween: Tween
+var selection_nr: int
+
+const MAX_ROW_SIZE: int = 5
+const CONTAINER_SIZE_X: float = 115
+
 enum SelectOption{
-	DECK_ADD_TILE, WISHES
+	DECK_ADD_TILE, BOARD_ADD_TILE, WISHES, GAIN_ITEM
 }
 
-#var selectFlags: Dictionary = {"BoardAdd": false, "Position": -1, "Replacement": null}
+@export var TileSelect_BG: Sprite2D
+@export var Obfuscator: Control
+@export var RowContainer: VBoxContainer
+@export var SelectionContainers: Array[HBoxContainer]
+@export var Proceed: Button
 
-func start_select(option: SelectOption, selection_nr: int, select_flags: Dictionary) -> void:
-	currentOption = option
+func _init(option: SelectOption, selectionOptions: Vector3i, select_flags: Dictionary) -> void:
+	selection_nr = selectionOptions.x
+	minMAXOptions = Vector2(selectionOptions.y, selectionOptions.z)
+	
+	Selections.clear()
+	finalSelections.clear()
 	currentFlags = select_flags
-	var final_sep: float = ($HBoxContainer.size.x - 50*selection_nr)/(selection_nr+1)
+	currentOption = option
 	
-	match option:
-		SelectOption.DECK_ADD_TILE:
-			#currentFlags.#-------------------------------------------------------------------------------------------------
-			assert(currentFlags.has("DeckPosition") && type_string(typeof(currentFlags.DeckPosition)) == "int")
-			assert(currentFlags.has("CanHaveEffects") && type_string(typeof(currentFlags.CanHaveEffects)) == "bool")
-			
-			var new_selection: Tile_Selection
-			for i in range(selection_nr):
-				new_selection = Tile_Selection_Base.instantiate()
-				new_selection.no_cost()
-				new_selection.joker_tile = false
-				new_selection.parentEffector = self
-				new_selection.REgenerate_selection()
-				$HBoxContainer.add_child(new_selection)
+	TileSelect_BG = Sprite2D.new()
+	TileSelect_BG.texture = CanvasTexture.new()
+	TileSelect_BG.region_enabled = true
+	TileSelect_BG.region_rect = Rect2(0, 0, 1152, 648)
+	TileSelect_BG.self_modulate = Color(0, 0, 0, 0.39)
+	TileSelect_BG.name = "TileSelect_Background"
+	add_child(TileSelect_BG)
 	
-	visible = true
-	var tween = get_tree().create_tween()
-	is_starting = true
-	tween.tween_property(self, "modulate", Color(1, 1, 1, 1), 0.25)
-	tween.parallel().tween_property(self, "separation", final_sep, 0.25)
-	await tween.finished
-	is_starting = false
+	Obfuscator = Control.new()
+	Obfuscator.custom_minimum_size = Vector2(1152, 648)
+	Obfuscator.size = Vector2(1152, 648)
+	Obfuscator.position = Vector2(-576, -324)
+	Obfuscator.name = "Obfuscator"
+	add_child(Obfuscator)
+	
+	RowContainer = VBoxContainer.new()
+	RowContainer.alignment = BoxContainer.ALIGNMENT_CENTER
+	RowContainer.custom_minimum_size = Vector2(1152, 648)
+	RowContainer.set_anchors_preset(Control.PRESET_CENTER)
+	RowContainer.size = Vector2(1152, 648)
+	RowContainer.position = Vector2(-576, -324)
+	RowContainer.add_theme_constant_override("separation", -50)
+	RowContainer.name = "RowContainer"
+	add_child(RowContainer)
+	
+	var rowNumber: int = 1
+	var SelectionContainer: HBoxContainer
+	rowNumber = ceili(selection_nr/5.0)
+	
+	for i in rowNumber:
+		SelectionContainer = HBoxContainer.new()
+		SelectionContainer.alignment = BoxContainer.ALIGNMENT_CENTER
+		SelectionContainer.custom_minimum_size = Vector2(1152, 0)
+		SelectionContainer.name = "SelectionContainer" + str(i+1)
+		SelectionContainers.append(SelectionContainer)
+		RowContainer.add_child(SelectionContainer)
+	
+	Proceed = Button.new()
+	Proceed.text = "Proceed"
+	Proceed.position = Vector2(450, -21)
+	Proceed.add_theme_font_size_override("font_size", 24)
+	Proceed.visible = false
+	Proceed.pressed.connect(end_select)
+	Proceed.name = "Proceed"
+	add_child(Proceed)
 
-func _process(_delta: float) -> void:
-	if(is_starting):
-		$HBoxContainer.add_theme_constant_override("separation", separation)
+func _ready() -> void:
+	var rowNumber: int = RowContainer.get_children().size()
+	var colNumber: int = floori(selection_nr/float(rowNumber))
+	var leftover: int = selection_nr - colNumber*rowNumber
+	extendedSep_startingIndex = rowNumber - leftover
 	
-	if(Input.is_action_just_pressed("Debug_Draw")):
-		for TS in $HBoxContainer.get_children():
-			TS.REgenerate_selection()
-
-func tile_select(_selection: Tile_Selection, selection_info: Tile_Info, _c: int):
+	var RowSelectionsizes: Array[int]
+	RowSelectionsizes.resize(rowNumber)
+	RowSelectionsizes.fill(colNumber)
+	
+	for i in leftover:
+		RowSelectionsizes[RowSelectionsizes.size()-1-i] += 1
+	
 	match currentOption:
 		SelectOption.DECK_ADD_TILE:
-			get_parent().PB.add_tile_to_deck(selection_info)
+			assert(currentFlags.has("DeckPosition") && type_string(typeof(currentFlags.DeckPosition)) == "int")
+			assert(currentFlags.has("EffectsChance") && type_string(typeof(currentFlags.EffectsChance)) == "int")
+			
+			var new_selection: TileContainer
+			var nameIndex: int = 0
+			for i in range(rowNumber):
+				for j in range(RowSelectionsizes[i]):
+					new_selection = TileContainer.new(null, ResourceContainer.ContainerType.SELECTION, currentFlags.EffectsChance)
+					new_selection.name = "Tile_Selection" + str(nameIndex*i + j)
+					SelectionContainers[i].add_child(new_selection)
+					Selections.append(new_selection.resource)
+				
+				nameIndex += RowSelectionsizes[i]
+		
+		SelectOption.BOARD_ADD_TILE:
+			assert(currentFlags.has("EffectsChance") && type_string(typeof(currentFlags.EffectsChance)) == "int")
+			
+			var new_selection: TileContainer
+			var nameIndex: int = 0
+			for i in range(rowNumber):
+				for j in range(RowSelectionsizes[i]):
+					new_selection = TileContainer.new(null, ResourceContainer.ContainerType.SELECTION, currentFlags.EffectsChance)
+					new_selection.name = "Tile_Selection" + str(nameIndex*i + j)
+					SelectionContainers[i].add_child(new_selection)
+					Selections.append(new_selection.resource)
+				
+				nameIndex += RowSelectionsizes[i]
+		
+		SelectOption.GAIN_ITEM:
+			assert(currentFlags.has("ConsumablesOnly") && type_string(typeof(currentFlags.ConsumablesOnly)) == "bool")
+
+			var new_selection: ItemContainer
+			var nameIndex: int = 0
+			for i in range(rowNumber):
+				for j in range(RowSelectionsizes[i]):#-------------------------------------------------------------------------------------------------------------------
+					new_selection = ItemContainer.new(Item.getRandomItem(get_parent(), false, currentFlags.ConsumablesOnly), ResourceContainer.ContainerType.SELECTION)
+					new_selection.name = "Item_Selection" + str(nameIndex*i + j)
+					SelectionContainers[i].add_child(new_selection)
+					Selections.append(new_selection.resource)
+				
+				nameIndex += RowSelectionsizes[i]
 	
-	#if(selectFlags["BoardAdd"]):
-		#var newTile: Tile = preload("res://Tile.tscn").instantiate()
-		#newTile.change_info(selection_info)
-		#get_parent().PB.add_BoardTile(newTile)
-		#get_parent().PB.updateTilePos(0.1)
-	#elif(selectFlags["Replacement"] != null):
-		##get_parent().PB
-		#selectFlags["Replacement"].change_info(selection_info)
-	#else:
-		#get_parent().PB.add_tile_to_deck(selection_info, selectFlags["Position"])
+	var final_sep: float = (RowContainer.size.x - 85*colNumber)/(colNumber+1)
+	var extended_final_sep: float = (RowContainer.size.x - 85*(colNumber+1))/(colNumber+2)
+	var final_row_sep: float = CONTAINER_SIZE_X*1.5
 	
-	for button in $HBoxContainer.get_children():
-		button.disabled = true
+	separationTween = create_tween()
+	is_starting = true
+	separationTween.tween_property(self, "modulate", Color(1, 1, 1, 1), 0.25)
+	separationTween.parallel().tween_property(self, "separation", final_sep, 0.25)
+	separationTween.parallel().tween_property(self, "extendedSeparation", extended_final_sep, 0.25)
+	separationTween.parallel().tween_property(self, "rowSeparation", final_row_sep, 0.25)
+
+func _process(_delta: float) -> void:
+	if(separationTween == null || !separationTween.is_running()):
+		is_starting = false
 	
-	var tween = get_tree().create_tween()
-	tween.tween_property(self, "modulate", Color(1, 1, 1, 0), 0.25)
-	await tween.finished
-	visible = false
-	$HBoxContainer.add_theme_constant_override("separation", -50)
-	separation = -50
+	if(is_starting):
+		RowContainer.add_theme_constant_override("separation", floori(rowSeparation))
+		for i in range(SelectionContainers.size()):
+			if(i >= extendedSep_startingIndex):
+				SelectionContainers[i].add_theme_constant_override("separation", floori(extendedSeparation))
+			else:
+				SelectionContainers[i].add_theme_constant_override("separation", floori(separation))
 	
-	for button in $HBoxContainer.get_children():
-		button.queue_free()
+	if(Input.is_action_just_pressed("Debug_Draw") && currentOption == SelectOption.BOARD_ADD_TILE):
+		for SC in SelectionContainers:
+			for TS in SC.get_children():
+				TS.REgenerateResource(null)
+
+func tile_select(_selection: Tile_Selection, selection_info: Tile_Info, _c: int):
+	if(finalSelections.has(selection_info)):
+		finalSelections.erase(selection_info)
+		
+		if(finalSelections.size() < minMAXOptions.x):
+			Proceed.visible = false
+	else:
+		if(finalSelections.size() >= minMAXOptions.y):
+			return
+		
+		finalSelections.append(selection_info)
+		
+		if(finalSelections.size() == minMAXOptions.x):
+			if(minMAXOptions.x == minMAXOptions.y && minMAXOptions.x == 1):
+				end_select()
+			else:
+				Proceed.visible = true
+
+func item_select(itemSlot: ItemContainer, item: Item, _cost: int):
+	if(finalSelections.has(item)):
+		finalSelections.erase(item)
+		
+		if(finalSelections.size() < minMAXOptions.x):
+			Proceed.visible = false
+	else:
+		if(finalSelections.size() >= minMAXOptions.y):
+			return
+		
+		finalSelections.append(item)
+		
+		if(finalSelections.size() == minMAXOptions.x):
+			if(minMAXOptions.x == minMAXOptions.y && minMAXOptions.x == 1):
+				end_select()
+			else:
+				Proceed.visible = true
+	
+	#match currentOption:
+		#SelectOption.GAIN_ITEM:
+			#finalSelections.append(item)
+			#get_parent().ItemBar.add_item(item)
+
+func containerPressed(selection: ResourceContainer) -> void:
+	if(finalSelections.has(selection.resource)):
+		finalSelections.erase(selection.resource)
+		
+		if(finalSelections.size() < minMAXOptions.x):
+			Proceed.visible = false
+	else:
+		if(finalSelections.size() >= minMAXOptions.y):
+			return
+		
+		finalSelections.append(selection.resource)
+		
+		if(finalSelections.size() == minMAXOptions.x):
+			if(minMAXOptions.x == minMAXOptions.y && minMAXOptions.x == 1):
+				end_select()
+			else:
+				Proceed.visible = true
+
+func end_select() -> void:
+	for selection in finalSelections:
+		match currentOption:
+			SelectOption.DECK_ADD_TILE:
+				GameScene.Game.PB.add_tile_to_deck(selection, currentFlags.DeckPosition)
+			SelectOption.BOARD_ADD_TILE:
+				var newTile: TileContainer = TileContainer.new(selection, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.BOARD) #preload("res://Tile.tscn").instantiate()
+				#newTile.change_info(selection_info)
+				GameScene.Game.PB.add_BoardTile(newTile)
+				GameScene.Game.PB.updateTilePos(0.1)
+			SelectOption.GAIN_ITEM:
+				get_parent().ItemBar.add_item(selection)
+	
+	selectionEnded.emit()
+	
+	queue_free()

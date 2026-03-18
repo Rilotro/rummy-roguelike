@@ -4,15 +4,21 @@
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_c3xm7"]
 
-[node name="TileSelect_Screen" type="Node2D"]
+[node name="TileSelect_Screen" type="Node2D" node_paths=PackedStringArray("TileSelect_BG", "Obfuscator", "RowContainer", "SelectionContainers")]
 script = ExtResource("1_5q40y")
+TileSelect_BG = NodePath("TileSelect_Background")
+Obfuscator = NodePath("Obfuscator")
+RowContainer = NodePath("RowContainer")
+SelectionContainers = [NodePath("RowContainer/SelectionContainer")]
 
-[node name="TileSelect_BackGround" type="Sprite2D" parent="."]
+[node name="TileSelect_Background" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0, 0, 0.39215687)
-scale = Vector2(1152, 648)
 texture = SubResource("CanvasTexture_c3xm7")
+region_enabled = true
+region_rect = Rect2(0, 0, 1152, 648)
 
-[node name="Control" type="Control" parent="."]
+[node name="Obfuscator" type="Control" parent="."]
+custom_minimum_size = Vector2(1152, 648)
 layout_mode = 3
 anchors_preset = 0
 offset_left = -576.0
@@ -20,8 +26,8 @@ offset_top = -324.0
 offset_right = 576.0
 offset_bottom = 324.0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(1152, 70)
+[node name="RowContainer" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(1152, 648)
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -35,3 +41,20 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = -50
 alignment = 1
+
+[node name="SelectionContainer" type="HBoxContainer" parent="RowContainer"]
+custom_minimum_size = Vector2(1152, 60)
+layout_mode = 2
+theme_override_constants/separation = -50
+alignment = 1
+
+[node name="Proceed" type="Button" parent="."]
+visible = false
+offset_left = 450.0
+offset_top = -21.0
+offset_right = 552.0
+offset_bottom = 21.0
+theme_override_font_sizes/font_size = 24
+text = "Proceed"
+
+[connection signal="pressed" from="Proceed" to="." method="end_select"]

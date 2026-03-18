@@ -5,6 +5,7 @@ const baseFilePath: String =  "res://LanguageStrings/english/"
 var ItemStrings: Dictionary
 var JokerStrings: Dictionary
 var EffectStrings: Dictionary
+var UIStrings: Dictionary
 
 func _init() -> void:
 	var file: FileAccess
@@ -41,3 +42,13 @@ func _init() -> void:
 		file.close()
 	else:
 		print("Error: Effect Strings File not found")
+	
+	if(FileAccess.file_exists(baseFilePath + "UI.json")):
+		file = FileAccess.open(baseFilePath + "UI.json", FileAccess.READ)
+		content = JSON.parse_string(file.get_as_text())
+		
+		UIStrings = content
+		
+		file.close()
+	else:
+		print("Error: UI Strings File not found")

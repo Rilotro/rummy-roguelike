@@ -12,7 +12,7 @@ func _init(newGame: GameScene) -> void:
 	
 	super(7, "Bottled Nostalgia", newGame)
 	
-	Game.PB.RoundEnd.connect(effectOnRoundEnd)#-----------------------------------
+	GameScene.Game.EndOfRound.connect(effectOnRoundEnd)#-----------------------------------
 
 func getDescription() -> String:
 	if(uses == 1):
@@ -31,7 +31,7 @@ func effectOnRoundEnd() -> void:
 		return
 	
 	for tile in Game.PB.selected_tiles:
-		await Game.PB.add_tile_to_deck(tile.getTileData(), -1, tile)
+		await Game.PB.add_tile_to_deck(tile.resource, -1, tile)
 	
 	Game.PB.selected_tiles.clear()
 	Game.ItemBar.usedPassiveItem(self)

@@ -1,10 +1,12 @@
-[gd_scene load_steps=4 format=3 uid="uid://bftt3sh7ylbn2"]
+[gd_scene load_steps=5 format=3 uid="uid://bftt3sh7ylbn2"]
 
 [ext_resource type="Script" uid="uid://co1qse4ge28dp" path="res://ItemBar.gd" id="1_mry7p"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_l5ixw"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_a3h80"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_2yx0j"]
 
 [node name="ItemBar" type="Node2D"]
 script = ExtResource("1_mry7p")
@@ -13,7 +15,7 @@ script = ExtResource("1_mry7p")
 self_modulate = Color(0, 0.2901961, 0.8666667, 1)
 texture = SubResource("CanvasTexture_l5ixw")
 region_enabled = true
-region_rect = Rect2(0, 0, 1152, 70)
+region_rect = Rect2(0, 0, 1152, 110)
 
 [node name="ItemBar_Highlight" type="Sprite2D" parent="."]
 visible = false
@@ -24,13 +26,13 @@ region_enabled = true
 region_rect = Rect2(0, 0, 576, 70)
 
 [node name="Slots" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(471, 60)
-offset_left = 99.0
-offset_top = -30.0
-offset_right = 570.0
-offset_bottom = 30.0
+custom_minimum_size = Vector2(510, 100)
+offset_left = 61.0
+offset_top = -50.0
+offset_right = 571.0
+offset_bottom = 50.0
 mouse_filter = 2
-theme_override_constants/separation = 9
+theme_override_constants/separation = 5
 alignment = 2
 
 [node name="ItemBar_Sensor" type="Control" parent="."]
@@ -42,6 +44,22 @@ offset_top = -35.0
 offset_right = 576.0
 offset_bottom = 35.0
 metadata/_edit_use_anchors_ = true
+
+[node name="ModifierSlots" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(510, 100)
+offset_left = -459.0
+offset_top = -50.0
+offset_right = 51.0
+offset_bottom = 50.0
+theme_override_constants/separation = 5
+alignment = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(-515, 0)
+texture = SubResource("CanvasTexture_2yx0j")
+region_enabled = true
+region_rect = Rect2(0, 0, 122, 100)
 
 [connection signal="mouse_entered" from="ItemBar_Sensor" to="." method="_on_ItemBar_Sensor_mouse_entered"]
 [connection signal="mouse_exited" from="ItemBar_Sensor" to="." method="_on_ItemBar_Sensor_mouse_exited"]

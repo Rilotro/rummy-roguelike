@@ -1,6 +1,6 @@
 extends Item
 
-class_name BagOfTiles
+#class_name BagOfTiles
 
 func _init(newGame: GameScene) -> void:
 	item_image = load("res://Items/Sprites/Bag of Tiles.png")
@@ -43,7 +43,7 @@ func use() -> bool:
 		elif(DeckSize > 0):
 			DeckIndex = randi_range(0,DeckSize-1)
 		
-		Game.select_tiles(SelectScreen.SelectOption.DECK_ADD_TILE, 3, {"DeckPosition": DeckIndex, "CanHaveEffects": true})
+		Game.select_tiles(SelectScreen.SelectOption.DECK_ADD_TILE, 3, {"DeckPosition": DeckIndex, "EffectsChance": Tile_Info.Effect.size()})
 	else:
 		return false
 	

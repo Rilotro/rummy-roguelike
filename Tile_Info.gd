@@ -16,6 +16,7 @@ var effects: Array[Effect]
 
 static var level: int = 0
 var joker_name: String
+var joker_image: Texture
 
 static var TileColors: Array[Color] = [Color.BLACK, Color.RED, Color.GREEN, Color.BLUE]
 
@@ -130,6 +131,32 @@ func getDescription() -> String:
 	
 	return fullDescription
 
+func getEffectContainer(effect: Effect) -> Control:
+	var container: Control = Control.new()
+	var effectIcon: Sprite2D = Sprite2D.new()
+	
+	container.custom_minimum_size = Vector2(32, 32)
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.name = (Effect.keys()[effect]).to_lower() + "Container"
+	
+	effectIcon.position = Vector2(16, 16)
+	effectIcon.scale = Vector2(0.5, 0.5)
+	effectIcon.name = (Effect.keys()[effect]).to_lower() + "Icon"
+	container.add_child(effectIcon)
+	
+	match effect:
+		Effect.DUPLICATE:
+			effectIcon.texture = load("res://Items/Sprites/Duplicate.png")
+			effectIcon.self_modulate = color
+		Effect.WINGED:
+			effectIcon.texture = load("res://Items/Sprites/Winged.png")
+			if(color == Color.BLACK):
+				effectIcon.self_modulate = Color(0.15, 0.15, 0.15, 1)
+			else:
+				effectIcon.self_modulate = color
+	
+	return container
+
 func setRarity(set_rarity: Rarity = Rarity.PORCELAIN) -> void:
 	if(joker_id >= 0):
 		return
@@ -222,7 +249,7 @@ static func getRandomTile(effectsChance: int = -1) -> Tile_Info:
 	if(effectsChance > -1):
 		var effectIndex: int = randi_range(0, Effect.size()+effectsChance)
 		var newEffect: Effect# = Effect.values()[effectIndex]
-		while(effectIndex < Effect.size() && newEffects.find(Effect.values()[effectIndex]) < 0):
+		while(effectIndex < Effect.size() && !newEffects.has(Effect.values()[effectIndex])):
 			newEffect = Effect.values()[effectIndex]
 			newEffects.append(newEffect)
 			effectIndex = randi_range(0, Effect.size()+effectsChance)

@@ -25,25 +25,25 @@ func _init(new_row: Array[Tile]) -> void:
 	var joker: Tile = null
 	
 	for tile in new_row:
-		if(tile.getTileData().joker_id >= 0):
+		if(tile.resource.joker_id >= 0):
 			colors.append(Color.WHITE)
 		else:
 			if(temp_color == Color.WHITE):
-				if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) < 0):
-					temp_color = tile.getTileData().color
-					colors.append(tile.getTileData().color)
+				if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) < 0):
+					temp_color = tile.resource.color
+					colors.append(tile.resource.color)
 				#else:
 					#colors.append(-1)
-			elif(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) < 0 && tile.getTileData().color != temp_color):
+			elif(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) < 0 && tile.resource.color != temp_color):
 				is_color = false
-				colors.append(tile.getTileData().color)
+				colors.append(tile.resource.color)
 			
-			if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+			if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0):
 				colors.append(Color.WHITE)
 			
 			if(temp_number == -1):
-				temp_number = tile.getTileData().number
-			elif(tile.getTileData().number != temp_number):
+				temp_number = tile.resource.number
+			elif(tile.resource.number != temp_number):
 				is_number = false
 	
 	if(is_color):
@@ -52,22 +52,22 @@ func _init(new_row: Array[Tile]) -> void:
 		the_color = temp_color
 		#if(joker != null):
 			#var jIndex: int = new_row.find(joker)
-			#joker.getTileData().potential_colors = [temp_color]
+			#joker.resource.potential_colors = [temp_color]
 			#if(jIndex == 0):
-				#joker.getTileData().potential_number = [new_row[jIndex+1].getTileData().number-1]
+				#joker.resource.potential_number = [new_row[jIndex+1].resource.number-1]
 			#else:
-				#joker.getTileData().potential_number = [new_row[jIndex-1].getTileData().number+1]
+				#joker.resource.potential_number = [new_row[jIndex-1].resource.number+1]
 	elif(is_number):
 		same_number = true
 		same_color = false
 		the_number = temp_number
 		#if(joker != null):
-			#joker.getTileData().potential_number.append(temp_number)
+			#joker.resource.potential_number.append(temp_number)
 			#var jColors: Array[int]
 			#for i in range(1, 5):
 				#if(colors.find(i) < 0):
 					#jColors.append(i)
-			#joker.getTileData().potential_colors = jColors
+			#joker.resource.potential_colors = jColors
 
 func is_postSpread_Eligible(tile: Tile, is_HomeSpread: bool = true):
 	#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -80,18 +80,18 @@ func is_postSpread_Eligible(tile: Tile, is_HomeSpread: bool = true):
 	if(suffixedLeeches.size() >= 1):
 		lastTile = suffixedLeeches[suffixedLeeches.size()-1]
 	
-	if(tile.getTileData().joker_id >= 0):
+	if(tile.resource.joker_id >= 0):
 		var S: Vector2 = Tiles[0].parentEffector.global_position
 		var D: float = cos(PI/2-parentRot)*(S.y-tile.global_position.y) + sin(PI/2-parentRot)*(S.x-tile.global_position.x)
 		if(D >= 0):
 			if(prefixedLeeches.size() >= 1 && is_HomeSpread):
 				return false
-			if(same_color && firstTile.getTileData().number == 1):
+			if(same_color && firstTile.resource.number == 1):
 				return false
 		else:
 			if(suffixedLeeches.size() >= 1 && is_HomeSpread):
 				return false
-			if(same_color && lastTile.getTileData().number == 1):
+			if(same_color && lastTile.resource.number == 1):
 				return false
 		
 		if(same_number && colors.size() >= 4):
@@ -100,47 +100,47 @@ func is_postSpread_Eligible(tile: Tile, is_HomeSpread: bool = true):
 		return true
 	
 	if(same_color):
-		var firstNumber: int = firstTile.getTileData().number
-		if(firstTile.getTileData().joker_id >= 0):
+		var firstNumber: int = firstTile.resource.number
+		if(firstTile.resource.joker_id >= 0):
 			firstNumber = -1
 			for i in range(prefixedLeeches.size()):
-				if(prefixedLeeches[i] != firstTile && prefixedLeeches[i].getTileData().joker_id < 0):
-					firstNumber = prefixedLeeches[i].getTileData().number-i
+				if(prefixedLeeches[i] != firstTile && prefixedLeeches[i].resource.joker_id < 0):
+					firstNumber = prefixedLeeches[i].resource.number-i
 			
 			if(firstNumber == -1):
 				for i in range(Tiles.size()):
-					if(Tiles[i] != firstTile && Tiles[i].getTileData().joker_id < 0):
-						firstNumber = Tiles[i].getTileData().number - prefixedLeeches.size()-i
+					if(Tiles[i] != firstTile && Tiles[i].resource.joker_id < 0):
+						firstNumber = Tiles[i].resource.number - prefixedLeeches.size()-i
 		
-		var lastNumber: int = lastTile.getTileData().number
-		if(lastTile.getTileData().joker_id >= 0):
+		var lastNumber: int = lastTile.resource.number
+		if(lastTile.resource.joker_id >= 0):
 			lastNumber = -1
 			var SLSize: int = suffixedLeeches.size()
 			for i in range(SLSize):
-				if(suffixedLeeches[SLSize-i-1] != lastTile && suffixedLeeches[SLSize-i-1].getTileData().joker_id < 0):
-					lastNumber = suffixedLeeches[i].getTileData().number + i
+				if(suffixedLeeches[SLSize-i-1] != lastTile && suffixedLeeches[SLSize-i-1].resource.joker_id < 0):
+					lastNumber = suffixedLeeches[i].resource.number + i
 			
 			var TSize: int = Tiles.size()
 			if(lastNumber == -1):
 				for i in range(TSize):
-					if(Tiles[TSize-i-1] != lastTile && Tiles[TSize-i-1].getTileData().joker_id < 0):
-						lastNumber = Tiles[TSize-i-1].getTileData().number + suffixedLeeches.size() + i
+					if(Tiles[TSize-i-1] != lastTile && Tiles[TSize-i-1].resource.joker_id < 0):
+						lastNumber = Tiles[TSize-i-1].resource.number + suffixedLeeches.size() + i
 		
-		if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0 || tile.getTileData().color == the_color):
-			if(tile.getTileData().number == firstNumber-1):
+		if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0 || tile.resource.color == the_color):
+			if(tile.resource.number == firstNumber-1):
 				if(prefixedLeeches.size() == 0 || !is_HomeSpread):
 					return true
 			
-			if(tile.getTileData().number == lastNumber+1 && lastNumber != 1):
+			if(tile.resource.number == lastNumber+1 && lastNumber != 1):
 				if(suffixedLeeches.size() == 0 || !is_HomeSpread):
 					return true
-			elif(tile.getTileData().number == 1 && lastNumber == 13):
+			elif(tile.resource.number == 1 && lastNumber == 13):
 				if(suffixedLeeches.size() == 0 || !is_HomeSpread):
 					return true
 	
 	if(same_number):
-		if(tile.getTileData().number == the_number && colors.size() < 4):
-			if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0 || colors.find(tile.getTileData().color) < 0):
+		if(tile.resource.number == the_number && colors.size() < 4):
+			if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0 || colors.find(tile.resource.color) < 0):
 				if(suffixedLeeches.size() >= 1 && prefixedLeeches.size() >= 1):
 					if(!is_HomeSpread):
 						return true
@@ -149,7 +149,7 @@ func is_postSpread_Eligible(tile: Tile, is_HomeSpread: bool = true):
 	
 	return false
 
-func append_postSpread(new_Tile: Tile) -> Vector2:
+func append_postSpread(new_Tile: TileContainer) -> Vector2:
 	var parentRot: float = new_Tile.Player.rotation
 	var final_pos: Vector2
 	
@@ -160,7 +160,7 @@ func append_postSpread(new_Tile: Tile) -> Vector2:
 	if(suffixedLeeches.size() >= 1):
 		lastTile = suffixedLeeches[suffixedLeeches.size()-1]
 	
-	if(new_Tile.getTileData().joker_id >= 0):
+	if(new_Tile.resource.joker_id >= 0):
 		colors.append(Color.WHITE)
 		var S: Vector2 = Tiles[0].parentEffector.global_position
 		var D: float = cos(PI/2-parentRot)*(S.y-new_Tile.global_position.y) + sin(PI/2-parentRot)*(S.x-new_Tile.global_position.x)
@@ -180,40 +180,40 @@ func append_postSpread(new_Tile: Tile) -> Vector2:
 				final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
 	else:
 		if(same_color):
-			var firstNumber: int = firstTile.getTileData().number
-			if(firstTile.getTileData().joker_id >= 0):
+			var firstNumber: int = firstTile.resource.number
+			if(firstTile.resource.joker_id >= 0):
 				firstNumber = -1
 				for i in range(prefixedLeeches.size()):
-					if(prefixedLeeches[i] != firstTile && prefixedLeeches[i].getTileData().joker_id < 0):
-						firstNumber = prefixedLeeches[i].getTileData().number-i
+					if(prefixedLeeches[i] != firstTile && prefixedLeeches[i].resource.joker_id < 0):
+						firstNumber = prefixedLeeches[i].resource.number-i
 				
 				if(firstNumber == -1):
 					for i in range(Tiles.size()):
-						if(Tiles[i] != firstTile && Tiles[i].getTileData().joker_id < 0):
-							firstNumber = Tiles[i].getTileData().number - prefixedLeeches.size()-i
+						if(Tiles[i] != firstTile && Tiles[i].resource.joker_id < 0):
+							firstNumber = Tiles[i].resource.number - prefixedLeeches.size()-i
 			
-			var lastNumber: int = lastTile.getTileData().number
-			if(lastTile.getTileData().joker_id >= 0):
+			var lastNumber: int = lastTile.resource.number
+			if(lastTile.resource.joker_id >= 0):
 				lastNumber = -1
 				var SLSize: int = suffixedLeeches.size()
 				for i in range(SLSize):
-					if(suffixedLeeches[SLSize-i-1] != lastTile && suffixedLeeches[SLSize-i-1].getTileData().joker_id < 0):
-						lastNumber = suffixedLeeches[i].getTileData().number + i
+					if(suffixedLeeches[SLSize-i-1] != lastTile && suffixedLeeches[SLSize-i-1].resource.joker_id < 0):
+						lastNumber = suffixedLeeches[i].resource.number + i
 				
 				var TSize: int = Tiles.size()
 				if(lastNumber == -1):
 					for i in range(TSize):
-						if(Tiles[TSize-i-1] != lastTile && Tiles[TSize-i-1].getTileData().joker_id < 0):
-							lastNumber = Tiles[TSize-i-1].getTileData().number + suffixedLeeches.size() + i
+						if(Tiles[TSize-i-1] != lastTile && Tiles[TSize-i-1].resource.joker_id < 0):
+							lastNumber = Tiles[TSize-i-1].resource.number + suffixedLeeches.size() + i
 			
-			if(new_Tile.getTileData().number == firstNumber-1):
+			if(new_Tile.resource.number == firstNumber-1):
 				if(new_Tile.rotation == 0):
 					Tiles.insert(0, new_Tile)
 					final_pos = Vector2(-30*cos(parentRot), -30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
 				else:
 					prefixedLeeches.insert(0, new_Tile)
 					final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
-			if(new_Tile.getTileData().number == lastNumber+1 || (new_Tile.getTileData().number == 1 && lastNumber == 13)):
+			if(new_Tile.resource.number == lastNumber+1 || (new_Tile.resource.number == 1 && lastNumber == 13)):
 				if(new_Tile.rotation == 0):
 					Tiles.append(new_Tile)
 					final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
@@ -222,10 +222,10 @@ func append_postSpread(new_Tile: Tile) -> Vector2:
 					final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
 		
 		if(same_number):
-			if(new_Tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+			if(new_Tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0):
 				colors.append(Color.WHITE)
 			else:
-				colors.append(new_Tile.getTileData().color)
+				colors.append(new_Tile.resource.color)
 			if(new_Tile.rotation == 0):
 				Tiles.append(new_Tile)
 				final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
@@ -249,7 +249,7 @@ func Architect_Check(peer_id: int) -> void:#peer_id: int
 	for player in Tiles[0].Player.get_parent().players:
 		if(player.player_Node == Tiles[0].Player && peer_id == player.player_id):
 			for tile in Tiles:
-				if(tile.getTileData().joker_id == 3):
+				if(tile.resource.joker_id == 3):
 					if(tile.is_animatingPoints):
 						await tile.PointsAnimationDone
 					var extraPoints: int = tile.on_spread(Vector2(0, 0), self, {"Architect": true})
@@ -267,7 +267,7 @@ func Architect_Check(peer_id: int) -> void:#peer_id: int
 			
 			break
 
-static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool = false) -> String:
+static func check_spread_legality(selected_tiles: Array[TileContainer], highlight: bool = false) -> String:
 	if(selected_tiles.size() < 3 && !highlight):
 		return "too few!"
 	
@@ -282,21 +282,21 @@ static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool =
 	#var out_of_bounds: bool = false
 	var sequence: Array[int]
 	var joker_count: int = 0
-	var tile: Tile
+	var tile: TileContainer
 	
 	for i in range(selected_tiles.size()):
 		tile = selected_tiles[i]
-		if(tile.getTileData().joker_id >= 0):
+		if(tile.resource.joker_id >= 0):
 			joker_count += 1
 			colors.append(Color.WHITE)
 			if(last_number == -1):
 				for j in range(selected_tiles.size()-i-1):
-					if(selected_tiles[i+j+1].getTileData().joker_id < 0):
-						if(selected_tiles[i+j+1].getTileData().number == 1):
+					if(selected_tiles[i+j+1].resource.joker_id < 0):
+						if(selected_tiles[i+j+1].resource.number == 1):
 							sequence.append(13-j)
 							break
 						else:
-							sequence.append(selected_tiles[i+j+1].getTileData().number-j-1)
+							sequence.append(selected_tiles[i+j+1].resource.number-j-1)
 							break
 			else:
 				last_number += 1
@@ -306,30 +306,30 @@ static func check_spread_legality(selected_tiles: Array[Tile], highlight: bool =
 				sequence.append(last_number)
 		else:
 			if(temp_color == Color.WHITE):
-				temp_color = tile.getTileData().color
-				colors.append(tile.getTileData().color)
+				temp_color = tile.resource.color
+				colors.append(tile.resource.color)
 			else:
-				if(tile.getTileData().effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+				if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0):
 					colors.append(Color.WHITE)
-				elif(tile.getTileData().color != temp_color):
+				elif(tile.resource.color != temp_color):
 					same_color = false
-					if(colors.find(tile.getTileData().color) >= 0):
+					if(colors.find(tile.resource.color) >= 0):
 						all_diff_color = false
 					else:
-						colors.append(tile.getTileData().color)
+						colors.append(tile.resource.color)
 			
-			sequence.append(tile.getTileData().number)
+			sequence.append(tile.resource.number)
 			if(temp_number == -1):
-				temp_number = tile.getTileData().number
+				temp_number = tile.resource.number
 				last_number = temp_number
 			else:
-				if(tile.getTileData().number - last_number != 1):
-					if(!(last_number == 13 && tile.getTileData().number == 1)):
+				if(tile.resource.number - last_number != 1):
+					if(!(last_number == 13 && tile.resource.number == 1)):
 						is_ordered = false
-				if(tile.getTileData().number != temp_number):
+				if(tile.resource.number != temp_number):
 					same_number = false
 				
-				last_number = tile.getTileData().number
+				last_number = tile.resource.number
 	
 	if(selected_tiles.size() - joker_count <= 1):
 		return "too ambiguous"

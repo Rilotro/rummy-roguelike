@@ -1,0 +1,74 @@
+[gd_scene load_steps=9 format=3 uid="uid://chet0dxnbb2qs"]
+
+[ext_resource type="Script" uid="uid://c7vjdyaj3o0p0" path="res://Player/Player.gd" id="1_hp6x6"]
+[ext_resource type="Script" uid="uid://dxpv5jxqv1c1b" path="res://Player/Board.gd" id="2_3tkgg"]
+[ext_resource type="Script" uid="uid://dy1uxtr010jum" path="res://Player/Spread.gd" id="3_l6ohk"]
+[ext_resource type="Script" uid="uid://dmmd7tkni3r7b" path="res://Player/River.gd" id="4_oudfo"]
+[ext_resource type="Script" uid="uid://dd1a04lwwm5yw" path="res://Player/Deck.gd" id="5_8g4oa"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_n5ooj"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_ddoul"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_8g4oa"]
+font_color = Color(0, 0, 0, 1)
+
+[node name="PlayerArea" type="Node2D"]
+position = Vector2(576, 588)
+script = ExtResource("1_hp6x6")
+
+[node name="Board" type="Node2D" parent="."]
+script = ExtResource("2_3tkgg")
+
+[node name="Board_Row1" type="Sprite2D" parent="Board"]
+self_modulate = Color(0.5882353, 0.43137255, 0.29411766, 1)
+texture = SubResource("CanvasTexture_n5ooj")
+region_enabled = true
+region_rect = Rect2(0, 0, 970, 120)
+
+[node name="Board_Row2" type="Sprite2D" parent="Board"]
+self_modulate = Color(0.47058824, 0.34509805, 0.23529412, 1)
+position = Vector2(0, -120)
+texture = SubResource("CanvasTexture_n5ooj")
+region_enabled = true
+region_rect = Rect2(0, 0, 970, 120)
+
+[node name="Spread" type="Node2D" parent="."]
+position = Vector2(812.5, 0)
+script = ExtResource("3_l6ohk")
+
+[node name="MouseCheck" type="Control" parent="Spread"]
+custom_minimum_size = Vector2(175, 235)
+layout_mode = 3
+anchors_preset = 0
+offset_left = -87.5
+offset_top = -217.5
+offset_right = 87.5
+offset_bottom = 17.5
+mouse_filter = 1
+
+[node name="River" type="Node2D" parent="."]
+position = Vector2(-427.5, -360)
+script = ExtResource("4_oudfo")
+
+[node name="PlayerDeck" type="Sprite2D" parent="."]
+position = Vector2(-447.5, -242.5)
+texture = SubResource("CanvasTexture_ddoul")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+script = ExtResource("5_8g4oa")
+
+[node name="DeckLabel" type="Label" parent="PlayerDeck"]
+custom_minimum_size = Vector2(75, 105)
+offset_left = -37.5
+offset_top = -52.5
+offset_right = 37.5
+offset_bottom = 52.5
+text = "Tiles Left: 105"
+label_settings = SubResource("LabelSettings_8g4oa")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 1
+
+[connection signal="mouse_entered" from="Spread/MouseCheck" to="Spread" method="_on_mouse_check_mouse_entered"]
+[connection signal="mouse_exited" from="Spread/MouseCheck" to="Spread" method="_on_mouse_check_mouse_exited"]

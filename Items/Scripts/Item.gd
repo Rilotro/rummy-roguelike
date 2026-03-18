@@ -18,11 +18,14 @@ var extendedDescription: Array
 
 var target: ItemTarget = ItemTarget.NO_TARGET
 
+#var ChildCLasses: Array = [ArchitectsChisel, ArchitectsHammer]
+
 var Game: GameScene
 
-static var flags = {"Wrench": 0, "Midas Touch": 0, "Burning Shoes": 0, "Bottled Nostalgia": 0}
+#static var flags = {"Wrench": 0, "Midas Touch": 0, "Burning Shoes": 0, "Bottled Nostalgia": 0}
 #static var hasSpecialHighlight: Array[int] = [3, 6];
 static var singularItems: Array[int]
+static var consumbaleItems: Array[int] = [0, 1, 3, 6, 7, 8]
 
 static var ITEM_ID_FINAL: int = 8 #NOT SUPPOSED TO CHANGE WHILE RUNNING!!!
 
@@ -43,9 +46,9 @@ func _init(new_id: int, nameID: String, newGame: GameScene) -> void:
 	
 	
 	if(uses > 0):
-		uses += flags["Wrench"]
+		uses += WorkshopWrench.ADDITIONAL_USES
 	
-	Game.StartOfTurn.connect(effectOnStartOfTurn)
+	GameScene.Game.StartOfTurn.connect(effectOnStartOfTurn)
 
 func getKeywords() -> String:
 	var keywords: String
@@ -98,16 +101,20 @@ func useOnTile(tile: Tile) -> void:
 func useOnHighlight(Highlight: Control, displacement: Vector2 = Vector2(0, 0)) -> void:
 	return 
 
-static func getRandomItem(newGame: GameScene, forShop: bool = false) -> Item:
-	var newID: int = randi_range(6, 8)#ITEM_ID_FINAL
-	
-	if(forShop):
-		while(singularItems.find(newID) >= 0):
-			newID = randi_range(0, ITEM_ID_FINAL)
+static func getRandomItem(newGame: GameScene, forShop: bool = false, consumablesOnly = false) -> Item:
+	var newID: int
+	if(consumablesOnly):
+		newID = consumbaleItems.pick_random()
+	else:
+		newID = randi_range(6, 8)#ITEM_ID_FINAL
+		
+		if(forShop):
+			while(singularItems.find(newID) >= 0):
+				newID = randi_range(0, ITEM_ID_FINAL)
 	
 	match newID:
-		0:
-			return BagOfTiles.new(newGame)
+		#0:
+			#return BagOfTiles.new(newGame)
 		1:
 			return ArchitectsHammer.new(newGame)
 		2:
@@ -119,8 +126,8 @@ static func getRandomItem(newGame: GameScene, forShop: bool = false) -> Item:
 		5:
 			return BurningShoes.new(newGame)
 		6:
-			return MonkeysPaw.new(newGame)
-			#return WorkshopWrench.new(newGame)
+			#return MonkeysPaw.new(newGame)
+			return TouchOfMidas.new(newGame)
 		7:
 			return BottledNostalgia.new(newGame)
 		8:

@@ -13,10 +13,10 @@ enum UIType{
 	TILE, ITEM, MODIFIER, UI
 }
 
-func _init(type: UIType, object: CanvasItem) -> void:
+func _init(container: ResourceContainer) -> void:
 	custom_minimum_size = Vector2(250, 200)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	size = Vector2(250, 200)
+	#size = Vector2(250, 200)
 	
 	Body = Sprite2D.new()
 	Body.texture = CanvasTexture.new()
@@ -24,6 +24,7 @@ func _init(type: UIType, object: CanvasItem) -> void:
 	Body.region_rect = Rect2(0, 0, 250, 200)
 	Body.position = Vector2(125, 100)
 	Body.self_modulate = Color(0, 0, 0.39, 1)
+	Body.name = "Body"
 	add_child(Body)
 	
 	newSeparator = Sprite2D.new()
@@ -32,6 +33,7 @@ func _init(type: UIType, object: CanvasItem) -> void:
 	newSeparator.region_rect = Rect2(0, 0, 250, 5)
 	newSeparator.position = Vector2(125, 70)
 	newSeparator.self_modulate = Color(0, 0, 0, 0.58)
+	newSeparator.name = "Separator"
 	add_child(newSeparator)
 	
 	Banner = Sprite2D.new()
@@ -41,6 +43,7 @@ func _init(type: UIType, object: CanvasItem) -> void:
 	Banner.position = Vector2(125, 15)
 	Banner.material = ShaderMaterial.new()
 	Banner.material.shader = load("res://UI_Banner.gdshader")
+	Banner.name = "Banner"
 	add_child(Banner)
 	
 	Banner_Text = RichTextLabel.new()
@@ -49,6 +52,7 @@ func _init(type: UIType, object: CanvasItem) -> void:
 	Banner_Text.custom_minimum_size = Vector2(245, 30)
 	Banner_Text.size = Vector2(245, 30)
 	Banner_Text.position = Vector2(5, 0)
+	Banner_Text.name = "Banner_Text"
 	add_child(Banner_Text)
 	
 	Keyword_Text = RichTextLabel.new()
@@ -62,6 +66,7 @@ func _init(type: UIType, object: CanvasItem) -> void:
 	Keyword_Text.add_theme_font_size_override("bold_italics_font_size", 12)
 	Keyword_Text.add_theme_font_size_override("italics_font_size", 12)
 	Keyword_Text.add_theme_font_size_override("mono_font_size", 12)
+	Keyword_Text.name = "Keyword_Text"
 	add_child(Keyword_Text)
 	
 	Effects_Text = RichTextLabel.new()
@@ -71,28 +76,41 @@ func _init(type: UIType, object: CanvasItem) -> void:
 	Effects_Text.custom_minimum_size = Vector2(245, 122.5)
 	Effects_Text.size = Vector2(245, 122.5)
 	Effects_Text.position = Vector2(5, 77.5)
+	Effects_Text.name = "Effects_Text"
 	add_child(Effects_Text)
 	
-	global_position = object.global_position + object.acc_size()/2 - Vector2(-30, size.y/2)
+	global_position = container.global_position + container.getSize()/2 - Vector2(-30, size.y/2)
 	if(global_position.y > DisplayServer.window_get_size().y - 200):
 		global_position.y = DisplayServer.window_get_size().y - 200
 	elif(global_position.y < 0):
 		global_position.y = 0
 	
 	if(global_position.x > DisplayServer.window_get_size().x - 250):
-		global_position.x = object.global_position.x - object.acc_size().x/2 - 280
+		global_position.x = container.global_position.x - container.getSize().x/2 - 280
 	elif(global_position.x < 0):
 		global_position.x = 0
 	
-	match(type):
-		UIType.ITEM:
-			buildItemTip(object.item_info)
-		UIType.TILE:
-			buildTileTip(object.Tile_Data)
+	match(container.resource_type):
+		ResourceContainer.ResourceType.ITEM:
+			buildItemTip(container.resource)
+		ResourceContainer.ResourceType.TILE:
+			buildTileTip(container.resource)
+	
+	#encompassText()
 	
 	z_index = 3
 
 func buildItemTip(item: Item) -> void:
+	#print("HERE0 - " + str(item) + " - " + item.name)
+	if(item == null):
+		Banner_Text.text = StringsManager.ItemStrings["Empty Slot"]["NAME"]
+		
+		Keyword_Text.text = StringsManager.ItemStrings["empty"]
+		
+		Effects_Text.text = StringsManager.ItemStrings["Empty Slot"]["DESCRIPTION"]
+		
+		return
+	
 	Banner_Text.text = item.name
 	
 	Keyword_Text.text = item.getKeywords()
@@ -109,15 +127,31 @@ func buildTileTip(tile: Tile_Info):
 	
 	Effects_Text.text = tile.getDescription()
 
+func _ready() -> void:
+	await get_tree().create_timer(0.001).timeout
+	while(Effects_Text.size.y > 122.5):
+		Effects_Text.custom_minimum_size.x += 1.0
+		Effects_Text.size.x += 1
+		
+		Body.region_rect.size.x += 1
+		newSeparator.region_rect.size.x += 1
+		Banner.region_rect.size.x += 1
+		
+		Body.global_position.x += 0.5
+		newSeparator.global_position.x += 0.5
+		Banner.global_position.x += 0.5
+		
+		Effects_Text.size.y = 122.5
+
 func initialise_tip(body) -> void:
-	global_position = body.global_position + body.acc_size()/2 - Vector2(-30, size.y/2)
+	global_position = body.global_position + body.getSize()/2 - Vector2(-30, size.y/2)
 	if(global_position.y > DisplayServer.window_get_size().y - 200):
 		global_position.y = DisplayServer.window_get_size().y - 200
 	elif(global_position.y < 0):
 		global_position.y = 0
 	
 	if(global_position.x > DisplayServer.window_get_size().x - 250):
-		global_position.x = body.global_position.x - body.acc_size().x/2 - 280
+		global_position.x = body.global_position.x - body.getSize().x/2 - 280
 	elif(global_position.x < 0):
 		global_position.x = 0
 	

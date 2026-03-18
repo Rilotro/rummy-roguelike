@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://86a6m5i5deim"]
+
+[ext_resource type="Script" uid="uid://cl0v622hfgkww" path="res://scripts/ResourceContainer.gd" id="1_ennhg"]
+
+[node name="ResourceContainer" type="Button"]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(50, 70)
+offset_right = 8.0
+offset_bottom = 8.0
+script = ExtResource("1_ennhg")
+
+[node name="Body" type="Node" parent="."]
+
+[connection signal="pressed" from="." to="." method="_containerPress"]

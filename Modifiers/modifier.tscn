@@ -1,0 +1,127 @@
+[gd_scene load_steps=5 format=3 uid="uid://dacnywph5s3vf"]
+
+[sub_resource type="GDScript" id="GDScript_dr3nc"]
+script/source = "extends Control
+
+class_name ModifierContainer
+
+var modifier: Modifier
+const COLOR_WHEN_EMPTY: Color = Color(0, 0, 0.54, 1)
+@export var border: Sprite2D
+@export var outline: Sprite2D
+@export var modifierImage: Sprite2D
+
+
+func _init(newModifier: Modifier = null) -> void:
+	custom_minimum_size = Vector2(39, 60)
+	size  = Vector2(39, 60)
+	
+	border = Sprite2D.new()
+	border.texture = CanvasTexture.new()
+	border.region_enabled = true
+	border.region_rect = Rect2(0, 0, 49, 70)
+	border.position = Vector2(19.5, 30)
+	border.name = \"Border\"
+	add_child(border)
+	
+	outline = Sprite2D.new()
+	outline.texture = CanvasTexture.new()
+	outline.region_enabled = true
+	outline.region_rect = Rect2(0, 0, 41, 62)
+	outline.position = Vector2(19.5, 30)
+	outline.name = \"Outline\"
+	add_child(outline)
+	
+	modifierImage = Sprite2D.new()
+	modifierImage.region_rect = Rect2(0, 0, 39, 60)
+	modifierImage.position = Vector2(19.5, 30)
+	modifierImage.name = \"ModifierImage\"
+	add_child(modifierImage)
+	
+	if(newModifier == null):
+		modifierImage.texture = CanvasTexture.new()
+		modifierImage.region_enabled = true
+		modifierImage.self_modulate = COLOR_WHEN_EMPTY
+		
+		outline.self_modulate = Color.TRANSPARENT
+		
+		border.self_modulate = Color.TRANSPARENT
+	else:
+		modifier = newModifier
+		modifierImage.texture = modifier.image
+		modifierImage.region_enabled = false
+		modifierImage.scale = Vector2(0.3, 0.3)
+		
+		outline.self_modulate = Color.BLACK
+		
+		match modifier.type:
+			Modifier.Type.BOON:
+				border.self_modulate = Color.GOLD
+			Modifier.Type.CURSE:
+				border.self_modulate = Color.RED
+			Modifier.Type.OTHER:
+				border.self_modulate = Color.GRAY
+
+func removeModifier() -> void:
+	modifierImage.texture = CanvasTexture.new()
+	modifierImage.region_enabled = true
+	modifierImage.scale = Vector2(1, 1)
+	modifierImage.self_modulate = COLOR_WHEN_EMPTY
+	
+	outline.self_modulate = Color.TRANSPARENT
+	
+	border.self_modulate = Color.TRANSPARENT
+
+func getModifier(newModifier) -> void:
+	modifierImage.modifier = newModifier
+	modifierImage.texture = modifier.image
+	modifierImage.region_enabled = false
+	modifierImage.scale = Vector2(0.3, 0.3)
+	modifierImage.self_modulate = Color.WHITE
+	
+	outline.self_modulate = Color.BLACK
+	
+	match modifier.type:
+		Modifier.Type.BOON:
+			border.self_modulate = Color.GOLD
+		Modifier.Type.CURSE:
+			border.self_modulate = Color.RED
+		Modifier.Type.OTHER:
+			border.self_modulate = Color.GRAY
+"
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_yx4c0"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_47218"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_0clsk"]
+
+[node name="Modifier" type="Control" node_paths=PackedStringArray("border", "outline", "modifierImage")]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(39, 60)
+layout_mode = 3
+anchors_preset = 0
+script = SubResource("GDScript_dr3nc")
+border = NodePath("Border")
+outline = NodePath("Outline")
+modifierImage = NodePath("ModifierImage")
+
+[node name="Border" type="Sprite2D" parent="."]
+self_modulate = Color(1, 1, 1, 0)
+position = Vector2(19.5, 30)
+texture = SubResource("CanvasTexture_yx4c0")
+region_enabled = true
+region_rect = Rect2(0, 0, 49, 70)
+
+[node name="Outline" type="Sprite2D" parent="."]
+self_modulate = Color(0, 0, 0, 1)
+position = Vector2(19.5, 30)
+texture = SubResource("CanvasTexture_47218")
+region_enabled = true
+region_rect = Rect2(0, 0, 41, 62)
+
+[node name="ModifierImage" type="Sprite2D" parent="."]
+position = Vector2(19.5, 30)
+texture = SubResource("CanvasTexture_0clsk")
+region_enabled = true
+region_rect = Rect2(0, 0, 39, 60)

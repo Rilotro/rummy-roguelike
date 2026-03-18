@@ -2,6 +2,8 @@ extends Item
 
 class_name WorkshopWrench
 
+static var ADDITIONAL_USES: int = 0
+
 func _init(newGame: GameScene) -> void:
 	item_image = load("res://Items/Sprites/Workshop Wrench.png")
 	
@@ -13,7 +15,7 @@ func getShopPrice() -> int:
 	return randi_range(45, 70)
 
 func effectOnGet() -> void:
-	Item.flags["Wrench"] += 1
+	ADDITIONAL_USES += 1
 	Item.singularItems.append(2)
 	
 	Game.addShopUses()

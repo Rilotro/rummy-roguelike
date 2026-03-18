@@ -1,9 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://bqo6ci6u6f6fo"]
+[gd_scene load_steps=8 format=3 uid="uid://bqo6ci6u6f6fo"]
 
 [ext_resource type="Script" uid="uid://cmbdns06i2xjn" path="res://Shop.gd" id="1_c53l5"]
 [ext_resource type="Shader" uid="uid://6eiuohsvums7" path="res://Exit_Shop.gdshader" id="2_7ae35"]
-[ext_resource type="PackedScene" uid="uid://bpf1tsatdnbc5" path="res://TileSelection.tscn" id="2_f511j"]
-[ext_resource type="PackedScene" uid="uid://dgswt76jwdg63" path="res://ItemSelection.tscn" id="3_c0ofq"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_svtxo"]
 
@@ -37,14 +35,14 @@ position = Vector2(576, 324)
 scale = Vector2(1036.8, 583.2)
 texture = SubResource("CanvasTexture_7ae35")
 
-[node name="Tile_Selections" type="Control" parent="."]
+[node name="ShopSelections" type="Control" parent="."]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="TileSelections" type="HBoxContainer" parent="Tile_Selections"]
+[node name="TileSelections" type="HBoxContainer" parent="ShopSelections"]
 self_modulate = Color(0, 0, 1, 1)
-custom_minimum_size = Vector2(500, 70)
+custom_minimum_size = Vector2(500, 115)
 layout_mode = 0
 offset_left = 350.0
 offset_top = 150.0
@@ -53,7 +51,7 @@ offset_bottom = 220.0
 theme_override_constants/separation = 100
 alignment = 1
 
-[node name="TileSelections_Highlight" type="Sprite2D" parent="Tile_Selections/TileSelections"]
+[node name="TileSelections_Highlight" type="Sprite2D" parent="ShopSelections/TileSelections"]
 visible = false
 self_modulate = Color(0, 0.31764707, 0.5372549, 1)
 position = Vector2(250, 35)
@@ -61,16 +59,7 @@ texture = SubResource("CanvasTexture_odqjv")
 region_enabled = true
 region_rect = Rect2(0, 0, 500, 110)
 
-[node name="Tile_Selection_1" parent="Tile_Selections/TileSelections" instance=ExtResource("2_f511j")]
-layout_mode = 2
-
-[node name="Tile_Selection_2" parent="Tile_Selections/TileSelections" instance=ExtResource("2_f511j")]
-layout_mode = 2
-
-[node name="Tile_Selection_3" parent="Tile_Selections/TileSelections" instance=ExtResource("2_f511j")]
-layout_mode = 2
-
-[node name="JokerSelections" type="VBoxContainer" parent="Tile_Selections"]
+[node name="JokerSelections" type="VBoxContainer" parent="ShopSelections"]
 custom_minimum_size = Vector2(50, 310)
 layout_mode = 0
 offset_left = 250.0
@@ -80,7 +69,7 @@ offset_bottom = 440.0
 theme_override_constants/separation = 50
 alignment = 1
 
-[node name="JokerSelections_Highlight" type="Sprite2D" parent="Tile_Selections/JokerSelections"]
+[node name="JokerSelections_Highlight" type="Sprite2D" parent="ShopSelections/JokerSelections"]
 visible = false
 self_modulate = Color(0, 0.31764707, 0.5372549, 1)
 position = Vector2(25, 155)
@@ -88,37 +77,23 @@ texture = SubResource("CanvasTexture_odqjv")
 region_enabled = true
 region_rect = Rect2(0, 0, 90, 310)
 
-[node name="Joker_Selection" parent="Tile_Selections/JokerSelections" instance=ExtResource("2_f511j")]
-layout_mode = 2
-joker_tile = true
-
-[node name="ItemSelections" type="HBoxContainer" parent="Tile_Selections"]
-custom_minimum_size = Vector2(333.333, 60)
+[node name="ItemSelections" type="HBoxContainer" parent="ShopSelections"]
+custom_minimum_size = Vector2(500, 115)
 layout_mode = 0
 offset_left = 350.0
-offset_top = 312.333
-offset_right = 683.333
-offset_bottom = 372.333
-scale = Vector2(1.5, 1.5)
-theme_override_constants/separation = 60
+offset_top = 315.0
+offset_right = 850.0
+offset_bottom = 430.0
+theme_override_constants/separation = 100
 alignment = 1
 
-[node name="TileSelections_Highlight" type="Sprite2D" parent="Tile_Selections/ItemSelections"]
+[node name="TileSelections_Highlight" type="Sprite2D" parent="ShopSelections/ItemSelections"]
 visible = false
 self_modulate = Color(0, 0.31764707, 0.5372549, 1)
 position = Vector2(166.667, 30)
 texture = SubResource("CanvasTexture_odqjv")
 region_enabled = true
 region_rect = Rect2(0, 0, 333.333, 110)
-
-[node name="ItemSelection" parent="Tile_Selections/ItemSelections" instance=ExtResource("3_c0ofq")]
-layout_mode = 2
-
-[node name="ItemSelection2" parent="Tile_Selections/ItemSelections" instance=ExtResource("3_c0ofq")]
-layout_mode = 2
-
-[node name="ItemSelection3" parent="Tile_Selections/ItemSelections" instance=ExtResource("3_c0ofq")]
-layout_mode = 2
 
 [node name="Exit_Shop" type="Button" parent="."]
 self_modulate = Color(1, 1, 1, 0)

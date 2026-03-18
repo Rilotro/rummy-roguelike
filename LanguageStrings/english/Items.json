@@ -3,6 +3,12 @@
 	"passive": "passive",
 	"active": "active",
 	"uses": "uses",
+	"empty": "empty",
+	
+	"Empty Slot": {
+		"NAME": "Empty Slot",
+		"DESCRIPTION": "Empty Slot that can be filled with an Item"
+	},
 	
 	"Bag of Tiles": {
 		"NAME": "Bag of Tiles",
@@ -39,7 +45,9 @@
 	
 	"Burning Shoes": {
 		"NAME": "Burning Shoes",
-		"DESCRIPTION": "Whenever you [b]Draw Tiles[/b], [b]Draw[/b] [i]an additional[/i] [b]Tile[/b]"
+		"DESCRIPTION": "Whenever you [b]Draw Tiles[/b], [b]Draw[/b] [i]an additional[/i] [b]Tile[/b], then [i]increase this by 1[/i] for this [b]Round[/b]",
+		"EXTENDED_DESCRIPTION": ["Whenever you [b]Draw Tiles[/b], [b]Draw[/b] [i]",
+								" additional [/i] [b]Tiles[/b], then [i]increase this by 1[/i] for this [b]Round[/b]"]
 	},
 	
 	"Monkey's Paw": {
