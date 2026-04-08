@@ -1,6 +1,139 @@
 {
+	"NONE": {
+		"NAME": "Debug Name",
+		"KEYWORDS": ["Debug Keywords"],
+		"DESCRIPTION": ["Debug Description"],
+		"TEXT": ["Debug Text"]
+	},
+	
 	"DECK":{
-		"DECK_SIZE": "Tiles Left: ",
-		"DRAW": "Draw "
-	}
+		"NAME": "Deck",
+		"KEYWORDS": ["deck", "active", " tile", " tiles"],
+		"DESCRIPTION": ["Your [b]Deck[/b]. Contains ",
+						"a single [b]Tile[/b].",
+						" [b]Tiles[/b].",
+						"[br][br][b]Press[/b] to [b]Draw[/b] ",
+						" and [color=plum][b]Start your Round[/b][/color]."],
+		"MISCELLANEOUS": ["Tiles Left: ", "Draw"]
+	},
+	
+	"SPREAD": {
+		"NAME": "Spread Button",
+		"KEYWORDS": [" [b]Tile ",
+					 " [b]Tiles ",
+					 "Selected[/b]: ",
+					"Sequence is ",
+					"[b][color=gold]Eligible[/color][/b].",
+					"[b][color=dark_red]Not Eligible[/color][/b]",
+					"[b][/b]"],
+		"DESCRIPTION": ["You have [b]Selected[/b] ",
+						" [b]Tile[/b]",
+						" [b]Tiles[/b]",
+						". The [b]Sequence[/b] ",
+						"is [color=gold]Eligible[/color].[font_size=10][br][br][/font_size][b]Press[/b] to [i]move[/i] the [b]Selected Tiles[/b] to a new [color=gold][b]Spread Row[/b][/color] and [color=yellow]Activate[/color] them.",
+						"is [b][color=dark_red]Too Short[/color][/b]! You need to [b]Select[/b] at least [color=gold]",
+						" [b]Tiles[/b][/color].",
+						"is [b][color=dark_red]Too Vague[/color][/b]! You need to [b]Select[/b] at least [color=gold]2 [b]Non-Joker Tiles[/b][/color].",
+						"has [b][color=dark_red]No Pattern[/color][/b]! The [b]Selected Tiles[/b] must follow a [color=gold][b]Monocrhome Road[/b][/color] or a [rainbow speed=0.4][b]Rainbow Duplicates[/b][/rainbow] [b]Pattern[/b].",
+						"does not fulfill the [rainbow speed=0.4][b]Rainbow Duplicates[/b][/rainbow] [b]Pattern[/b], as [i]2 or more [b]Selected Tiles[/b][/i] [b][color=dark_red]Have the Same Color[/color][/b]!",
+						"has [b][color=dark_red]Too Many Colors[/color][/b]! [b]Jokers[/b] and [rainbow speed=0.4][b]Rainbow[/b][/rainbow] [b]Tiles[/b] can only [i]replace a [b]color[/b][/i], [color=dark_red]not add one[/color].",
+						"is [b][color=dark_red]Out Of Bounds[/color][/b]! Nothing can [b][color=dark_red]precede[/color][/b] a 1 [i]at the beggining of the [b]Sequnce[/b][/i] nor [b][color=dark_red]procede[/color][/b] one [i]at the end of the [b]Sequnce[/b][/i].",
+						"[font_size=10][br][br][/font_size][b][color=dark_red]You Cannot[/color] Press[/b] this button until your [b]Sequnce[/b] is [color=gold]Eligible[/color]."],
+		"TEXT": ["SPREAD!",
+		 "Too Few Selected",
+		 "Too Few Non-Joker Selected",
+		 "No Pattern",
+		 "Duplicate Tiles",
+		 "Too Many Colors",
+		 "Sequence is Out of Bounds"]
+	},
+	
+	"DISCARD": {
+		"NAME": "Discard Button",
+		"KEYWORDS": " [b]Tiles Selected[/b]",
+		"DESCRIPTION": ["You have [b]Selected[/b] ",
+						"[b]No Tiles[/b]",
+						" [b]Tile[/b]",
+						" [b]Tiles[/b]",
+						". You must [b]Select[/b] [color=dark_red]at least ",
+						"[/color]. You can [b]Select[/b] [color=light_green]up to ",
+						"[/color].[font_size=10][br][br][/font_size]",
+						"[b][color=dark_red]You Cannot[/color] Press[/b] this button until you have [i]satisfied[/i] the [color=dark_red][b]Minimum Tile Requirement[/b][/color].",
+						"[b]Press[/b] to [i]move[/i] the [b]Selected Tiles[/b] to the [color=blue][b]River[/b][/color], gain [color=aquamarine]",
+						" Bait[/color] and [color=indigo][b]End your Round[/b][/color].[br][font_size=10][color=gray]You gain [/color][color=aquamarine] ",
+						" Bait[/color][color=gray] for each [b]Tile Discarded[/b].[/color][/font_size]"] 
+	},
+	
+	"SENSOR": {
+		"NAME": ["Tile", "Joker", "Item", " Seslections", " Inventory"],
+		"KEYWORDS": [" Shop Selections", " Shop Selection", "No Shop Selections", "Item Inventory - "],
+		"DESCRIPTION": ["[b]Permanently[/b] add an additional ", "[b]Selection[/b].", "[b]Slot[/b].",
+						"This [b]Selection[/b] is [b]Full[/b]! You cannot add another [b]Selection[/b] here."]
+	},
+	
+	"REVEAL_MODIFIERS": {
+		"NAME": "Reveal Button",
+		"KEYWORDS": ["Reveal Tab"],
+		"DESCRIPTION": ["Reveal the [b]Modifiers[/b] Tab and [i]Behold[/i] Your current [b]Modifiers[/b]."]
+	},
+	"HIDE_MODIFIERS": {
+		"NAME": "Hide Button",
+		"KEYWORDS": ["Hide Tab"],
+		"DESCRIPTION": ["Hide the [b]Modifiers[/b] Tab Back."]
+	},
+	
+	"BAIT": {
+		"NAME": "Bait",
+		"KEYWORDS": ["[color=aquamarine]", " bait[/color]"],
+		"DESCRIPTION": ["You currently have [color=aquamarine]",
+						"No Bait[/color].",
+						" [b]Bait[/b][/color].[font_size=10][br][br][/font_size][b]Press[/b] to ",
+						"[color=aquamarine][b]Draw[/b] ",
+						"the [b]Last River Tile[/b][/color][i]",
+						" [/color]from the ",
+						"[b]Bottom[/b] of the [color=blue][b]River[/b][/color] [i]",
+						"upwards",
+						"downwards",
+						"[/i].[br]This will [color=aquamarine][i]set your [b]Bait[/b] to 0[/i][/color].[br][font_size=10][color=gray]If there aren't enough [b]River Tiles[/b] left to [b]Draw[/b] [i]",
+						"[/i], [b]Draw[/b] [i]the difference from the [b]Deck[/b][/i].[/color][/font_size]"],
+		"TEXT": ["Bait: "]},
+	
+	"TURN": {
+		"NAME": ["End Turn", "Cancel"],
+		"KEYWORDS": ["Start Discard", "End Discard"],
+		"DESCRIPTION": ["Open the [b]Shop[/b] and browse the [b]Wares[/b].",
+						"Start the [b]Discard Phase[/b].",
+						"Cancel the [b]Discard Phase[/b] and return to your [b]Round[/b].",
+						"[font_size=10][br][br][/font_size]You currently have [color=gold]",
+						" [b]Currency[/b][/color]."],
+		"TEXT": ["End Turn",
+				"Cancel",
+				"Discard"],
+	},
+	
+	"CAMERA":{
+		"NAME": ["Board", "Spread", "River", "Transition"],
+		"KEYWORDS": "Camera Transition",
+		"DESCRIPTION": ["Move Your [b]Camera[/b] to the ",
+						"[b]Board[/b].",
+						"[b]Spread[/b].",
+						"[b]River[/b]."]
+	},
+	
+	"SHOP": ["Shop",
+			"Current Currency: ",
+			"SOLD",
+			"Open Shop",
+			"Close Shop"],
+	
+	"EXIT": {
+		"NAME": "Exit Button",
+		"KEYWORDS": ["Close current Screen"],
+		"DESCRIPTION": ["Close the "]
+	},
+	
+	"SELECT": ["[b]Select[/b] ",
+				" of ",
+				"at least ",
+				"up to "]
 }

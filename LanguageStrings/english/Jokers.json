@@ -3,26 +3,31 @@
 	
 	"The Joker": {
 		"NAME": "The Joker",
-		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i]"
+		"ACTIVATE": "[b]activate[/b] - Gain [b]Experience[/b] and [b]Currency[/b] equal to my [b]Points[/b].[br]",
+		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i]."
 	},
 
 	"The Partygoer": {
 		"NAME": "The Partygoer",
-		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - I have [b]+10 Points[/b] for each [i]other[/i] [b]Tile[/b] in the [b]Row[/b]"
+		"ACTIVATE": "[b]activate[/b] - Gain [b]Experience[/b] and [b]Currency[/b] equal to my [b]Points[/b], then [i]increase[/i] my [b]Points[/b] by 3.[br]",
+		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b], [b]Activate me[/b] for each [i]other[/i] [b]Tile[/b] in the [b]Row[/b].[br][b]While Spread[/b], when [i]another[/i] [b]Tile[/b] is [b]activated[/b], also [b]activate[/b] me"
 	},
 
 	"The Banker": {
 		"NAME": "The Banker",
-		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - The next [b]Item[/b] or [b]Tile[/b] you buy in the [b]Shop[/b] is [b]Free[/b]"
+		"ACTIVATE": "[b]activate[/b] - Gain [b]Experience[/b] and [b]Currency[/b] equal to my [b]Points[/b], your next [i]purchase[/i] at the [b]Shop[/b] will be [i]free[/i].[br]",
+		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br]"
 	},
 
 	"The Architect": {
 		"NAME": "The Architect",
-		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - All your [b]Consumable Items[/b] gain [b]+1 Uses[/b].[br][b]While Spread[/b] - If I'm not a [b]Leech[/b], When you [b]Use[/b] a [b]Consumable[/b], [b]Gain +5 Points[/b]"
+		"ACTIVATE": "[b]activate[/b] - Gain [b]Experience[/b] and [b]Currency[/b] equal to my [b]Points[/b].[br]",
+		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][br][b]While Spread[/b], [i]if I'm not a [b]Leech[/b][/i], when you [b]Use[/b] a [b]Consumable Item[/b], [b]activate[/b] me"
 	},
 
 	"The Vampire": {
 		"NAME": "The Vampire",
+		"ACTIVATE": "[b]activate[/b] - Gain [b]Experience[/b] and [b]Currency[/b] equal to my [b]Points[/b].[br]",
 		"DESCRIPTION": "[b]Joker[/b] - Counts as any [i]number[/i] and any [i]color[/i].[br][b]On Spread[/b] - If I am a [b]Leech[/b], I [b]Gain Points[/b] equal to the ammount of [b]Spread Points[/b] in the [b]Row[/b] I'm [b]Leeching[/b]"
 	}
 }

@@ -16,8 +16,8 @@ func _init(newResource: Modifier, newConType: ContainerType) -> void:
 	Border = Sprite2D.new()
 	Border.texture = CanvasTexture.new()
 	Border.region_enabled = true
-	Border.region_rect = Rect2(0, 0, 75, 110)
-	Border.position = Vector2(32.5, 50)
+	Border.region_rect = Rect2(Vector2(0, 0), BASE_RESOURCE_SIZE+Vector2(10, 10))
+	Border.position = BASE_RESOURCE_SIZE/2#Vector2(32.5, 50)
 	
 	match resource.type:
 		Modifier.Type.BOON:
@@ -34,15 +34,15 @@ func _init(newResource: Modifier, newConType: ContainerType) -> void:
 	Outline = Sprite2D.new()
 	Outline.texture = CanvasTexture.new()
 	Outline.region_enabled = true
-	Outline.region_rect = Rect2(0, 0, 67, 102)
-	Outline.position = Vector2(32.5, 50)
+	Outline.region_rect = Rect2(Vector2(0, 0), BASE_RESOURCE_SIZE+Vector2(2, 2))
+	Outline.position = BASE_RESOURCE_SIZE/2
 	Outline.self_modulate = Color.BLACK
 	Outline.name = "Outline"
 	add_child(Outline)
 	
 	ModifierImage = Sprite2D.new()
-	ModifierImage.region_rect = Rect2(0, 0, 65, 100)
-	ModifierImage.position = Vector2(32.5, 50)
+	ModifierImage.region_rect = Rect2(Vector2(0, 0), BASE_RESOURCE_SIZE)
+	ModifierImage.position = BASE_RESOURCE_SIZE/2
 	ModifierImage.texture = resource.image
 	ModifierImage.scale = Vector2(0.5, 0.5)
 	ModifierImage.name = "ModifierImage"
@@ -67,6 +67,15 @@ func REgenerateResource(newResource: Resource = null) -> void:
 			Border.self_modulate = Color.RED
 		Modifier.Type.OTHER:
 			Border.self_modulate = Color.GRAY
+
+func getName(Tip: UITip) -> String:
+	return resource.getName()
+
+func getKeywords(Tip: UITip) -> String:
+	return resource.getKeywords()
+
+func getDescription(Tip: UITip) -> String:
+	return resource.getDescription()
 
 func finalPress() -> void:
 	if(container_type != ContainerType.SELECTION):

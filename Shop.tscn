@@ -7,33 +7,34 @@
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_7ae35"]
 
-[sub_resource type="CanvasTexture" id="CanvasTexture_odqjv"]
+[sub_resource type="CanvasTexture" id="CanvasTexture_f511j"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_f511j"]
 shader = ExtResource("2_7ae35")
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_c0ofq"]
 
-[node name="Shop" type="Control" node_paths=PackedStringArray("Shop_BG")]
+[node name="Shop" type="Control"]
 custom_minimum_size = Vector2(1152, 648)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1152.0
 offset_bottom = 648.0
 script = ExtResource("1_c53l5")
-Shop_BG = NodePath("Shop_BackGround")
 
 [node name="Shop_BackGround" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0, 0, 0.39215687)
 position = Vector2(576, 324)
-scale = Vector2(1152, 648)
 texture = SubResource("CanvasTexture_svtxo")
+region_enabled = true
+region_rect = Rect2(0, 0, 1152, 648)
 
 [node name="ShopMain_BackGround" type="Sprite2D" parent="."]
 self_modulate = Color(0, 0.3183701, 0.53577197, 1)
 position = Vector2(576, 324)
-scale = Vector2(1036.8, 583.2)
 texture = SubResource("CanvasTexture_7ae35")
+region_enabled = true
+region_rect = Rect2(0, 0, 1036.8, 583.2)
 
 [node name="ShopSelections" type="Control" parent="."]
 anchors_preset = 0
@@ -42,58 +43,181 @@ offset_bottom = 40.0
 
 [node name="TileSelections" type="HBoxContainer" parent="ShopSelections"]
 self_modulate = Color(0, 0, 1, 1)
-custom_minimum_size = Vector2(500, 115)
 layout_mode = 0
-offset_left = 350.0
+offset_left = 225.0
 offset_top = 150.0
-offset_right = 850.0
-offset_bottom = 220.0
-theme_override_constants/separation = 100
-alignment = 1
-
-[node name="TileSelections_Highlight" type="Sprite2D" parent="ShopSelections/TileSelections"]
-visible = false
-self_modulate = Color(0, 0.31764707, 0.5372549, 1)
-position = Vector2(250, 35)
-texture = SubResource("CanvasTexture_odqjv")
-region_enabled = true
-region_rect = Rect2(0, 0, 500, 110)
-
-[node name="JokerSelections" type="VBoxContainer" parent="ShopSelections"]
-custom_minimum_size = Vector2(50, 310)
-layout_mode = 0
-offset_left = 250.0
-offset_top = 130.0
-offset_right = 300.0
-offset_bottom = 440.0
+offset_right = 1065.0
+offset_bottom = 255.0
 theme_override_constants/separation = 50
 alignment = 1
 
-[node name="JokerSelections_Highlight" type="Sprite2D" parent="ShopSelections/JokerSelections"]
-visible = false
-self_modulate = Color(0, 0.31764707, 0.5372549, 1)
-position = Vector2(25, 155)
-texture = SubResource("CanvasTexture_odqjv")
-region_enabled = true
-region_rect = Rect2(0, 0, 90, 310)
+[node name="Control" type="Control" parent="ShopSelections/TileSelections"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
 
-[node name="ItemSelections" type="HBoxContainer" parent="ShopSelections"]
-custom_minimum_size = Vector2(500, 115)
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/TileSelections/Control"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control2" type="Control" parent="ShopSelections/TileSelections"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/TileSelections/Control2"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control3" type="Control" parent="ShopSelections/TileSelections"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/TileSelections/Control3"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control4" type="Control" parent="ShopSelections/TileSelections"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/TileSelections/Control4"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control5" type="Control" parent="ShopSelections/TileSelections"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/TileSelections/Control5"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="JokerSelections" type="VBoxContainer" parent="ShopSelections"]
 layout_mode = 0
-offset_left = 350.0
-offset_top = 315.0
-offset_right = 850.0
-offset_bottom = 430.0
-theme_override_constants/separation = 100
+offset_left = 100.0
+offset_top = 140.0
+offset_right = 175.0
+offset_bottom = 505.0
+theme_override_constants/separation = 25
 alignment = 1
 
-[node name="TileSelections_Highlight" type="Sprite2D" parent="ShopSelections/ItemSelections"]
-visible = false
-self_modulate = Color(0, 0.31764707, 0.5372549, 1)
-position = Vector2(166.667, 30)
-texture = SubResource("CanvasTexture_odqjv")
+[node name="Control" type="Control" parent="ShopSelections/JokerSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/JokerSelections/Control"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
 region_enabled = true
-region_rect = Rect2(0, 0, 333.333, 110)
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control2" type="Control" parent="ShopSelections/JokerSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/JokerSelections/Control2"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control3" type="Control" parent="ShopSelections/JokerSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/JokerSelections/Control3"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="ItemSelections" type="HBoxContainer" parent="ShopSelections"]
+layout_mode = 0
+offset_left = 225.0
+offset_top = 390.0
+offset_right = 1065.0
+offset_bottom = 495.0
+theme_override_constants/separation = 25
+alignment = 1
+
+[node name="Control" type="Control" parent="ShopSelections/ItemSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/ItemSelections/Control"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control2" type="Control" parent="ShopSelections/ItemSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/ItemSelections/Control2"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control3" type="Control" parent="ShopSelections/ItemSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/ItemSelections/Control3"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control4" type="Control" parent="ShopSelections/ItemSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/ItemSelections/Control4"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control5" type="Control" parent="ShopSelections/ItemSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/ItemSelections/Control5"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control6" type="Control" parent="ShopSelections/ItemSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/ItemSelections/Control6"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
+
+[node name="Control7" type="Control" parent="ShopSelections/ItemSelections"]
+custom_minimum_size = Vector2(75, 105)
+layout_mode = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="ShopSelections/ItemSelections/Control7"]
+position = Vector2(37.5, 52.5)
+texture = SubResource("CanvasTexture_f511j")
+region_enabled = true
+region_rect = Rect2(0, 0, 75, 105)
 
 [node name="Exit_Shop" type="Button" parent="."]
 self_modulate = Color(1, 1, 1, 0)

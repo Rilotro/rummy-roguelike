@@ -4,23 +4,15 @@ extends Resource
 class_name Item #Paint size: 130x200
 
 var id: int
-var itemID: String
-var item_image: Texture
 var uses: int = -1
 var passive: bool = false
 var instant: bool = false
 var consumable: bool = false
-var name: String
-var description: String#written for BBCode text
 var usedThisRound: int = 0
-
-var extendedDescription: Array
 
 var target: ItemTarget = ItemTarget.NO_TARGET
 
 #var ChildCLasses: Array = [ArchitectsChisel, ArchitectsHammer]
-
-var Game: GameScene
 
 #static var flags = {"Wrench": 0, "Midas Touch": 0, "Burning Shoes": 0, "Bottled Nostalgia": 0}
 #static var hasSpecialHighlight: Array[int] = [3, 6];
@@ -33,22 +25,19 @@ enum ItemTarget{
 	NO_TARGET, VIABLE_BOARD_TILE, ANY_HIGHLIGHT
 }
 
-func _init(new_id: int, nameID: String, newGame: GameScene) -> void:
-	Game = newGame
+func _init(new_id: int) -> void:
 	id = new_id
-	itemID = nameID
-	var Strings: Dictionary = StringsManager.ItemStrings[nameID]
 	
-	name = Strings["NAME"]
-	description = Strings["DESCRIPTION"]
-	if(Strings.has("EXTENDED_DESCRIPTION")):
-		extendedDescription = Strings["EXTENDED_DESCRIPTION"]
-	
-	
-	if(uses > 0):
+	if(consumable && uses > 0):
 		uses += WorkshopWrench.ADDITIONAL_USES
 	
-	GameScene.Game.StartOfTurn.connect(effectOnStartOfTurn)
+	GameScene.Game.StartOfRound.connect(effectOnStartOfRound)
+
+@abstract
+func getIDName() -> String
+
+func getName() -> String:
+	return StringsManager.ItemStrings[getIDName()]["NAME"]
 
 func getKeywords() -> String:
 	var keywords: String
@@ -59,19 +48,22 @@ func getKeywords() -> String:
 		keywords = StringsManager.ItemStrings["active"]
 	
 	if(consumable):
-		keywords += ", " + StringsManager.ItemStrings["uses"] + " - " + str(uses)
+		keywords += ", [color=green]" + StringsManager.ItemStrings["uses"] + " - " + str(uses) + "[/color]"
 	
 	return keywords
 
-func getDescription() -> String:
-	return description
+@abstract
+func getImage() -> Texture
 
-func isItemBarItem() -> bool:
-	for item in Game.ItemBar.get_Slots().get_children():
-		if("item_info" in item && item.item_info != null && item.item_info == self):
-			return true
-	
-	return false
+func getDescription() -> String:
+	return StringsManager.ItemStrings[getIDName()]["DESCRIPTION"]
+
+#func isItemBarItem() -> bool:
+	#for item in Game.ItemBar.get_Slots().get_children():
+		#if("item_info" in item && item.item_info != null && item.item_info == self):
+			#return true
+	#
+	#return false
 
 @abstract
 func getShopPrice() -> int
@@ -79,7 +71,7 @@ func getShopPrice() -> int
 func effectOnGet() -> void:
 	return
 
-func effectOnStartOfTurn() -> void:
+func effectOnStartOfRound() -> void:
 	usedThisRound = 0
 	return
 
@@ -92,13 +84,13 @@ func use() -> bool:
 func updateWhileUsing(delta: float) -> void:
 	pass
 
-func isTileValid(tile: Tile) -> bool:
+func isTileValid(tile: TileContainer) -> bool:
 	return false
 
-func useOnTile(tile: Tile) -> void:
+func useOnTile(tile: TileContainer) -> void:
 	return
 
-func useOnHighlight(Highlight: Control, displacement: Vector2 = Vector2(0, 0)) -> void:
+func useOnHighlight(Highlight: GoodButton, displacement: Vector2 = Vector2(0, 0)) -> void:
 	return 
 
 static func getRandomItem(newGame: GameScene, forShop: bool = false, consumablesOnly = false) -> Item:
@@ -106,31 +98,31 @@ static func getRandomItem(newGame: GameScene, forShop: bool = false, consumables
 	if(consumablesOnly):
 		newID = consumbaleItems.pick_random()
 	else:
-		newID = randi_range(6, 8)#ITEM_ID_FINAL
+		newID = randi_range(0, 2)#ITEM_ID_FINAL
 		
 		if(forShop):
 			while(singularItems.find(newID) >= 0):
 				newID = randi_range(0, ITEM_ID_FINAL)
 	
 	match newID:
-		#0:
-			#return BagOfTiles.new(newGame)
+		0:
+			return BagOfTiles.new()
 		1:
-			return ArchitectsHammer.new(newGame)
+			return ArchitectsHammer.new()
 		2:
-			return WorkshopWrench.new(newGame)
+			return WorkshopWrench.new()
 		3:
-			return TouchOfMidas.new(newGame)
+			return TouchOfMidas.new()
 		4:
-			return BeaverTeeth.new(newGame)
+			return BeaverTeeth.new()
 		5:
-			return BurningShoes.new(newGame)
+			return BurningShoes.new()
 		6:
-			#return MonkeysPaw.new(newGame)
-			return TouchOfMidas.new(newGame)
+			#return MonkeysPaw.new()
+			return TouchOfMidas.new()
 		7:
-			return BottledNostalgia.new(newGame)
+			return BottledNostalgia.new()
 		8:
-			return ArchitectsChisel.new(newGame)
+			return ArchitectsChisel.new()
 	
 	return null

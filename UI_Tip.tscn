@@ -62,19 +62,19 @@ text = "Bag of Tiles"
 vertical_alignment = 1
 
 [node name="Keyword_Text" type="RichTextLabel" parent="."]
-custom_minimum_size = Vector2(245, 40)
+custom_minimum_size = Vector2(245, 37.5)
 layout_mode = 0
 offset_left = 5.0
 offset_top = 30.0
 offset_right = 250.0
-offset_bottom = 70.0
+offset_bottom = 67.5
 theme_override_font_sizes/normal_font_size = 12
 theme_override_font_sizes/bold_font_size = 12
 theme_override_font_sizes/bold_italics_font_size = 12
 theme_override_font_sizes/italics_font_size = 12
 theme_override_font_sizes/mono_font_size = 12
 bbcode_enabled = true
-text = "Item, Uses - 3"
+text = "[b][rainbow speed=0.4]Item, Uses - 3[/rainbow]"
 vertical_alignment = 1
 
 [node name="Effects_Text" type="RichTextLabel" parent="."]
@@ -85,6 +85,6 @@ offset_top = 77.5
 offset_right = 250.0
 offset_bottom = 200.0
 bbcode_enabled = true
-text = "[color=gray]Choose one of [color=green]three [b]Tiles[/b] to [/color]add to your [b]Deck[/b][/color]"
+text = "test[br][br]test"
 fit_content = true
 scroll_active = false

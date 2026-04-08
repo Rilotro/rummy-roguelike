@@ -4,12 +4,16 @@ class_name WorkshopWrench
 
 static var ADDITIONAL_USES: int = 0
 
-func _init(newGame: GameScene) -> void:
-	item_image = load("res://Items/Sprites/Workshop Wrench.png")
-	
+func _init() -> void:
 	passive = true
 	
-	super(2, "Workshop Wrench", newGame)
+	super(2)
+
+func getImage() -> Texture:
+	return load("res://Items/Sprites/Workshop Wrench.png")
+
+func getIDName() -> String:
+	return "Workshop Wrench"
 
 func getShopPrice() -> int:
 	return randi_range(45, 70)
@@ -18,4 +22,8 @@ func effectOnGet() -> void:
 	ADDITIONAL_USES += 1
 	Item.singularItems.append(2)
 	
-	Game.addShopUses()
+	for item in GameScene.GameShop.ItemSelections:
+		if(item.resource.consumable):
+			item.resource.uses += 1
+	
+	#Game.addShopUses()

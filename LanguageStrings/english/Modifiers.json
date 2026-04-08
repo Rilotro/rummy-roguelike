@@ -1,0 +1,27 @@
+{
+	"modifier": "Modifier",
+	"BOON": "Boon",
+	"CURSE": "Curse",
+	"OTHER": "Modifier",
+	"rounds": "rounds",
+	"round": "round",
+	
+	"Riches": {
+		"NAME": "Riches",
+		"DESCRIPTION": ["At [b]Round Start[/b] gain ",
+						" [b]Currency[/b], then double that ammount."]
+	},
+	
+	"Architect's Forge": {
+		"NAME": "Architect's Forge",
+		"DESCRIPTION": ["[b]When Gained[/b], ",
+						" [b]Consumable Items[/b].[br]At [b]Round Start[/b], the [b]Selected ",
+						"Item[/b] [i]gains ",
+						"Items[/b] [i]gain ",
+						" additional ",
+						"[b]use[/b][/i].",
+						"[b]uses[/b][/i].",
+						"[br]If it is gone, your other [b]Consumable Items[/b] [i]gain ",
+						"[br]For each of those [b]Items[/b] that are gone, your other [b]Consumable Items[/b] [i]gain ",]
+	}
+}

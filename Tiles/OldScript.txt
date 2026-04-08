@@ -924,3 +924,705 @@ func get_RiverTile_index(tile: Tile) -> int:
 
 func remove_RiverTile(tile: Tile) -> void:
 	Discard_River.erase(tile)
+
+Spead_Info:
+	
+	var Tiles: Array[TileContainer]
+var same_color: bool
+var same_number: bool
+var the_number: int = -1
+var the_color: Color = Color.WHITE
+var colors: Array[Color]
+
+var prefixedLeeches: Array[TileContainer]
+var suffixedLeeches: Array[TileContainer]
+
+func _init(new_row: Array[TileContainer]) -> void:
+	Tiles = new_row.duplicate()
+	
+	#multiplayer.peer_connected.connect(player_joined)
+	Tiles[0].player.get_parent().get_ItemBar().item_used.connect(Architect_Check)
+	
+	var temp_color: Color = Color.WHITE
+	var temp_number: int = -1
+	var is_color: bool = true
+	var is_number: bool = true
+	var joker: Tile = null
+	
+	for tile in new_row:
+		if(tile.resource.joker_id >= 0):
+			colors.append(Color.WHITE)
+		else:
+			if(temp_color == Color.WHITE):
+				if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) < 0):
+					temp_color = tile.resource.color
+					colors.append(tile.resource.color)
+				#else:
+					#colors.append(-1)
+			elif(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) < 0 && tile.resource.color != temp_color):
+				is_color = false
+				colors.append(tile.resource.color)
+			
+			if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+				colors.append(Color.WHITE)
+			
+			if(temp_number == -1):
+				temp_number = tile.resource.number
+			elif(tile.resource.number != temp_number):
+				is_number = false
+	
+	if(is_color):
+		same_color = true
+		same_number = false
+		the_color = temp_color
+		#if(joker != null):
+			#var jIndex: int = new_row.find(joker)
+			#joker.resource.potential_colors = [temp_color]
+			#if(jIndex == 0):
+				#joker.resource.potential_number = [new_row[jIndex+1].resource.number-1]
+			#else:
+				#joker.resource.potential_number = [new_row[jIndex-1].resource.number+1]
+	elif(is_number):
+		same_number = true
+		same_color = false
+		the_number = temp_number
+		#if(joker != null):
+			#joker.resource.potential_number.append(temp_number)
+			#var jColors: Array[int]
+			#for i in range(1, 5):
+				#if(colors.find(i) < 0):
+					#jColors.append(i)
+			#joker.resource.potential_colors = jColors
+
+func is_postSpread_Eligible(tile: Tile, is_HomeSpread: bool = true):
+	#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	var parentRot: float = tile.Player.rotation
+	
+	var firstTile: TileContainer = Tiles[0]
+	var lastTile: TileContainer = Tiles[Tiles.size()-1]
+	if(prefixedLeeches.size() >= 1):
+		firstTile = prefixedLeeches[0]
+	if(suffixedLeeches.size() >= 1):
+		lastTile = suffixedLeeches[suffixedLeeches.size()-1]
+	
+	if(tile.resource.joker_id >= 0):
+		var S: Vector2 = Tiles[0].parentEffector.global_position
+		var D: float = cos(PI/2-parentRot)*(S.y-tile.global_position.y) + sin(PI/2-parentRot)*(S.x-tile.global_position.x)
+		if(D >= 0):
+			if(prefixedLeeches.size() >= 1 && is_HomeSpread):
+				return false
+			if(same_color && firstTile.resource.number == 1):
+				return false
+		else:
+			if(suffixedLeeches.size() >= 1 && is_HomeSpread):
+				return false
+			if(same_color && lastTile.resource.number == 1):
+				return false
+		
+		if(same_number && colors.size() >= 4):
+			return false
+		
+		return true
+	
+	if(same_color):
+		var firstNumber: int = firstTile.resource.number
+		if(firstTile.resource.joker_id >= 0):
+			firstNumber = -1
+			for i in range(prefixedLeeches.size()):
+				if(prefixedLeeches[i] != firstTile && prefixedLeeches[i].resource.joker_id < 0):
+					firstNumber = prefixedLeeches[i].resource.number-i
+			
+			if(firstNumber == -1):
+				for i in range(Tiles.size()):
+					if(Tiles[i] != firstTile && Tiles[i].resource.joker_id < 0):
+						firstNumber = Tiles[i].resource.number - prefixedLeeches.size()-i
+		
+		var lastNumber: int = lastTile.resource.number
+		if(lastTile.resource.joker_id >= 0):
+			lastNumber = -1
+			var SLSize: int = suffixedLeeches.size()
+			for i in range(SLSize):
+				if(suffixedLeeches[SLSize-i-1] != lastTile && suffixedLeeches[SLSize-i-1].resource.joker_id < 0):
+					lastNumber = suffixedLeeches[i].resource.number + i
+			
+			var TSize: int = Tiles.size()
+			if(lastNumber == -1):
+				for i in range(TSize):
+					if(Tiles[TSize-i-1] != lastTile && Tiles[TSize-i-1].resource.joker_id < 0):
+						lastNumber = Tiles[TSize-i-1].resource.number + suffixedLeeches.size() + i
+		
+		if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0 || tile.resource.color == the_color):
+			if(tile.resource.number == firstNumber-1):
+				if(prefixedLeeches.size() == 0 || !is_HomeSpread):
+					return true
+			
+			if(tile.resource.number == lastNumber+1 && lastNumber != 1):
+				if(suffixedLeeches.size() == 0 || !is_HomeSpread):
+					return true
+			elif(tile.resource.number == 1 && lastNumber == 13):
+				if(suffixedLeeches.size() == 0 || !is_HomeSpread):
+					return true
+	
+	if(same_number):
+		if(tile.resource.number == the_number && colors.size() < 4):
+			if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0 || colors.find(tile.resource.color) < 0):
+				if(suffixedLeeches.size() >= 1 && prefixedLeeches.size() >= 1):
+					if(!is_HomeSpread):
+						return true
+				else:
+					return true
+	
+	return false
+
+func append_postSpread(new_Tile: TileContainer) -> Vector2:
+	var parentRot: float = new_Tile.Player.rotation
+	var final_pos: Vector2
+	
+	var firstTile: TileContainer = Tiles[0]
+	var lastTile: TileContainer = Tiles[Tiles.size()-1]
+	if(prefixedLeeches.size() >= 1):
+		firstTile = prefixedLeeches[0]
+	if(suffixedLeeches.size() >= 1):
+		lastTile = suffixedLeeches[suffixedLeeches.size()-1]
+	
+	if(new_Tile.resource.joker_id >= 0):
+		colors.append(Color.WHITE)
+		var S: Vector2 = Tiles[0].parentEffector.global_position
+		var D: float = cos(PI/2-parentRot)*(S.y-new_Tile.global_position.y) + sin(PI/2-parentRot)*(S.x-new_Tile.global_position.x)
+		if(D >= 0):
+			if(new_Tile.rotation == 0 && prefixedLeeches.size() == 0):
+				Tiles.insert(0, new_Tile)
+				final_pos = Vector2(-30*cos(parentRot), -30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+			elif(new_Tile.rotation != 0):
+				prefixedLeeches.insert(0, new_Tile)
+				final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+		else:
+			if(new_Tile.rotation == 0 && suffixedLeeches.size() == 0):
+				Tiles.append(new_Tile)
+				final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+			elif(new_Tile.rotation != 0):
+				suffixedLeeches.append(new_Tile)
+				final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+	else:
+		if(same_color):
+			var firstNumber: int = firstTile.resource.number
+			if(firstTile.resource.joker_id >= 0):
+				firstNumber = -1
+				for i in range(prefixedLeeches.size()):
+					if(prefixedLeeches[i] != firstTile && prefixedLeeches[i].resource.joker_id < 0):
+						firstNumber = prefixedLeeches[i].resource.number-i
+				
+				if(firstNumber == -1):
+					for i in range(Tiles.size()):
+						if(Tiles[i] != firstTile && Tiles[i].resource.joker_id < 0):
+							firstNumber = Tiles[i].resource.number - prefixedLeeches.size()-i
+			
+			var lastNumber: int = lastTile.resource.number
+			if(lastTile.resource.joker_id >= 0):
+				lastNumber = -1
+				var SLSize: int = suffixedLeeches.size()
+				for i in range(SLSize):
+					if(suffixedLeeches[SLSize-i-1] != lastTile && suffixedLeeches[SLSize-i-1].resource.joker_id < 0):
+						lastNumber = suffixedLeeches[i].resource.number + i
+				
+				var TSize: int = Tiles.size()
+				if(lastNumber == -1):
+					for i in range(TSize):
+						if(Tiles[TSize-i-1] != lastTile && Tiles[TSize-i-1].resource.joker_id < 0):
+							lastNumber = Tiles[TSize-i-1].resource.number + suffixedLeeches.size() + i
+			
+			if(new_Tile.resource.number == firstNumber-1):
+				if(new_Tile.rotation == 0):
+					Tiles.insert(0, new_Tile)
+					final_pos = Vector2(-30*cos(parentRot), -30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+				else:
+					prefixedLeeches.insert(0, new_Tile)
+					final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+			if(new_Tile.resource.number == lastNumber+1 || (new_Tile.resource.number == 1 && lastNumber == 13)):
+				if(new_Tile.rotation == 0):
+					Tiles.append(new_Tile)
+					final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+				else:
+					suffixedLeeches.append(new_Tile)
+					final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+		
+		if(same_number):
+			if(new_Tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+				colors.append(Color.WHITE)
+			else:
+				colors.append(new_Tile.resource.color)
+			if(new_Tile.rotation == 0):
+				Tiles.append(new_Tile)
+				final_pos = Vector2(30*cos(parentRot), 30*sin(parentRot)) + Vector2(10*sin(parentRot), -10*cos(parentRot))
+			else:
+				suffixedLeeches.append(new_Tile)
+				final_pos = Vector2(-30*cos(parentRot), 30*sin(parentRot))
+	
+	return final_pos
+
+func get_SpreadSize(SpreadNode: Node2D) -> Vector2:
+	#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	var parentRot: float = SpreadNode.get_parent().rotation
+	
+	var SuffixSize: Vector2 = Vector2(35*suffixedLeeches.size()*cos(parentRot), 35*suffixedLeeches.size()*sin(parentRot))
+	var TileSize: Vector2 = Vector2((25 + 30*(Tiles.size()-1))*cos(parentRot), (25 + 30*(Tiles.size()-1))*sin(parentRot))
+	var PrefixSize: Vector2 = Vector2(35*prefixedLeeches.size()*cos(parentRot), 35*prefixedLeeches.size()*sin(parentRot))
+	
+	return SuffixSize + TileSize + PrefixSize
+
+func Architect_Check(peer_id: int) -> void:#peer_id: int
+	for player in Tiles[0].Player.get_parent().players:
+		if(player.player_Node == Tiles[0].Player && peer_id == player.player_id):
+			for tile in Tiles:
+				if(tile.resource.joker_id == 3):
+					if(tile.is_animatingPoints):
+						await tile.PointsAnimationDone
+					var extraPoints: int = tile.on_spread(Vector2(0, 0), self, {"Architect": true})
+					await tile.get_tree().create_timer(0.8).timeout
+				
+					var TMP_RTL: RichTextLabel = RichTextLabel.new()
+					tile.Player.add_child(TMP_RTL)
+					TMP_RTL.text = "0"
+					TMP_RTL.visible = false
+					TMP_RTL.global_position = tile.Player.get_ProgressBar().global_position
+					await tile.UI_add_score(TMP_RTL, 0, 0)
+					TMP_RTL.queue_free()
+					
+					tile.Player.addPoints(extraPoints)
+			
+			break
+
+static func check_spread_legality(selected_tiles: Array[TileContainer], highlight: bool = false) -> String:
+	if(selected_tiles.size() < 3 && !highlight):
+		return "too few!"
+	
+	var same_number: bool = true
+	var same_color: bool = true
+	var all_diff_color: bool = true
+	var temp_color: Color = Color.WHITE
+	var temp_number: int = -1
+	var last_number: int = -1
+	var is_ordered: bool = true
+	var colors: Array[Color]
+	#var out_of_bounds: bool = false
+	var sequence: Array[int]
+	var joker_count: int = 0
+	var tile: TileContainer
+	
+	for i in range(selected_tiles.size()):
+		tile = selected_tiles[i]
+		if(tile.resource.joker_id >= 0):
+			joker_count += 1
+			colors.append(Color.WHITE)
+			if(last_number == -1):
+				for j in range(selected_tiles.size()-i-1):
+					if(selected_tiles[i+j+1].resource.joker_id < 0):
+						if(selected_tiles[i+j+1].resource.number == 1):
+							sequence.append(13-j)
+							break
+						else:
+							sequence.append(selected_tiles[i+j+1].resource.number-j-1)
+							break
+			else:
+				last_number += 1
+				if(last_number >= 14):
+					last_number = 1
+				
+				sequence.append(last_number)
+		else:
+			if(temp_color == Color.WHITE):
+				temp_color = tile.resource.color
+				colors.append(tile.resource.color)
+			else:
+				if(tile.resource.effects.find(Tile_Info.Effect.RAINBOW) >= 0):
+					colors.append(Color.WHITE)
+				elif(tile.resource.color != temp_color):
+					same_color = false
+					if(colors.find(tile.resource.color) >= 0):
+						all_diff_color = false
+					else:
+						colors.append(tile.resource.color)
+			
+			sequence.append(tile.resource.number)
+			if(temp_number == -1):
+				temp_number = tile.resource.number
+				last_number = temp_number
+			else:
+				if(tile.resource.number - last_number != 1):
+					if(!(last_number == 13 && tile.resource.number == 1)):
+						is_ordered = false
+				if(tile.resource.number != temp_number):
+					same_number = false
+				
+				last_number = tile.resource.number
+	
+	if(selected_tiles.size() - joker_count <= 1):
+		return "too ambiguous"
+	
+	if(!same_color && !same_number):
+		return "no pattern!"
+	
+	if(same_color):
+		if(!is_ordered):
+			return "not sequenced!"
+		else:
+			last_number = -1
+			var endPassed: bool = false
+			for entry in sequence:
+				if(entry < 1):
+					return "out of bounds!"
+				if(last_number != -1):
+					if(entry - last_number != 1):
+						if(!(last_number == 13 && entry == 1)):
+							return "not sequenced!" 
+				
+				if(entry > 1 && endPassed):
+					return "out of bounds!"
+				
+				last_number = entry
+				if(entry == 13):
+					endPassed = true
+	
+	
+	if(same_number):
+		if(!all_diff_color):
+			return "duplicates are illegal!"
+		elif(colors.size() > 4):
+			return "too many colors!"
+	
+	if(highlight && selected_tiles.size() > 1):
+		if(same_number):
+			return "number:" + str(temp_number)
+		elif(same_color):
+			return "color:" + str(temp_color)
+	return "Spread!"
+
+
+GameScene:
+	var players: Array[PlayerData]
+@export var playerScores: Array[int]
+
+var stats: Array[int] = [0, 0, 0, 0]#in order: Score, Biggest Spread (Score-Wise), Times Spread, Tiles Bought
+
+var PB: Player
+
+var usingItem: ItemContainer = null
+
+@export var ItemBar: GameBar
+@export var TurnButton: Button
+@export var BG_Obfuscator: Sprite2D
+@export var GameShop: Shop
+@export var tileSelectScreen: SelectScreen
+
+static var Game: GameScene
+
+signal StartOfTurn
+
+func _init() -> void:
+	Game = self#Vector2(600, 628) child #8
+	#var PS: PackedScene = preload("res://Player_Board.tscn")
+	PB = Player.new()
+	add_child(PB)
+	PB.position = Vector2(576, 588)
+	PB.name = "PlayerObject"
+	#PB = $Player_Board
+
+func _ready() -> void:#multiplayer.get_unique_id()
+	#var tween2 = create_tween()
+	#tween2.tween_property(self, "self_modulate:a", 0, 1).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_IN)
+	ItemBar.item_used.connect(ItemUsed)
+	#PB = $Player_Board
+	move_child(PB, 8)
+	players.append(PlayerData.new(multiplayer.get_unique_id(), 0, PB))
+	if(HighLevelNetworkHandler.is_multiplayer):
+		if(HighLevelNetworkHandler.server_openned):
+			playerScores.append(0)
+		
+		var players_added: int = 0
+		for id in multiplayer.get_peers():
+			var new_PB: Player = Player.new()#preload("res://Player_Board.tscn").instantiate()
+			add_child(new_PB)
+			new_PB.becomePeerBoard()
+			players.append(PlayerData.new(id, 0, new_PB))
+			if(HighLevelNetworkHandler.server_openned):
+				playerScores.append(0)
+			
+			players_added += 1
+			match players_added:
+				1:
+					new_PB.global_position = Vector2(50.0, 310.0)
+					new_PB.rotation = deg_to_rad(90)
+				2:
+					new_PB.global_position = Vector2(550.0, 125.0)
+					new_PB.rotation = deg_to_rad(180)
+				3:
+					new_PB.global_position = Vector2(1102.0, 440.0)
+					new_PB.rotation = deg_to_rad(270)
+	
+	$Turn_Button.text = "Shop"
+	GameShop.visible = false
+	GameShop.REgenerate_selections()
+	
+	var nex_X_size: Vector2 = $Discard_Tip.get_theme_font("normal_font").get_string_size($Discard_Tip.text)
+	$Discard_Tip.size = nex_X_size
+	$Discard_Tip.global_position.x -= nex_X_size.x/2
+	
+	#PB.artificialReady()
+	
+	if(HighLevelNetworkHandler.is_multiplayer && HighLevelNetworkHandler.server_openned):
+		$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(1)] + "'s Turn"
+		var tween = get_tree().create_tween()
+		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
+		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
+		tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
+	#elif(HighLevelNetworkHandler.is_singleplayer):
+		#PB.Activate_Draw()
+	
+	ItemBar.addModifier(BagOfTiles.new(self))
+
+func _process(delta: float) -> void:
+	if(usingItem != null):
+		usingItem.item_info.updateWhileUsing(delta)
+	
+	#if(HammerSprite != null):
+		#HammerSprite.global_position = get_global_mouse_position()
+	if(Input.is_action_just_pressed("Debug_Draw")):
+		PB.Draw()
+		#if(!$TileSelect_Screen.visible && PB.my_turn && !PB.discarding):
+			#$TileSelect_Screen.start_select(SelectScreen.SelectOption.BOARD_ADD_TILE, 3, {"EffectsChance": 0})
+
+@rpc("any_peer", "call_local", "reliable")
+func client_NewScore(client_id: int, newScore: int):
+	for i in range(players.size()):
+		if(players[i].player_id == client_id):
+			players[i].Score = newScore
+			playerScores[i] = newScore
+			
+			break
+
+func getTurn() -> bool:
+	return PB.my_turn
+
+
+func Start_Turn(GameOver: bool = false) -> void:
+	if(GameOver):
+		if(HighLevelNetworkHandler.is_multiplayer):
+			if(HighLevelNetworkHandler.server_openned):
+				players[0].Score *= -1
+			else:
+				for player in players:
+					if(player.player_id == multiplayer.get_unique_id()):
+						client_NewScore.rpc_id(1, multiplayer.get_unique_id(), -player.Score)
+						break
+		
+		End_Turn()
+		$GameOver_Screen.GameOver(stats)
+	else:
+		$Turn_Button.text = "End Turn"
+		$Turn_Button.self_modulate = Color(1, 1, 1, 1)
+		#$ItemBar.StartTurn()
+		StartOfTurn.emit()#multiplayer.get_unique_id()
+
+func Next_Turn(peer_ID: int, next_peer: int = -1):
+	if(HighLevelNetworkHandler.is_singleplayer || next_peer == multiplayer.get_unique_id()):
+		PB.Activate_Draw()
+	
+	if(HighLevelNetworkHandler.is_multiplayer):
+		if(HighLevelNetworkHandler.server_openned):
+			if(next_peer >= 0):
+				$Player_Turn_Announcer.text = "It's " + HighLevelNetworkHandler.players[str(next_peer)] + "'s Turn"
+				var new_tween = get_tree().create_tween()
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 0.1)
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 1), 1.5)
+				new_tween.tween_property($Player_Turn_Announcer, "self_modulate", Color(1, 1, 1, 0), 0.25)
+			else:
+				$MultiplayerSynchronizer.handle_NextTurn(multiplayer.get_unique_id())
+		elif(next_peer < 0):
+			$MultiplayerSynchronizer.handle_NextTurn(multiplayer.get_unique_id())
+
+func select_tiles(selectType: SelectScreen.SelectOption, selectionOptions: Vector3i, selectFlags: Dictionary):
+	tileSelectScreen = SelectScreen.new(selectType, selectionOptions, selectFlags)
+	add_child(tileSelectScreen)
+	tileSelectScreen.position = Vector2(576, 324)
+	#tileSelectScreen.position
+	
+	#tileSelectScreen.start_select(selectType, nr_tiles, selectFlags)
+	#$TileSelect_Screen.start_select(nr_tiles, {"BoardAdd": false, "Position": DeckIndex, "Replacement": Replacement})
+
+func newScore(newScore: int, client_ID: int):
+	if(client_ID == multiplayer.get_unique_id()):
+		var old_curr: int = GameShop.currency
+		GameShop.update_currency(newScore)
+		#var tween = 
+		get_tree().create_tween().tween_method(func(x: int): $ShopCurrency.text = "Current Funds: " + str(x), old_curr, GameShop.currency, 1)
+		$ShopCurrency.text = "Current Funds: " + str(GameShop.currency)
+		#$ShopCurrency.global_position.x = $Turn_Button.global_position.x + $Turn_Button.size.x/2.0 - $ShopCurrency.size.x/2.0
+		if(HighLevelNetworkHandler.is_multiplayer):
+			$MultiplayerSynchronizer.handle_newScore(newScore, client_ID)
+
+func addShopUses() -> void:
+	GameShop.addShopUses()
+
+var emitting: bool = false
+
+func ItemUsed(peer_id: int)-> void:
+	if(peer_id == multiplayer.get_unique_id()):
+		$MultiplayerSynchronizer.handle_ItemUsed(peer_id)
+	elif(!emitting):
+		emitting = true
+		$ItemBar.item_used.emit(peer_id)
+		emitting = false
+
+#var HammerSprite: Sprite2D
+
+func startIteamUse(item: ItemContainer):
+	usingItem = item
+	
+	if(item.item_info.target == Item.ItemTarget.VIABLE_BOARD_TILE):#Item.hasSpecialHighlight.find(item.item_info.id) >= 0):
+		PB.show_possible_selections(true)
+
+func endItemUse() -> void:
+	var tempItem: ItemContainer = usingItem
+	usingItem = null
+	
+	$Turn_Button.disabled = false
+	$Turn_Button.text = "End Turn"
+	
+	if(tempItem.item_info.target == Item.ItemTarget.VIABLE_BOARD_TILE):#Item.hasSpecialHighlight.find(item.item_info.id) >= 0):
+		PB.show_possible_selections(true)
+	
+	ItemBar.endItemUse(tempItem)
+
+func addItemBarUses() -> void:
+	$ItemBar.addItemBarUses()
+
+func used_PassiveItem(item_ID: int):
+	$ItemBar.used_PassiveItem(item_ID)
+
+func add_ItemSlot() -> void:
+	$ItemBar.add_ItemSlot()
+
+func buy_tile(tile_bought: Tile, animationTile: TileContainer = null) -> void:
+	stats[3] += 1
+	PB.add_tile_to_deck(tile_bought, -1, animationTile)
+
+func buy_item(item_bought: Item) -> void:
+	ItemBar.add_item(item_bought)
+
+func Gain_Freebie(freebies: int = 1) -> void:
+	GameShop.Gain_Freebie(freebies)
+
+func peer_discarded(peer_id: int, peer_DT: Array):
+	if(peer_id == multiplayer.get_unique_id()):
+		$MultiplayerSynchronizer.handle_discard(peer_id, peer_DT)
+	else:
+		var deserialized_tile: Array[Tile]
+		for serialezed_tile in peer_DT:
+			deserialized_tile.append(dict_to_inst(serialezed_tile))
+		PB.add_RiverPeerTiles(deserialized_tile)
+		for player in players:
+			if(player.player_id == peer_id):
+				player.player_Node.River.tiles_discarded += deserialized_tile.size()
+				player.player_Node.update_DrainCounter()
+
+func peer_spread(peer_id: int, spread_tiles: Array) -> void:
+	if(peer_id == multiplayer.get_unique_id()):
+		$MultiplayerSynchronizer.handle_spread(peer_id, spread_tiles)
+	else:
+		var deserialized_tile: Array[Tile]
+		for serialezed_tile in spread_tiles:
+			deserialized_tile.append(dict_to_inst(serialezed_tile))
+		
+		for player in players:
+			if(player.player_id == peer_id):
+				player.player_Node.peerSpread(deserialized_tile)
+
+func peer_PostSpread(tile_spread: Tile, Spread_Row: int, PlayerBoard, peer_id: int) -> void:
+	if(peer_id == multiplayer.get_unique_id()):
+		for i in range(players.size()):
+			if(players[i].player_Node == PlayerBoard):
+				$MultiplayerSynchronizer.handle_PostSpread(peer_id, tile_spread, players[i].player_id, Spread_Row)
+				break
+	else:
+		var OPlayer: Node2D
+		var IPlayer: Node2D
+		for player in players:
+			if(player.player_id == peer_id):
+				OPlayer = player.player_Node
+			if(player.player_id == PlayerBoard):
+				IPlayer = player.player_Node
+				#for i in range(players.size()):
+					#if(players[i].player_id == PlayerBoard):#---------------------------------------------------------------------
+						#
+						#break
+		OPlayer.peer_PostSpread(tile_spread, Spread_Row, IPlayer)
+
+func peer_Drained(peer_id: int, Drain_pos: int) -> void:
+	if(peer_id == multiplayer.get_unique_id()):
+		$MultiplayerSynchronizer.handle_Drain(peer_id, Drain_pos)
+	else:
+		PB.peer_Drained(Drain_pos)
+		for player in players:
+			if(player.player_id == peer_id):
+				player.player_Node.River.peer_Drained()
+				player.player_Node.update_DrainCounter()
+
+signal EndOfRound
+
+func End_Turn():
+	TurnButton.text = "Shop"
+	TurnButton.self_modulate = Color(1, 1, 1, 1)
+	#Tile.select_Color = Color(1, 1, 0, 1)
+	GameShop.REgenerate_selections()
+	
+	var tween = get_tree().create_tween()
+	tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
+	
+	EndOfRound.emit()
+	
+	Next_Turn(multiplayer.get_unique_id())
+
+var shop_openned: bool = false
+
+func _on_Turn_Button_pressed() -> void:
+	var itemCanBeUsedInShop: bool = false
+	if(usingItem != null && usingItem.item_info.target == Item.ItemTarget.ANY_HIGHLIGHT):
+		itemCanBeUsedInShop = true
+	
+	if(PB.my_turn && !itemCanBeUsedInShop):# && !Item.is_HammerTime
+		if(PB.is_discarding()):
+			$Turn_Button.text = "Cancel"
+			$Turn_Button.self_modulate = Color(1, 0, 0, 1)
+			
+			var new_tip: String
+			if(PB.progressIndex == 0):
+				new_tip = "You may discard 1 Tile"
+			else:
+				new_tip = "You may discard up to " + str(1+PB.progressIndex) + " Tiles"
+			var old_X_size: Vector2 = $Discard_Tip.get_theme_font("normal_font").get_string_size($Discard_Tip.text)
+			$Discard_Tip.global_position.x += old_X_size.x/2
+			var new_X_size: Vector2 = $Discard_Tip.get_theme_font("normal_font").get_string_size(new_tip)
+			$Discard_Tip.size = new_X_size
+			$Discard_Tip.global_position.x -= new_X_size.x/2
+			$Discard_Tip.text = new_tip
+			
+			if(shop_openned):
+				var tween = get_tree().create_tween()
+				tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 1), 0.5)
+		else:
+			$Turn_Button.text = "End Turn"
+			$Turn_Button.self_modulate = Color(1, 1, 1, 1)
+			
+			var tween = get_tree().create_tween()
+			tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
+	else:
+		if(!shop_openned):
+			shop_openned = true
+			var tween = get_tree().create_tween()
+			tween.tween_property($Discard_Tip, "modulate", Color(1, 1, 1, 0), 0.5)
+		
+		GameShop.checkButtons()
+		GameShop.visible = true
+
+func exit_shop() -> void:
+	GameShop.visible = false

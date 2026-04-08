@@ -24,191 +24,344 @@ var TipTexts: Array[String] = ["You need to select [b]3 or more Tiles[/b] in a [
 
 var TipCheck: Array[bool]
 
-var currency: int = 0
-
-const MAX_TILE_SELECTIONS: int = 10
+const MAX_HORIZONTAL_SELECTIONS: int = 10
+#const MAX_TILE_SELECTIONS: int = 10
 const MAX_JOKER_SELECTIONS: int = 3
-const MAX_ITEM_SELECTIONS: int = 8
-
-const STARTING_TILE_CONTAINERS: int = 3
-const STARTING_JOKER_CONTAINERS: int = 3
+#const MAX_ITEM_SELECTIONS: int = 10
+const STARTING_TILE_CONTAINERS: int = 5
+const STARTING_JOKER_CONTAINERS: int = 1
 const STARTING_ITEM_CONTAINERS: int = 3
+# JOKER_BOX_SEPARATION: int = 25
+const HORIZONTAL_SELECTIONS_BOX_WIDTH: float = 840
+const VERTICAL_SELECTIONS_BOX_HEIGHT: float = 365
+const SIMPLE_HORIZONTAL_SELECTION_EXPANSION: int = 25
+const TILE_SELECTION_START_SEPARATION: int = 50
+const ITEM_SELECTION_START_SEPARATION: int = 100
+const HORIZONTAL_FINAL_SEPARATION: int = 10
+const TILE_SEPARATION_STEP: int = roundi(float(TILE_SELECTION_START_SEPARATION-HORIZONTAL_FINAL_SEPARATION)/(MAX_HORIZONTAL_SELECTIONS-STARTING_TILE_CONTAINERS))
+const ITEM_SEPARATION_STEP: int = roundi(float(ITEM_SELECTION_START_SEPARATION-HORIZONTAL_FINAL_SEPARATION)/(MAX_HORIZONTAL_SELECTIONS-STARTING_ITEM_CONTAINERS))
 
-var TileSelections: Array[TileContainer]
-var JokerSelections: Array[TileContainer]
-var ItemSelections: Array[ItemContainer]
+const MAIN_BACKGROUND_COLOR: Color = Color(0, 0.31, 0.53, 1)
 
-@export var Shop_BG: Sprite2D
+static var TileSelections: Array[TileContainer]
+static var JokerSelections: Array[TileContainer]
+static var ItemSelections: Array[ItemContainer]
+
+static var currency: int = 0
+
+#@export var Shop_BG: Sprite2D
+
+var Background: Sprite2D
+var MainShopBackground: Sprite2D
+var TileSelection_Sensor: GoodButton
+var JokerSelection_Sensor: GoodButton
+var ItemSelection_Sensor: GoodButton
+var TileSelections_Box: HBoxContainer
+var TileSelections_Highlight: Sprite2D
+var JokerSelections_Box: VBoxContainer
+var JokerSelections_Highlight: Sprite2D
+var ItemSelections_Box: HBoxContainer
+var ItemSelections_Highlight: Sprite2D
+var ExitShop: GoodButton
+var CurrencyText: Label
+#var ShopSelections: Control
+
+func _init() -> void:
+	Background = Sprite2D.new()
+	Background.texture = CanvasTexture.new()
+	Background.region_enabled = true
+	Background.self_modulate = Color.BLACK
+	Background.self_modulate.a = 100.0/255
+	Background.name = "Background"
+	add_child(Background)
+	
+	MainShopBackground = Sprite2D.new()
+	MainShopBackground.texture = CanvasTexture.new()
+	MainShopBackground.region_enabled = true
+	MainShopBackground.self_modulate = MAIN_BACKGROUND_COLOR
+	MainShopBackground.name = "MainShopBackground"
+	add_child(MainShopBackground)
+	
+	#TS_B START
+	TileSelections_Box = HBoxContainer.new()
+	TileSelections_Box.alignment = BoxContainer.ALIGNMENT_CENTER
+	TileSelections_Box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	TileSelections_Box.custom_minimum_size = Vector2(HORIZONTAL_SELECTIONS_BOX_WIDTH, ResourceContainer.BASE_RESOURCE_SIZE.y)
+	TileSelections_Box.position = Vector2(225, 150)
+	TileSelections_Box.add_theme_constant_override("separation", 50)
+	#TileSelections_Box.self_modulate = Color.BLUE
+	TileSelections_Box.name = "TileSelections_Box"
+	
+	var currSelectionSize: float = STARTING_TILE_CONTAINERS*(ResourceContainer.BASE_RESOURCE_SIZE.x + 50)# - 20
+	TileSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), GoodButton.ButtonType.SENSOR_TILE, Vector2(currSelectionSize, ResourceContainer.BASE_RESOURCE_SIZE.y+15))
+	TileSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	TileSelection_Sensor.visible = false
+	#TileSelection_Sensor.position = TileSelections_Box.position
+	#TileSelection_Sensor.position.x += HORIZONTAL_SELECTIONS_BOX_WIDTH - currSelectionSize
+	#TileSelection_Sensor.position.y -= 7.5
+	TileSelection_Sensor.name = "TileSelection_Sensor"
+	add_child(TileSelection_Sensor)
+	
+	add_child(TileSelections_Box)
+	
+	#JS_B START
+	JokerSelections_Box = VBoxContainer.new()
+	JokerSelections_Box.alignment = BoxContainer.ALIGNMENT_CENTER
+	JokerSelections_Box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	JokerSelections_Box.custom_minimum_size = Vector2(ResourceContainer.BASE_RESOURCE_SIZE.x, VERTICAL_SELECTIONS_BOX_HEIGHT)
+	JokerSelections_Box.position = Vector2(100, 140)
+	JokerSelections_Box.add_theme_constant_override("separation", 25)
+	#JokerSelections_Box.self_modulate = Color.BLUE
+	JokerSelections_Box.name = "JokerSelections_Box"
+	
+	JokerSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), GoodButton.ButtonType.SENSOR_JOKER, Vector2(ResourceContainer.BASE_RESOURCE_SIZE.x+15, VERTICAL_SELECTIONS_BOX_HEIGHT+50))
+	JokerSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	JokerSelection_Sensor.visible = false
+	JokerSelection_Sensor.position = JokerSelections_Box.position
+	JokerSelection_Sensor.position.y -= 25
+	JokerSelection_Sensor.position.x -= 7.5
+	JokerSelection_Sensor.name = "JokerSelection_Sensor"
+	add_child(JokerSelection_Sensor)
+	
+	add_child(JokerSelections_Box)
+	
+	#IS_B START
+	ItemSelections_Box = HBoxContainer.new()
+	ItemSelections_Box.alignment = BoxContainer.ALIGNMENT_CENTER
+	ItemSelections_Box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ItemSelections_Box.custom_minimum_size = Vector2(HORIZONTAL_SELECTIONS_BOX_WIDTH, ResourceContainer.BASE_RESOURCE_SIZE.y)
+	ItemSelections_Box.position = Vector2(225, 390)
+	ItemSelections_Box.add_theme_constant_override("separation", 100)
+	#ItemSelections_Box.self_modulate = Color.BLUE
+	ItemSelections_Box.name = "ItemSelections_Box"
+	
+	currSelectionSize = STARTING_ITEM_CONTAINERS*(ResourceContainer.BASE_RESOURCE_SIZE.x + 100)# - 20
+	ItemSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), GoodButton.ButtonType.SENSOR_ITEM, Vector2(currSelectionSize, ResourceContainer.BASE_RESOURCE_SIZE.y+15))
+	ItemSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	ItemSelection_Sensor.visible = false
+	ItemSelection_Sensor.position = ItemSelections_Box.position
+	ItemSelection_Sensor.position.x += HORIZONTAL_SELECTIONS_BOX_WIDTH - currSelectionSize
+	ItemSelection_Sensor.position.y -= 7.5
+	ItemSelection_Sensor.name = "ItemSelection_Sensor"
+	add_child(ItemSelection_Sensor)
+	
+	add_child(ItemSelections_Box)
+	
+	ExitShop = GoodButton.new("", Color.WHITE, GoodButton.ButtonType.EXIT_SHOP, Vector2(-1, -1), load("res://UI/Exit.png"))
+	ExitShop.scale = Vector2(0.5, 0.5)
+	ExitShop.name = "ExitShop"
+	add_child(ExitShop)
+	
+	CurrencyText = Label.new()
+	CurrencyText.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	CurrencyText.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var currencyText: String = StringsManager.UIStrings["SHOP"][1] + str(0)
+	var textSize: Vector2 = CurrencyText.get_theme_font("font").get_string_size(currencyText)
+	CurrencyText.text = currencyText
+	CurrencyText.size = textSize
+	CurrencyText.position = Vector2(57.6, 32.4)
+	CurrencyText.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	CurrencyText.name = "CurrencyText"
+	add_child(CurrencyText)
+	
+	var newTile: TileContainer
+	for i in range(STARTING_TILE_CONTAINERS):
+		newTile = TileContainer.new(Tile.getRandomTile(3), ResourceContainer.ContainerType.SHOP)
+		
+		#newTile.price = 0
+		#newTile.checkShopAffordability()
+		
+		TileSelections_Box.add_child(newTile)
+		TileSelections.append(newTile)
+		newTile.name = "TileSelection" + str(STARTING_TILE_CONTAINERS-i)
+	
+	TileSelection_Sensor.global_position = TileSelections[0].global_position
+	#TileSelection_Sensor.position.x += 15
+	#TileSelection_Sensor.position.y -= 7.5
+	
+	var newJoker: TileContainer
+	var jokerIDs: Array[int]
+	var joker: Tile
+	for i in range(STARTING_JOKER_CONTAINERS):
+		joker = Tile.getRandomJoker()
+		while(jokerIDs.has(joker.joker_id)):
+			joker = Tile.getRandomJoker()
+		
+		jokerIDs.append(joker.joker_id)
+		newJoker = TileContainer.new(joker, ResourceContainer.ContainerType.SHOP)
+		
+		newJoker.price = 0
+		
+		JokerSelections_Box.add_child(newJoker)
+		JokerSelections.append(newJoker)
+		newJoker.name = "JokerSelection" + str(STARTING_JOKER_CONTAINERS-i)
+	
+	var newItem: ItemContainer
+	var itemIDs: Array[int]
+	var item: Item
+	for i in range(STARTING_ITEM_CONTAINERS):
+		item = Item.getRandomItem(GameScene.Game, true)
+		while(itemIDs.has(item.id)):
+			item = Item.getRandomItem(GameScene.Game, true)
+		
+		itemIDs.append(item.id)
+		newItem = ItemContainer.new(item, ResourceContainer.ContainerType.SHOP)
+		
+		newItem.price = 0
+		
+		ItemSelections_Box.add_child(newItem)
+		ItemSelections.append(newItem)
+		newItem.name = "ItemSelection" + str(STARTING_ITEM_CONTAINERS-i)
+	
+	ItemSelection_Sensor.global_position = ItemSelections[0].global_position
+	ItemSelection_Sensor.position.x += 15
+	ItemSelection_Sensor.position.y -= 7.5
+	
+	ExitShop.press.connect(func() -> void: visible = false)
+	
+	TileSelection_Sensor.press.connect(func() -> void:
+		if(GameScene.usingItem == null):
+			return
+		
+		await GameScene.usingItem.resource.useOnHighlight(TileSelection_Sensor)
+		add_TileSelection())
+		
+	JokerSelection_Sensor.press.connect(func() -> void:
+		if(GameScene.usingItem == null):
+			return
+		
+		await GameScene.usingItem.resource.useOnHighlight(JokerSelection_Sensor)
+		add_JokerSelection())
+		
+	ItemSelection_Sensor.press.connect(func() -> void:
+		if(GameScene.usingItem == null):
+			return
+		
+		await GameScene.usingItem.resource.useOnHighlight(ItemSelection_Sensor)
+		add_ItemSelection())
 
 func _ready() -> void:
-	#.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	TipCheck.resize(TipTexts.size())
-	TipCheck.fill(false)
-	var TipIndex: int = randi_range(0, TipTexts.size()-1)
-	TipCheck[TipIndex] = true
-	$TipText.text = "Tip: " + TipTexts[TipIndex]
+	var windowSize: Vector2 = get_viewport_rect().size
 	
-	if(TileSelections.is_empty()):
-		var newTileContainer: TileContainer
-		#var tiles: Array[Tile_Info]
-		var newTile: Tile_Info
-		for i in range(STARTING_TILE_CONTAINERS):
-			newTile = Tile_Info.getRandomTile(3)
-			newTileContainer = TileContainer.new(null, ResourceContainer.ContainerType.SHOP, 3)
-			TileSelections.append(newTileContainer)
-			$ShopSelections/TileSelections.add_child(newTileContainer)
-			$ShopSelections/TileSelections.move_child(newTileContainer, 0)
-			newTileContainer.name = "TileContainer" + str(STARTING_TILE_CONTAINERS-i)
+	custom_minimum_size = windowSize
 	
-	if(ItemSelections.is_empty()):
-		var newItemContainer: ItemContainer
-		var items: Array[String]
-		var newItem: Item
-		for i in range(STARTING_ITEM_CONTAINERS):
-			newItem = Item.getRandomItem(GameScene.Game, true)
-			while(items.has(newItem.itemID)):
-				newItem = Item.getRandomItem(GameScene.Game, true)
-			
-			items.append(newItem.itemID)
-			newItemContainer = ItemContainer.new(newItem, ResourceContainer.ContainerType.SHOP)
-			ItemSelections.append(newItemContainer)
-			$ShopSelections/ItemSelections.add_child(newItemContainer)
-			$ShopSelections/ItemSelections.move_child(newItemContainer, 0)
-			newItemContainer.name = "ItemContainer" + str(STARTING_ITEM_CONTAINERS-i)
+	Background.region_rect = Rect2(Vector2(0, 0), windowSize)
+	Background.position = windowSize/2
+	
+	MainShopBackground.region_rect = Rect2(Vector2(0, 0), windowSize*0.9)
+	MainShopBackground.position = windowSize/2
+	
+	ExitShop.position = Vector2(windowSize.x*0.95 - ExitShop.size.x/2, windowSize.y*0.05)
+	
+	while(TileSelections[0].position == Vector2(0, 0)):
+		await get_tree().create_timer(0.001).timeout
+	
+	TileSelection_Sensor.global_position = TileSelections[0].global_position
+	TileSelection_Sensor.position.x -= 25
+	TileSelection_Sensor.position.y -= 7.5
+	
+	ItemSelection_Sensor.global_position = ItemSelections[0].global_position
+	ItemSelection_Sensor.position.x -= 50
+	ItemSelection_Sensor.position.y -= 7.5
 
-func _process(delta: float) -> void:
-	if(Input.is_action_just_pressed("Left_Click")):
-		if(inside_TS_S):
-			still_inside_TS_S = true
-		
-		if(inside_JS_S):
-			still_inside_JS_S = true
-		
-		if(inside_IS_S):
-			still_inside_IS_S = true
-	
-	if(Input.is_action_just_released("Left_Click")):
-		if(inside_TS_S && still_inside_TS_S && $ShopSelections/TileSelections.get_child_count()-1 < MAX_TILE_SELECTIONS):
-			still_inside_TS_S = false
-			var Game: GameScene = get_parent()
-			if(Game.usingItem != null && Game.usingItem.item_info.target == Item.ItemTarget.ANY_HIGHLIGHT):
-				Game.usingItem.item_info.useOnHighlight($ShopSelections/TileSelections, Vector2(0, 35))
-				await get_tree().create_timer(1.8).timeout
-				add_TileSelection()
-			#get_parent().HammerTime(false, $ShopSelections/TileSelections)
-		
-		if(inside_JS_S && still_inside_JS_S && $ShopSelections/JokerSelections.get_child_count()-1 < MAX_JOKER_SELECTIONS):
-			still_inside_JS_S = false
-			var Game: GameScene = get_parent()
-			if(Game.usingItem != null && Game.usingItem.item_info.target == Item.ItemTarget.ANY_HIGHLIGHT):
-				Game.usingItem.item_info.useOnHighlight($ShopSelections/JokerSelections, Vector2(0, 35))
-				await get_tree().create_timer(1.8).timeout
-				add_JokerSelection()
-			#get_parent().HammerTime(false, $ShopSelections/JokerSelections)
-		
-		if(inside_IS_S && still_inside_IS_S && $ShopSelections/ItemSelections.get_child_count()-1 < MAX_ITEM_SELECTIONS):
-			still_inside_IS_S = false
-			var Game: GameScene = get_parent()
-			if(Game.usingItem != null && Game.usingItem.item_info.target == Item.ItemTarget.ANY_HIGHLIGHT):
-				Game.usingItem.item_info.useOnHighlight($ShopSelections/ItemSelections, Vector2(0, 35))
-				await get_tree().create_timer(1.8).timeout
-				add_ItemSelection()
-			#get_parent().HammerTime(false, $ShopSelections/ItemSelections)
+#var oldValue: int = -1
+#func _process(delta: float) -> void:
+	#if(ItemSelections.size() != oldValue):
+		#print("HERE0 - " + str(oldValue) + " - " + str(ItemSelections.size()))
+		#oldValue = ItemSelections.size()
 
 func add_TileSelection() -> void:
+	var origPos: Vector2 = TileSelections[0].global_position
 	var new_TileSelection: TileContainer = TileContainer.new(null, ResourceContainer.ContainerType.SHOP, 3)#load("res://TileSelection.tscn").instantiate()
 	TileSelections.append(new_TileSelection)
-	$ShopSelections/TileSelections.add_child(new_TileSelection)
-	$ShopSelections/TileSelections.move_child(new_TileSelection, TileSelections.size()-1)
-	new_TileSelection.parentEffector = self
-	new_TileSelection.REgenerate_selection()
+	TileSelections_Box.add_child(new_TileSelection)
+	TileSelections_Box.move_child(new_TileSelection, TileSelections.size()-1)
 	
-	await get_tree().create_timer(0.001).timeout
+	var newCount: int = TileSelections.size()
 	
-	const EndSize: float = 500
-	var SizeDiff: float = $ShopSelections/TileSelections.size.x - EndSize
-	if(SizeDiff > 0):
-		var Separation: int = $ShopSelections/TileSelections.get_theme_constant("separation")
-		var SeparationCount: int = $ShopSelections/TileSelections.get_child_count()-2
-		$ShopSelections/TileSelections.add_theme_constant_override("separation", int((Separation*SeparationCount - SizeDiff)/SeparationCount))
+	var separation: int = TileSelections_Box.get_theme_constant("separation") - TILE_SEPARATION_STEP
 	
-	TileSelections.append(new_TileSelection)
+	TileSelections_Box.add_theme_constant_override("separation", separation)
+	
+	while(TileSelections[0].global_position == origPos):
+		await get_tree().create_timer(0.001).timeout
+	
+	var currSelectionSize: float = newCount*(ResourceContainer.BASE_RESOURCE_SIZE.x + separation) + separation
+	TileSelection_Sensor.changeVisuals("", TileSelection_Sensor.IconOrigColor, Vector2(currSelectionSize, ResourceContainer.BASE_RESOURCE_SIZE.y+15))
+	TileSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	TileSelection_Sensor.global_position = TileSelections[0].global_position
+	TileSelection_Sensor.position.x -= separation#/2.0
+	TileSelection_Sensor.position.y -= 7.5
 
 func add_JokerSelection() -> void:
-	var new_JokerSelection: Button = load("res://TileSelection.tscn").instantiate()
-	$ShopSelections/JokerSelections.add_child(new_JokerSelection)
-	new_JokerSelection.parentEffector = self
-	new_JokerSelection.joker_tile = true
 	var joker_ids: Array[int]
-	for JokerSlot in $ShopSelections/JokerSelections.get_children():
-		if("tile_cost" in JokerSlot && JokerSlot != new_JokerSelection):
-			joker_ids.append(JokerSlot.get_TileData().joker_id)
+	for jokerSlot in JokerSelections:
+		joker_ids.append(jokerSlot.resource.joker_id)
 	
-	var curr_id: int
-	curr_id = new_JokerSelection.REgenerate_selection()
-	while(joker_ids.find(curr_id) >= 0):
-		curr_id = new_JokerSelection.REgenerate_selection()
+	var newJoker: Tile = Tile.getRandomJoker()
+	while(joker_ids.has(newJoker.joker_id)):
+		newJoker = Tile.getRandomJoker()
 	
-	await get_tree().create_timer(0.001).timeout
-	
-	const EndSize: float = 310.0
-	var SizeDiff: float = $ShopSelections/JokerSelections.size.y - EndSize
-	if(SizeDiff > 0):
-		var Separation: int = $ShopSelections/JokerSelections.get_theme_constant("separation")
-		var SeparationCount: int = $ShopSelections/JokerSelections.get_child_count()-2
-		$ShopSelections/JokerSelections.add_theme_constant_override("separation", int((Separation*SeparationCount - SizeDiff)/SeparationCount))
-	
+	var new_JokerSelection: TileContainer = TileContainer.new(newJoker, ResourceContainer.ContainerType.SHOP)
 	JokerSelections.append(new_JokerSelection)
+	JokerSelections_Box.add_child(new_JokerSelection)
+	
+	#await get_tree().create_timer(0.001).timeout
+	#
+	#const EndSize: float = 310.0
+	#var SizeDiff: float = JokerSelections_Box.size.y - EndSize
+	#if(SizeDiff > 0):
+		#var Separation: int = JokerSelections_Box.get_theme_constant("separation")
+		#var SeparationCount: int = JokerSelections_Box.get_child_count()-2
+		#JokerSelections_Box.add_theme_constant_override("separation", int((Separation*SeparationCount - SizeDiff)/SeparationCount))
 
 func add_ItemSelection() -> void:
-	var new_ItemSelection: Button = ItemContainer.new(null, ResourceContainer.ContainerType.GAMEBAR) #load("res://ItemSelection.tscn").instantiate()
-	$ShopSelections/ItemSelections.add_child(new_ItemSelection)
-	
+	var origPos: Vector2 = ItemSelections[0].global_position
 	var item_ids: Array[int]
 	for ItemSlot in ItemSelections:
-		if(ItemSlot != new_ItemSelection):
-			item_ids.append(ItemSlot.item_info.id)
+		item_ids.append(ItemSlot.resource.id)
 	
-	var curr_id: int
-	curr_id = new_ItemSelection.REgenerate_selection()
-	if(7-Item.singularItems.size() <= $ShopSelections/JokerSelections.get_child_count()-1):
-		while(item_ids.find(curr_id) >= 0):
-			curr_id = new_ItemSelection.REgenerate_selection()
+	var newItem: Item = Item.getRandomItem(GameScene.Game, true)
+	#while(item_ids.has(newItem.id)):
+		#newItem = Item.getRandomItem(GameScene.Game, true)
 	
-	await get_tree().create_timer(0.001).timeout
-	
-	const EndSize: float = 333.333
-	var SizeDiff: float = $ShopSelections/ItemSelections.size.x - EndSize
-	if(SizeDiff > 0):
-		var Separation: int = $ShopSelections/ItemSelections.get_theme_constant("separation")
-		var SeparationCount: int = $ShopSelections/ItemSelections.get_child_count()-2
-		$ShopSelections/ItemSelections.add_theme_constant_override("separation", int((Separation*SeparationCount - SizeDiff)/SeparationCount))
-	
+	var new_ItemSelection: ItemContainer = ItemContainer.new(newItem, ResourceContainer.ContainerType.SHOP)
 	ItemSelections.append(new_ItemSelection)
-
-func get_TileSelections() -> HBoxContainer:
-	return $ShopSelections/TileSelections
-
-func get_JokerSelecions() -> VBoxContainer:
-	return $ShopSelections/JokerSelections
-
-func get_ItemSelections() -> HBoxContainer:
-	return $ShopSelections/ItemSelections
-
-func getItemSlot(item: Item) -> ItemContainer:
-	for Slot in ItemSelections:
-		if(Slot.resource == item):
-			return Slot
+	ItemSelections_Box.add_child(new_ItemSelection)
 	
-	return null
+	#await get_tree().create_timer(0.001).timeout
+	
+	var newCount: int = ItemSelections.size()
+	
+	var separation: int = ItemSelections_Box.get_theme_constant("separation") - ITEM_SEPARATION_STEP
+	
+	ItemSelections_Box.add_theme_constant_override("separation", separation)
+	
+	while(ItemSelections[0].global_position == origPos):
+		await get_tree().create_timer(0.001).timeout
+	
+	var currSelectionSize: float = newCount*(ResourceContainer.BASE_RESOURCE_SIZE.x + separation) + separation
+	ItemSelection_Sensor.changeVisuals("", ItemSelection_Sensor.IconOrigColor, Vector2(currSelectionSize, ResourceContainer.BASE_RESOURCE_SIZE.y+15))
+	ItemSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	ItemSelection_Sensor.global_position = ItemSelections[0].global_position
+	ItemSelection_Sensor.position.x -= separation#/2.0
+	ItemSelection_Sensor.position.y -= 7.5
 
-func REgenerate_selections() -> void:
-	#var joker_ids: Array[int]
+func REgenerateResources() -> void:
+	var joker_ids: Array[int]
 	var item_ids: Array[String]
 	#var curr_id: int
 	
 	for TileSlot in TileSelections:
 		TileSlot.REgenerateResource(null, 3)
+	
+	var newJoker: Tile
+	for JokerSelection in JokerSelections:
+		newJoker = Tile.getRandomJoker()
+		while(joker_ids.has(newJoker.joker_id)):
+			newJoker = Tile.getRandomJoker()
+		
+		JokerSelection.REgenerateResource(newJoker)
 	
 	var newItem: Item
 	for ItemSlot in ItemSelections:
@@ -218,9 +371,26 @@ func REgenerate_selections() -> void:
 		
 		ItemSlot.REgenerateResource(newItem)
 
+func containerPressed(container: ResourceContainer) -> void:
+	if(GameScene.myTurn):
+		return
+	
+	if(freebies > 0):
+		freebies -= 1
+		update_currency(0)
+	else:
+		update_currency(-container.price)
+	
+	match container.resource_type:
+		ResourceContainer.ResourceType.TILE:
+			GameScene.MainPlayer.PlayerDeck.addTile(container, Deck.TileSource.SHOP)
+			container.REgenerateResource(Tile.getRandomJoker())
+		ResourceContainer.ResourceType.ITEM:
+			GameScene.PlayerBar.add_item(container.resource)
+
 func update_currency(newCurrency: int) -> void:
 	currency += newCurrency
-	$Currency_Text.text = "Current Funds: " + str(currency)
+	CurrencyText.text = "Current Funds: " + str(currency)
 	checkButtons()
 
 func checkButtons() -> void:
@@ -231,96 +401,87 @@ func checkButtons() -> void:
 	for selection in Selections:
 		selection.checkShopAffordability()
 
-func tile_select(_button: Button, tile_bought: Tile_Info, cost: int) -> void:
-	if(get_parent().getTurn()):
-		return
+func ToggleHighlight(toggle: bool):
+	TileSelection_Sensor.visible = toggle
+	JokerSelection_Sensor.visible = toggle
+	ItemSelection_Sensor.visible = toggle
 	
-	if(freebies > 0):
-		freebies -= 1
+	if(toggle):
+		MainShopBackground.self_modulate -= Color(0.3, 0.3, 0.3, 0)
 	else:
-		currency -= cost
-		$"../ShopCurrency".text = "Current Funds: " + str(currency)
-		update_currency(0)
+		MainShopBackground.self_modulate = MAIN_BACKGROUND_COLOR
 	
-	var animationTile: Tile = load("res://Tile.tscn").instantiate()
-	add_child(animationTile)
-	animationTile.change_info(tile_bought)
-	animationTile.scale = Vector2(2, 2)
-	animationTile.global_position = _button.global_position + Vector2(25, 35)*animationTile.scale/2.0
-	
-	var displacement: Vector2 = Vector2(randf_range(-60, 60), randf_range(-70, 0))
-	while(displacement.length() < 50):
-		displacement = Vector2(randf_range(-60, 0), randf_range(-60, 30))
-	
-	var tween = get_tree().create_tween()
-	animationTile.moveTile(animationTile.global_position + displacement, 0.5)
-	tween.tween_property(animationTile, "scale", Vector2(1, 1), 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	await tween.finished
-	
-	get_parent().buy_tile(tile_bought, animationTile)
-	if(freebies <= 0):
-		for Selections in $ShopSelections.get_children():
-			#if("tile_cost" in button || "item_info" in button):
-			for button in Selections.get_children():
-				if("tile_cost" in button || "item_info" in button):
-					button.freebie(false, currency)
-
-func containerPressed(button: ResourceContainer) -> void:
-	if(get_parent().getTurn()):
-		return
-	
-	if(freebies > 0):
-		freebies -= 1
+	if(TileSelections.size() >= MAX_HORIZONTAL_SELECTIONS):
+		TileSelection_Sensor.DIS_ENable(false)
+		TileSelection_Sensor.changeVisuals("", Color(Color.DARK_RED, 0), TileSelection_Sensor.size)
+		TileSelection_Sensor.IconHighlightDisabledColor = Color.DARK_RED
 	else:
-		currency -= button.price
-		$"../ShopCurrency".text = "Current Funds: " + str(currency)
-		update_currency(0)
+		TileSelection_Sensor.DIS_ENable(true)
+		TileSelection_Sensor.changeVisuals("", Color(MAIN_BACKGROUND_COLOR, 0), TileSelection_Sensor.size)
+		TileSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
 	
-	match button.resource_type:
-		ResourceContainer.ResourceType.ITEM:
-			GameScene.Game.buy_item(button.resource)
-		ResourceContainer.ResourceType.TILE:
-			GameScene.Game.buy_tile(button.resource)
+	if(JokerSelections.size() >= MAX_JOKER_SELECTIONS):
+		JokerSelection_Sensor.DIS_ENable(false)
+		JokerSelection_Sensor.changeVisuals("", Color(Color.DARK_RED, 0), JokerSelection_Sensor.size)
+		JokerSelection_Sensor.IconHighlightDisabledColor = Color.DARK_RED
+	else:
+		JokerSelection_Sensor.DIS_ENable(true)
+		JokerSelection_Sensor.changeVisuals("", Color(MAIN_BACKGROUND_COLOR, 0), JokerSelection_Sensor.size)
+		JokerSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
 	
-	checkButtons()
-
-func ToggleHighlight(toggleTiles: bool = false, toggleJokers: bool = false, toggleItems: bool = false):
-	$TileSelection_Sensor.visible = toggleTiles
-	$JokerSelection_Sensor.visible = toggleJokers
-	$ItemSelection_Sensor.visible = toggleItems
-	if(toggleTiles):
-		move_child($ShopMain_BackGround, 0)
-		if($ShopSelections/TileSelections.get_child_count()-1 >= MAX_TILE_SELECTIONS):
-			$ShopSelections/TileSelections/TileSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
+	if(ItemSelections.size() >= MAX_HORIZONTAL_SELECTIONS):
+		ItemSelection_Sensor.DIS_ENable(false)
+		ItemSelection_Sensor.changeVisuals("", Color(Color.DARK_RED, 0), ItemSelection_Sensor.size)
+		ItemSelection_Sensor.IconHighlightDisabledColor = Color.DARK_RED
+	else:
+		ItemSelection_Sensor.DIS_ENable(true)
+		ItemSelection_Sensor.changeVisuals("", Color(MAIN_BACKGROUND_COLOR, 0), ItemSelection_Sensor.size)
+		ItemSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	
+	for tile in TileSelections:
+		if(toggle):
+			tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		else:
-			$ShopSelections/TileSelections/TileSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
+			tile.mouse_filter = Control.MOUSE_FILTER_STOP
+		#tile.DIS_ENable(!toggle)
 	
-	if(toggleJokers):
-		if($ShopSelections/JokerSelections.get_child_count()-1 >= MAX_JOKER_SELECTIONS):
-			$ShopSelections/JokerSelections/JokerSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
+	for joker in JokerSelections:
+		if(toggle):
+			joker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		else:
-			$ShopSelections/JokerSelections/JokerSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
+			joker.mouse_filter = Control.MOUSE_FILTER_STOP
+		#joker.DIS_ENable(!toggle)
 	
-	if(toggleItems):
-		if($ShopSelections/ItemSelections.get_child_count()-1 >= MAX_ITEM_SELECTIONS):
-			$ShopSelections/ItemSelections/TileSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
+	for item in ItemSelections:
+		if(toggle):
+			item.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		else:
-			$ShopSelections/ItemSelections/TileSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
+			item.mouse_filter = Control.MOUSE_FILTER_STOP
+		#item.DIS_ENable(!toggle)
 	
-	if(!toggleItems && !toggleJokers && !toggleTiles):
-		move_child($ShopMain_BackGround, 1)
-
-func addShopUses() -> void:
-	for ItemSlot in ItemSelections:
-		if(ItemSlot.resource.uses >= 1):
-			ItemSlot.resource.uses += 1
+	#if(toggleTiles):
+		#move_child($ShopMain_BackGround, 0)
+		#if($ShopSelections/TileSelections.get_child_count()-1 >= MAX_TILE_SELECTIONS):
+			#$ShopSelections/TileSelections/TileSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
+		#else:
+			#$ShopSelections/TileSelections/TileSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
+	#
+	#if(toggleJokers):
+		#if($ShopSelections/JokerSelections.get_child_count()-1 >= MAX_JOKER_SELECTIONS):
+			#$ShopSelections/JokerSelections/JokerSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
+		#else:
+			#$ShopSelections/JokerSelections/JokerSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
+	#
+	#if(toggleItems):
+		#if($ShopSelections/ItemSelections.get_child_count()-1 >= MAX_ITEM_SELECTIONS):
+			#$ShopSelections/ItemSelections/TileSelections_Highlight.self_modulate = Color(1, 0, 0, 1)
+		#else:
+			#$ShopSelections/ItemSelections/TileSelections_Highlight.self_modulate = Color(0, 74.0/255.0, 221.0/255.0, 1)
+	#
+	#if(!toggleItems && !toggleJokers && !toggleTiles):
+		#move_child($ShopMain_BackGround, 1)
 
 var freebies: int = 0
-
-func Gain_Freebie(extra_freebies: int = 1) -> void:
-	freebies += extra_freebies
-	
-	checkButtons()
 
 func _on_exit_shop_pressed() -> void:
 	get_parent().exit_shop()
@@ -335,39 +496,3 @@ func _on_exit_shop_pressed() -> void:
 			return
 	
 	TipCheck.fill(false)
-
-var inside_TS_S: bool = false
-var still_inside_TS_S: bool = false
-
-func _on_TileSelection_Sensor_mouse_entered() -> void:
-	inside_TS_S = true
-	$ShopSelections/TileSelections/TileSelections_Highlight.visible = true
-
-func _on_TileSelection_Sensor_mouse_exited() -> void:
-	inside_TS_S = false
-	still_inside_TS_S = false
-	$ShopSelections/TileSelections/TileSelections_Highlight.visible = false
-
-var inside_JS_S: bool = false
-var still_inside_JS_S: bool = false
-
-func _on_JokerSelection_Sensor_mouse_entered() -> void:
-	inside_JS_S = true
-	$ShopSelections/JokerSelections/JokerSelections_Highlight.visible = true
-
-func _on_JokerSelection_Sensor_mouse_exited() -> void:
-	inside_JS_S = false
-	still_inside_JS_S = false
-	$ShopSelections/JokerSelections/JokerSelections_Highlight.visible = false
-
-var inside_IS_S: bool = false
-var still_inside_IS_S: bool = false
-
-func _on_ItemSelection_Sensor_mouse_entered() -> void:
-	inside_IS_S = true
-	$ShopSelections/ItemSelections/TileSelections_Highlight.visible = true
-
-func _on_ItemSelection_Sensor_mouse_exited() -> void:
-	inside_IS_S = false
-	still_inside_IS_S = false
-	$ShopSelections/ItemSelections/TileSelections_Highlight.visible = false

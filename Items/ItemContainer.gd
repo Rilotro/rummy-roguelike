@@ -26,14 +26,14 @@ func _init(newResource: Item, newConType: ContainerType) -> void:
 	ItemBackground = Sprite2D.new()
 	ItemBackground.texture = CanvasTexture.new()
 	ItemBackground.region_enabled = true
-	ItemBackground.region_rect = Rect2(0, 0, 75, 105)
-	ItemBackground.position = Vector2(37.5, 52.5)
+	ItemBackground.region_rect = Rect2(Vector2(0, 0), BASE_RESOURCE_SIZE)
+	ItemBackground.position = BASE_RESOURCE_SIZE/2 #Vector2(37.5, 52.5)
 	ItemBackground.self_modulate = ITEM_BACKGROUND_COLOR
 	ItemBackground.name = "ItemBackground"
 	add_child(ItemBackground)
 	
 	ItemSprite = Sprite2D.new()
-	ItemSprite.position = Vector2(37.5, 52.5)
+	ItemSprite.position = BASE_RESOURCE_SIZE/2 #Vector2(37.5, 52.5)
 	ItemSprite.scale = Vector2(0.5, 0.5)
 	ItemSprite.name = "ItemSprite"
 	add_child(ItemSprite)
@@ -41,8 +41,8 @@ func _init(newResource: Item, newConType: ContainerType) -> void:
 	FrameOutline = Sprite2D.new()
 	FrameOutline.texture = CanvasTexture.new()
 	FrameOutline.region_enabled = true
-	FrameOutline.region_rect = Rect2(0, 0, 75, 105)
-	FrameOutline.position = Vector2(37.5, 52.5)
+	FrameOutline.region_rect = Rect2(Vector2(0, 0), BASE_RESOURCE_SIZE)
+	FrameOutline.position = BASE_RESOURCE_SIZE/2#Vector2(37.5, 52.5)
 	FrameOutline.material = ShaderMaterial.new()#-------------------------------------------------
 	FrameOutline.material.shader = load("res://shaders/DashedOutline.gdshader")
 	FrameOutline.name = "Outline"
@@ -52,7 +52,7 @@ func _init(newResource: Item, newConType: ContainerType) -> void:
 		ItemSprite.visible = false
 		FrameOutline.visible = false
 	else:
-		ItemSprite.texture = resource.item_image
+		ItemSprite.texture = resource.getImage()
 		if(container_type == ContainerType.GAMEBAR && resource.passive):
 			FrameOutline.visible = false
 	
@@ -72,7 +72,7 @@ func REgenerateResource(newResource: Resource = null, become_empty: bool = false
 	if(newItem != null):
 		isEmpty = false
 		ItemSprite.visible = true
-		ItemSprite.texture = newItem.item_image
+		ItemSprite.texture = newItem.getImage()
 		if(container_type == ContainerType.GAMEBAR && newItem.passive):
 			FrameOutline.visible = false
 		else:
@@ -81,9 +81,63 @@ func REgenerateResource(newResource: Resource = null, become_empty: bool = false
 		ItemSprite.visible = false
 		FrameOutline.visible = false
 		isEmpty = true
+	
+	if(container_type == ContainerType.SHOP):
+		price = resource.getShopPrice()
+		checkShopAffordability()
+
+func getName(Tip: UITip) -> String:
+	if(isEmpty):
+		return StringsManager.ItemStrings["Empty Slot"]["NAME"]
+	
+	return resource.getName()
+
+func getKeywords(Tip: UITip) -> String:
+	if(isEmpty):
+		return StringsManager.ItemStrings["empty"]
+	
+	return resource.getKeywords()
+
+func getDescription(Tip: UITip) -> String:
+	if(isEmpty):
+		return StringsManager.ItemStrings["Empty Slot"]["DESCRIPTION"]
+	
+	return resource.getDescription()
+
+func DIS_ENable(enable: bool) -> void:
+	if(enable):
+		FrameOutline.self_modulate = Color.WHITE
+	else:
+		FrameOutline.self_modulate = Color.RED
+	
+	isEnabled = enable
+
+func checkShopAffordability() -> void:
+	super()
+	
+	FrameOutline.self_modulate = CostText.self_modulate
+
+func finalPress() -> void:
+	if(container_type == ContainerType.SHOP):
+		var emptySlotExists: bool = false
+		for slot in GameScene.PlayerBar.ItemSlots:
+			if(slot.resource == null):
+				emptySlotExists = true
+				break
+		
+		if(!emptySlotExists):
+			return
+	
+	super()
+	
+	if(isEnabled && container_type == ContainerType.SHOP):
+		SOLD.visible = true
 
 func _mouse_entered() -> void:
 	super()
+	
+	if(GameScene.GameShop.freebies <= 0 && GameScene.GameShop.currency < price):
+		return
 	
 	if(FrameOutline.visible):
 		FrameOutline.set_instance_shader_parameter("speed", 5.0)

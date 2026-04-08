@@ -2,7 +2,7 @@ extends Node2D
 
 class_name SelectScreen
 
-@onready var Tile_Selection_Base: PackedScene = preload("res://TileSelection.tscn")
+#@onready var Tile_Selection_Base: PackedScene = preload("res://TileSelection.tscn")
 var is_starting: bool = false
 var separation: float = -50
 var extendedSeparation: float = -50
@@ -13,8 +13,8 @@ var currentFlags: Dictionary
 var currentOption: SelectOption
 var DeckAdd_position: int = -1
 
-static var Selections: Array[Resource]
-static var finalSelections: Array[Resource]
+static var Selections: Array[ResourceContainer]
+static var finalSelections: Array[ResourceContainer]
 var minMAXOptions: Vector2i#X is the minimum ammount of choices, default should be 1
 						   #Y is the MAXimum ammount of choices, default is -1, meaning any ammount of choices
 
@@ -23,11 +23,13 @@ signal selectionEnded
 var separationTween: Tween
 var selection_nr: int
 
+var DestroySelfInstantly_AfterSelectionEnd: bool = true
+
 const MAX_ROW_SIZE: int = 5
 const CONTAINER_SIZE_X: float = 115
 
 enum SelectOption{
-	DECK_ADD_TILE, BOARD_ADD_TILE, WISHES, GAIN_ITEM
+	TILE, WISHES, ITEM
 }
 
 @export var TileSelect_BG: Sprite2D
@@ -105,8 +107,8 @@ func _ready() -> void:
 		RowSelectionsizes[RowSelectionsizes.size()-1-i] += 1
 	
 	match currentOption:
-		SelectOption.DECK_ADD_TILE:
-			assert(currentFlags.has("DeckPosition") && type_string(typeof(currentFlags.DeckPosition)) == "int")
+		SelectOption.TILE:
+			#assert(currentFlags.has("DeckPosition") && type_string(typeof(currentFlags.DeckPosition)) == "int")
 			assert(currentFlags.has("EffectsChance") && type_string(typeof(currentFlags.EffectsChance)) == "int")
 			
 			var new_selection: TileContainer
@@ -116,25 +118,11 @@ func _ready() -> void:
 					new_selection = TileContainer.new(null, ResourceContainer.ContainerType.SELECTION, currentFlags.EffectsChance)
 					new_selection.name = "Tile_Selection" + str(nameIndex*i + j)
 					SelectionContainers[i].add_child(new_selection)
-					Selections.append(new_selection.resource)
+					Selections.append(new_selection)
 				
 				nameIndex += RowSelectionsizes[i]
 		
-		SelectOption.BOARD_ADD_TILE:
-			assert(currentFlags.has("EffectsChance") && type_string(typeof(currentFlags.EffectsChance)) == "int")
-			
-			var new_selection: TileContainer
-			var nameIndex: int = 0
-			for i in range(rowNumber):
-				for j in range(RowSelectionsizes[i]):
-					new_selection = TileContainer.new(null, ResourceContainer.ContainerType.SELECTION, currentFlags.EffectsChance)
-					new_selection.name = "Tile_Selection" + str(nameIndex*i + j)
-					SelectionContainers[i].add_child(new_selection)
-					Selections.append(new_selection.resource)
-				
-				nameIndex += RowSelectionsizes[i]
-		
-		SelectOption.GAIN_ITEM:
+		SelectOption.ITEM:
 			assert(currentFlags.has("ConsumablesOnly") && type_string(typeof(currentFlags.ConsumablesOnly)) == "bool")
 
 			var new_selection: ItemContainer
@@ -144,7 +132,7 @@ func _ready() -> void:
 					new_selection = ItemContainer.new(Item.getRandomItem(get_parent(), false, currentFlags.ConsumablesOnly), ResourceContainer.ContainerType.SELECTION)
 					new_selection.name = "Item_Selection" + str(nameIndex*i + j)
 					SelectionContainers[i].add_child(new_selection)
-					Selections.append(new_selection.resource)
+					Selections.append(new_selection)
 				
 				nameIndex += RowSelectionsizes[i]
 	
@@ -171,14 +159,14 @@ func _process(_delta: float) -> void:
 			else:
 				SelectionContainers[i].add_theme_constant_override("separation", floori(separation))
 	
-	if(Input.is_action_just_pressed("Debug_Draw") && currentOption == SelectOption.BOARD_ADD_TILE):
+	if(Input.is_action_just_pressed("Debug_Draw") && currentOption == SelectOption.TILE):
 		for SC in SelectionContainers:
 			for TS in SC.get_children():
 				TS.REgenerateResource(null)
 
-func tile_select(_selection: Tile_Selection, selection_info: Tile_Info, _c: int):
-	if(finalSelections.has(selection_info)):
-		finalSelections.erase(selection_info)
+func containerPressed(selection: ResourceContainer) -> void:
+	if(finalSelections.has(selection)):
+		finalSelections.erase(selection)
 		
 		if(finalSelections.size() < minMAXOptions.x):
 			Proceed.visible = false
@@ -186,25 +174,7 @@ func tile_select(_selection: Tile_Selection, selection_info: Tile_Info, _c: int)
 		if(finalSelections.size() >= minMAXOptions.y):
 			return
 		
-		finalSelections.append(selection_info)
-		
-		if(finalSelections.size() == minMAXOptions.x):
-			if(minMAXOptions.x == minMAXOptions.y && minMAXOptions.x == 1):
-				end_select()
-			else:
-				Proceed.visible = true
-
-func item_select(itemSlot: ItemContainer, item: Item, _cost: int):
-	if(finalSelections.has(item)):
-		finalSelections.erase(item)
-		
-		if(finalSelections.size() < minMAXOptions.x):
-			Proceed.visible = false
-	else:
-		if(finalSelections.size() >= minMAXOptions.y):
-			return
-		
-		finalSelections.append(item)
+		finalSelections.append(selection)
 		
 		if(finalSelections.size() == minMAXOptions.x):
 			if(minMAXOptions.x == minMAXOptions.y && minMAXOptions.x == 1):
@@ -212,42 +182,29 @@ func item_select(itemSlot: ItemContainer, item: Item, _cost: int):
 			else:
 				Proceed.visible = true
 	
-	#match currentOption:
-		#SelectOption.GAIN_ITEM:
-			#finalSelections.append(item)
-			#get_parent().ItemBar.add_item(item)
-
-func containerPressed(selection: ResourceContainer) -> void:
-	if(finalSelections.has(selection.resource)):
-		finalSelections.erase(selection.resource)
-		
-		if(finalSelections.size() < minMAXOptions.x):
-			Proceed.visible = false
-	else:
-		if(finalSelections.size() >= minMAXOptions.y):
-			return
-		
-		finalSelections.append(selection.resource)
-		
-		if(finalSelections.size() == minMAXOptions.x):
-			if(minMAXOptions.x == minMAXOptions.y && minMAXOptions.x == 1):
-				end_select()
-			else:
-				Proceed.visible = true
 
 func end_select() -> void:
-	for selection in finalSelections:
-		match currentOption:
-			SelectOption.DECK_ADD_TILE:
-				GameScene.Game.PB.add_tile_to_deck(selection, currentFlags.DeckPosition)
-			SelectOption.BOARD_ADD_TILE:
-				var newTile: TileContainer = TileContainer.new(selection, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.BOARD) #preload("res://Tile.tscn").instantiate()
-				#newTile.change_info(selection_info)
-				GameScene.Game.PB.add_BoardTile(newTile)
-				GameScene.Game.PB.updateTilePos(0.1)
-			SelectOption.GAIN_ITEM:
-				get_parent().ItemBar.add_item(selection)
-	
 	selectionEnded.emit()
 	
-	queue_free()
+	if(DestroySelfInstantly_AfterSelectionEnd):
+		queue_free()
+
+static func getSelectionString(selectionOptions: Vector3i = Vector3i(1, 1, 3)) -> String:
+	var selectionString: String = StringsManager.UIStrings["SELECT"][0]
+	
+	if(selectionOptions.x == selectionOptions.y):
+		selectionString += str(selectionOptions.x)
+	else:
+		if(selectionOptions.x > 1):
+			selectionString += StringsManager.UIStrings["SELECT"][2] + str(selectionOptions.x)
+		
+		if(selectionOptions.y > 1):
+			if(selectionOptions.x > 1):
+				selectionString += ", "
+			
+			selectionString += StringsManager.UIStrings["SELECT"][3] + str(selectionOptions.y)
+		
+	
+	selectionString += StringsManager.UIStrings["SELECT"][1] + str(selectionOptions.z)
+	
+	return selectionString

@@ -20,7 +20,7 @@ void fragment() {
 	float wave = 0.5 * sin(direction * frequency * angle + TIME * speed) + 0.5;
 
 	circle *= step(0.5, wave);
-	circle_outline = vec4(color.rgb, circle * color.a);
+	circle_outline = vec4(COLOR.rgb, circle * color.a);
 
 	float rect_alpha = 1.0 - step(abs(pos.x), (32.5-line_thickness)) * step(abs(pos.y), (47.5-line_thickness));
 	COLOR =  circle_outline * vec4(1.0, 1.0, 1.0, rect_alpha);
