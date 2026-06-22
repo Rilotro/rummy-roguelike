@@ -125,6 +125,12 @@ func _ready() -> void:
 	
 	Draw(14)
 	PlayerDeck.DIS_ENable(true)
+	
+	#var bytes1: PackedByteArray = var_to_bytes(inst_to_dict(test1))
+	#test1 = dict_to_inst(bytes_to_var(bytes1))
+	#var sentTile: Tile = PlayerDeck.DeckTiles[0]
+	#print("Info on sent Tile: " + str(sentTile.number) + ", " + str(sentTile.color))
+	#LlmpTest.send_data("tile", var_to_bytes(inst_to_dict(sentTile)))
 
 #var playerTypedLetters: Array[String]
 #

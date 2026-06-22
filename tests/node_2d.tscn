@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bir020x1x5808"]
+
+[ext_resource type="Script" uid="uid://deide8vr0n53j" path="res://tests/LLMP_test.gd" id="1_4s1l6"]
+
+[node name="Node2D" type="Node" unique_id=2000560554]
+script = ExtResource("1_4s1l6")

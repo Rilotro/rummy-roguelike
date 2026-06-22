@@ -1,9 +1,65 @@
+@tool
 extends Control
 
 class_name GoodButton
 
 const PRESS_TIMER_THRESHOLD: float = 0.5
 const TIP_TIMER_TRIGGER: float = 1
+
+@export_group("Label")
+@export var text: String = "":
+	set(newText):
+		text = newText
+		ButtonText.text = text
+		
+		var textSize: Vector2 = ButtonText.get_theme_font("font").get_string_size(newText)
+		var newSize: Vector2 = textSize
+		newSize.x *= 1.1
+		
+		if(newSize.x < custom_minimum_size.x && !CMS_TextBound.x):
+			newSize.x = custom_minimum_size.x
+		elif(newSize.x < size.x && !CMS_TextBound.x):
+			newSize.x = size.x
+		else:
+			CMS_TextBound.x = true
+		
+		if(newSize.y < custom_minimum_size.y && !CMS_TextBound.y):
+			newSize.y = custom_minimum_size.y
+		elif(newSize.y < size.y && !CMS_TextBound.y):
+			newSize.y = size.y
+		else:
+			CMS_TextBound.y = true
+		
+		ButtonIcon.region_rect = Rect2(Vector2(0, 0), newSize)
+		custom_minimum_size = newSize
+		size = newSize
+		ButtonIcon.position = newSize/2
+		ButtonText.size = newSize
+		ButtonText.position = Vector2()
+		#ButtonText.position = Vector2(newSize.x*0.05, 0)
+		#ButtonText.position = -newSize * Vector2(-0.05, 0.05)
+		#ButtonIcon.position += newSize * Vector2(-0.05, 0.05)
+		#ButtonIcon.position.y += textSize.y*0.05
+
+@export_enum("Top:0", "Center:1", "Bottom:2") var vertical_allignment = 0
+
+@export_group("Icon")
+@export var color: Color = Color.TRANSPARENT:
+	set(newColor):
+		color = newColor
+		
+		IconOrigColor = color
+		IconCurrentColor = ButtonIcon.self_modulate
+		IconHighlightColor = color + (Color.WHITE - color)*0.3
+		IconDisabledColor = Color(color*0.8, color.a)
+		IconPressingColor = IconDisabledColor
+		IconHighlightDisabledColor = IconDisabledColor + (Color.WHITE - IconDisabledColor)*0.3
+		
+		ButtonIcon.self_modulate = color
+		#ButtonIcon.region_enabled
+
+var CMS_TextBound: Dictionary = {"x": true, "y": true}
+#var test: Toupl
 
 var ButtonText: Label
 var ButtonIcon: Sprite2D
@@ -18,6 +74,7 @@ var IconHighlightColor: Color
 var IconCurrentColor: Color
 var IconDisabledColor: Color
 var IconHighlightDisabledColor: Color
+var IconPressingColor: Color
 
 var Tip: UITip
 var Icon_isImage: bool = false
@@ -28,7 +85,80 @@ enum ButtonType{
 	NONE, SPREAD, DISCARD, SENSOR_TILE, SENSOR_JOKER, SENSOR_ITEM, SENSOR_ITEMBAR, REVEAL_MODIFIERS, HIDE_MODIFIERS, BAIT, TRANSITION_BOARD, TRANSITION_SPREAD, TRANSITION_RIVER, EXIT_SHOP
 }
 
-func _init(newText: String, IconColor: Color, newButtonType: ButtonType = ButtonType.NONE, newSize: Vector2 = Vector2(-1, -1), newImage: Texture = null, enable: bool = true) -> void:#----------------------------------------------------------------------------------
+func _set(property: StringName, value: Variant) -> bool:
+	if !Engine.is_editor_hint():
+		return false
+	#print(str(property) + " - " +str(value))
+	#if(property == "siz"):
+		#print("HERE1")
+	
+	if(property == "custom_minimum_size"):
+		var newSize: Vector2 = value
+		var textSize: Vector2 = ButtonText.get_theme_font("font").get_string_size(ButtonText.text)
+		
+		#if(CMS_TextBound.x):
+		if(newSize.x > textSize.x):
+			CMS_TextBound.x = false
+		else:#if(value.x <= textSize.x)
+			CMS_TextBound.x = true
+			newSize.x = textSize.x
+		
+		if(newSize.y > textSize.y):
+			CMS_TextBound.y = false
+		else:#if(value.x <= textSize.x)
+			CMS_TextBound.y = true
+			newSize.y = textSize.y
+		
+		custom_minimum_size = newSize
+		size = newSize
+		
+		ButtonIcon.region_rect = Rect2(Vector2(0, 0), newSize)
+		size = newSize
+		ButtonText.size = newSize
+		ButtonIcon.position = newSize/2
+		#ButtonText.position = -newSize * Vector2(-0.05, 0.05)
+		#ButtonIcon.position += newSize * Vector2(-0.05, 0.05)
+		
+		return true
+	
+	if(property == "size"):
+		if(value.x < custom_minimum_size.x):
+			value.x = custom_minimum_size.x
+		
+		if(value.y < custom_minimum_size.y):
+			value.y = custom_minimum_size.y
+		
+		var newSize: Vector2 = value
+		
+		var textSize: Vector2 = ButtonText.get_theme_font("font").get_string_size(ButtonText.text)
+		
+		#if(CMS_TextBound.x):
+		if(newSize.x > textSize.x):
+			CMS_TextBound.x = false
+		else:#if(value.x <= textSize.x)
+			CMS_TextBound.x = true
+			newSize.x = textSize.x
+		
+		if(newSize.y > textSize.y):
+			CMS_TextBound.y = false
+		else:#if(value.x <= textSize.x)
+			CMS_TextBound.y = true
+			newSize.y = textSize.y
+		
+		size = newSize
+		
+		ButtonIcon.region_rect = Rect2(Vector2(0, 0), newSize)
+		size = newSize
+		ButtonText.size = newSize
+		ButtonIcon.position = newSize/2
+		
+		return true
+	
+	return false
+
+func _init(newText: String = "", IconColor: Color = Color.TRANSPARENT, newButtonType: ButtonType = ButtonType.NONE, newSize: Vector2 = Vector2(-1, -1), newImage: Texture = null, enable: bool = true) -> void:#----------------------------------------------------------------------------------
+	#if Engine.is_editor_hint():
+		#print("HERE0")
 	buttonType = newButtonType
 	mouse_entered.connect(_mouse_entered)
 	mouse_exited.connect(_mouse_exited)
@@ -37,7 +167,7 @@ func _init(newText: String, IconColor: Color, newButtonType: ButtonType = Button
 	
 	ButtonIcon = Sprite2D.new()
 	
-	ButtonIcon.name = "ButtonIcon.position"
+	ButtonIcon.name = "ButtonIcon"
 	add_child(ButtonIcon)
 	
 	ButtonText = Label.new()
@@ -47,14 +177,16 @@ func _init(newText: String, IconColor: Color, newButtonType: ButtonType = Button
 	ButtonText.name = "ButtonText"
 	add_child(ButtonText)
 	
+	#ButtonText
+	
 	if(newImage == null):
 		var textSize: Vector2 = ButtonText.get_theme_font("font").get_string_size(newText)
 		textSize.x *= 1.1
 		
-		if(newSize.x < 0):
+		if(newSize.x < textSize.x):
 			newSize.x = textSize.x
 	
-		if(newSize.y < 0):
+		if(newSize.y < textSize.y):
 			newSize.y = textSize.y
 		
 		#ButtonText.custom_minimum_size.x 
@@ -68,6 +200,7 @@ func _init(newText: String, IconColor: Color, newButtonType: ButtonType = Button
 		IconCurrentColor = ButtonIcon.self_modulate
 		IconHighlightColor = IconColor + (Color.WHITE - IconColor)*0.3
 		IconDisabledColor = Color(IconColor*0.8, IconColor.a)
+		IconPressingColor = IconDisabledColor
 		IconHighlightDisabledColor = IconDisabledColor + (Color.WHITE - IconDisabledColor)*0.3
 	else:
 		Icon_isImage = true
@@ -148,6 +281,7 @@ func changeVisuals(newText: String, newColor: Color = IconOrigColor, newSize: Ve
 	IconCurrentColor = newColor
 	IconHighlightColor = newColor + (Color.WHITE - newColor)*0.3
 	IconDisabledColor = Color(newColor*0.8, newColor.a)
+	IconPressingColor = IconDisabledColor
 	IconHighlightDisabledColor = IconDisabledColor + (Color.WHITE - IconDisabledColor)*0.3
 	
 	if(!isEnabled):
@@ -156,8 +290,9 @@ func changeVisuals(newText: String, newColor: Color = IconOrigColor, newSize: Ve
 	ButtonIcon.self_modulate = IconCurrentColor
 
 func _process(delta: float) -> void:
-	checkHovering(delta)
-	checkButtonAction(delta)
+	if !Engine.is_editor_hint():
+		checkHovering(delta)
+		checkButtonAction(delta)
 
 func getSize() -> Vector2:
 	var unrotatedSize: Vector2 = size*scale
@@ -427,6 +562,13 @@ func checkHovering(delta: float) -> void:
 func checkButtonAction(delta: float) -> void:
 	if(Input.is_action_just_released("Left_Click") && stillPressingInside):
 		stillPressingInside = false
+		
+		if(isEnabled):
+			if(mouse_inside):
+				ButtonIcon.self_modulate = IconHighlightColor
+			else:
+				ButtonIcon.self_modulate = IconOrigColor
+		
 		if(pressingTimer <= PRESS_TIMER_THRESHOLD):
 			finalPress()
 		else:
@@ -441,6 +583,9 @@ func checkButtonAction(delta: float) -> void:
 		initialPress()
 
 func initialPress() -> void:
+	if(isEnabled):
+		ButtonIcon.self_modulate = IconPressingColor
+	
 	stillPressingInside = true
 	
 	hoverTimer = 0

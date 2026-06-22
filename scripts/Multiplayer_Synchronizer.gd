@@ -67,8 +67,8 @@ func handle_PostSpread(client_ID: int, tile_spread, playerIndex: int, spread_row
 
 @rpc("any_peer", "call_local", "reliable")
 func handle_NextTurn(peer_ID: int, viable_peer: int = -1) -> void:
-	if(viable_peer < 0):
-		if(HighLevelNetworkHandler.server_openned):
+	if(viable_peer < 0):#HighLevelNetworkHandler.server_openned
+		if(true):
 			var current_peer: int
 			var server_checked: bool = false
 			#viable_peer = multiplayer.get_unique_id()

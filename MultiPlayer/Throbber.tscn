@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cwikf0rvpi0o7"]
+
+[ext_resource type="Script" uid="uid://ct2opp4gki1c1" path="res://MultiPlayer/Throbber.gd" id="1_yawwa"]
+
+[node name="Throbber" type="Node2D" unique_id=3338603]
+script = ExtResource("1_yawwa")

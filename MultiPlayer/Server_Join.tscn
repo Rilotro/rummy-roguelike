@@ -1,27 +1,27 @@
-[gd_scene load_steps=2 format=3 uid="uid://qttkc81jm1e4"]
+[gd_scene format=3 uid="uid://qttkc81jm1e4"]
 
 [ext_resource type="Script" uid="uid://jps6onqyiexh" path="res://MultiPlayer/Server_Join.gd" id="1_7poie"]
 
-[node name="Server_Join" type="Node2D"]
+[node name="Server_Join" type="Node2D" unique_id=1740710318]
 script = ExtResource("1_7poie")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=654257731]
 custom_minimum_size = Vector2(300, 0)
 offset_top = 23.0
 offset_right = 300.0
 offset_bottom = 107.0
 theme_override_constants/separation = 40
 
-[node name="Player_Name" type="TextEdit" parent="VBoxContainer"]
+[node name="Player_Name" type="TextEdit" parent="VBoxContainer" unique_id=1939561524]
 custom_minimum_size = Vector2(300, 40)
 layout_mode = 2
 placeholder_text = "Username"
 
-[node name="Server_IP" type="Control" parent="VBoxContainer"]
+[node name="Server_IP" type="Control" parent="VBoxContainer" unique_id=364048643]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 
-[node name="ServerIP_Tip" type="RichTextLabel" parent="VBoxContainer/Server_IP"]
+[node name="ServerIP_Tip" type="RichTextLabel" parent="VBoxContainer/Server_IP" unique_id=1893262881]
 custom_minimum_size = Vector2(300, 23)
 layout_mode = 0
 offset_top = -23.0
@@ -31,14 +31,14 @@ fit_content = true
 scroll_active = false
 vertical_alignment = 2
 
-[node name="IP" type="TextEdit" parent="VBoxContainer/Server_IP"]
+[node name="IP" type="TextEdit" parent="VBoxContainer/Server_IP" unique_id=1429992339]
 custom_minimum_size = Vector2(300, 40)
 layout_mode = 0
 offset_right = 210.0
 offset_bottom = 40.0
 placeholder_text = "IP"
 
-[node name="InbetweenFlavour" type="RichTextLabel" parent="VBoxContainer/Server_IP"]
+[node name="InbetweenFlavour" type="RichTextLabel" parent="VBoxContainer/Server_IP" unique_id=1378266184]
 visible = false
 custom_minimum_size = Vector2(30, 40)
 layout_mode = 0
@@ -49,7 +49,7 @@ text = ":"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PORT" type="TextEdit" parent="VBoxContainer/Server_IP"]
+[node name="PORT" type="TextEdit" parent="VBoxContainer/Server_IP" unique_id=1607378328]
 visible = false
 custom_minimum_size = Vector2(20, 40)
 layout_mode = 0
@@ -58,7 +58,7 @@ offset_right = 300.0
 offset_bottom = 40.0
 placeholder_text = "PORT"
 
-[node name="Username_Tip" type="RichTextLabel" parent="."]
+[node name="Username_Tip" type="RichTextLabel" parent="." unique_id=419676638]
 custom_minimum_size = Vector2(300, 23)
 offset_right = 300.0
 offset_bottom = 23.0
@@ -67,21 +67,21 @@ fit_content = true
 scroll_active = false
 vertical_alignment = 2
 
-[node name="Cancel_Button" type="Button" parent="."]
+[node name="Cancel_Button" type="Button" parent="." unique_id=1151467142]
 custom_minimum_size = Vector2(157, 31)
 offset_top = 160.0
 offset_right = 157.0
 offset_bottom = 191.0
 text = "Back to Main Menu"
 
-[node name="Join_Button" type="Button" parent="."]
+[node name="Join_Button" type="Button" parent="." unique_id=76623327]
 offset_left = 196.0
 offset_top = 160.0
 offset_right = 300.0
 offset_bottom = 191.0
 text = "Enter Server"
 
-[node name="PORT_Notice" type="RichTextLabel" parent="."]
+[node name="PORT_Notice" type="RichTextLabel" parent="." unique_id=1967857908]
 visible = false
 self_modulate = Color(1, 0, 0, 1)
 custom_minimum_size = Vector2(300, 23)

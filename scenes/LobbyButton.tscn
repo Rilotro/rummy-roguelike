@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://gdae0t6wjkkb"]
+
+[ext_resource type="Script" uid="uid://tfdu1xmuvybw" path="res://MultiPlayer/LobbyButton.gd" id="1_46u7q"]
+
+[node name="GoodButton" type="Control" unique_id=1818448916]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_46u7q")
+metadata/_custom_type_script = "uid://btk2q6bqte15i"
