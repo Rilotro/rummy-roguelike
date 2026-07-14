@@ -20,6 +20,8 @@ static var GameShop: Shop
 static var currSelectScreen: SelectScreen = null
 
 static var usingItem: ItemContainer
+static var interPlayer_rotationStep: float
+static var BoardRadius: float
 
 signal StartOfRound
 signal EndOfRound
@@ -27,9 +29,28 @@ signal EndOfRound
 func _init() -> void:
 	Game = self
 	
-	MainPlayer = Player.new()
+	MainPlayer = Player.new(MultiplayerHandler.currPlayer)
 	MainPlayer.name = "MainPlayer"
 	add_child(MainPlayer)
+	
+	if(MultiplayerHandler.currPlayer != null && MultiplayerHandler.players.size() > 0):
+		MultiplayerHandler.receivedData.connect(handlePlayerCommands)
+		MultiplayerHandler.currPlayer.playerSpace = MainPlayer
+		interPlayer_rotationStep = 2*PI/MultiplayerHandler.players.size()
+		
+		var otherPlayer: Player
+		for player in MultiplayerHandler.players:
+			if(player == MultiplayerHandler.currPlayer):
+				continue
+			
+			otherPlayer = Player.new(player)
+			otherPlayer.name = "Player_" + str(player.ID)
+			add_child(otherPlayer)
+			
+			player.playerSpace = otherPlayer
+	
+	if(MultiplayerHandler.players.size() > 1):
+		pass
 	
 	bgObfuscator = Sprite2D.new()
 	bgObfuscator.texture = CanvasTexture.new()
@@ -104,8 +125,8 @@ func _init() -> void:
 	
 	PlayerTurnButton.resized.connect(func() -> void:
 		BaitButton.position = PlayerTurnButton.position
-		BaitButton.position.x += PlayerTurnButton.size.x+10
-		BaitButton.position.y -= (PlayerTurnButton.size.y - BaitButton.size.y)/2)
+		BaitButton.position += (PlayerTurnButton.getSize().x+10)*Vector2(cos(BaitButton.rotation), sin(BaitButton.rotation))
+		BaitButton.position -= (PlayerTurnButton.getSize().y - BaitButton.getSize().y)*Vector2(-sin(BaitButton.rotation), cos(BaitButton.rotation))/2)
 
 func _ready() -> void:
 	var windowSize: Vector2 = get_viewport_rect().size
@@ -113,25 +134,52 @@ func _ready() -> void:
 	bgObfuscator.region_rect = Rect2(Vector2(0, 0), windowSize)
 	bgObfuscator.get_child(0).size = windowSize
 	
-	MainPlayer.position = Vector2(0, CAMERA_WIDE_SHOT_RATIO*windowSize.y/2 - Board.BOARD_HEIGHT/2)#-----------------------------------------------------------
+	BoardRadius = CAMERA_WIDE_SHOT_RATIO*windowSize.y/2 - Board.BOARD_HEIGHT/2
+	
+	var mainPlayerRot: float
+	for player in MultiplayerHandler.players:
+		player.playerSpace.rotation = -player.order*interPlayer_rotationStep
+		if(player == MultiplayerHandler.currPlayer):
+			mainPlayerRot = player.playerSpace.rotation
+		
+		player.playerSpace.position = Vector2(BoardRadius*sin(-player.playerSpace.rotation), BoardRadius*cos(-player.playerSpace.rotation))
+	
+	#MainPlayer.rotation = -MultiplayerHandler.currPlayer.order*interPlayer_rotationStep
+	#MainPlayer.position = Vector2(BoardRadius*sin(MultiplayerHandler.currPlayer.order*interPlayer_rotationStep), BoardRadius*cos(MultiplayerHandler.currPlayer.order*interPlayer_rotationStep))#-----------------------------------------------------------
+	
 	MainPlayer.GameRiver.position = Vector2(-River.ROW_WIDTH/2, -MainPlayer.position.y)
 	
 	bgObfuscator.global_position = MainPlayer.Camera.global_position
 	bgObfuscator.get_child(0).global_position = bgObfuscator.global_position - windowSize/2
 	
-	var PlayerBar_Y: float = MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2 + (GameBar.SLOT_SIZE.y+5)/2
-	PlayerBar.position = Vector2(0, PlayerBar_Y)
+	PlayerBar.rotation = mainPlayerRot
+	PlayerBar.position = MainPlayer.position
+	PlayerBar.position -= (windowSize.y - (Board.BOARD_HEIGHT + GameBar.SLOT_SIZE.y + 5)/2)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
+	#var PlayerBarRadius: float = MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2 + (GameBar.SLOT_SIZE.y+5)/2
+	#PlayerBar.position = Vector2(0, PlayerBar_Y)
+	#PlayerBar.position = PlayerBarRadius*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	
-	Transition_toRiver_Button.position = Vector2(0, PlayerBar_Y) - Vector2(Transition_toRiver_Button.size.y, -Transition_toRiver_Button.size.x)/4
-	Transition_toRiver_Button.position.y -= (GameBar.SLOT_SIZE.y+5)/2 - Transition_toRiver_Button.size.x/4
+	var buttonSize: Vector2 = Transition_toRiver_Button.getSize()
+	Transition_toRiver_Button.rotation = mainPlayerRot - PI/2
+	Transition_toRiver_Button.position = PlayerBar.position
+	Transition_toRiver_Button.position -= buttonSize.y*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))/2 + buttonSize.x*Vector2(sin(mainPlayerRot), -cos(mainPlayerRot))/2
+	#Transition_toRiver_Button.position = Vector2(0, PlayerBar_Y) - Vector2(Transition_toRiver_Button.size.y, -Transition_toRiver_Button.size.x)/4
+	Transition_toRiver_Button.position -= ((GameBar.SLOT_SIZE.y+5) - buttonSize.x)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
 	
-	Transition_BackToBoard_Button.position = Vector2(Transition_BackToBoard_Button.size.y/4, windowSize.y/2 - Transition_BackToBoard_Button.size.x)#-Transition_BackToBoard_Button.size.y/2
+	buttonSize = Transition_BackToBoard_Button.getSize()
+	Transition_BackToBoard_Button.position = Vector2(buttonSize.y/2, windowSize.y/2 - 2*buttonSize.x)#-Transition_BackToBoard_Button.size.y/2
 	
-	PlayerTurnButton.position = Vector2(-windowSize.x/2 + PlayerTurnButton.size.x/2 + 5, PlayerBar_Y-5)
+	buttonSize = PlayerTurnButton.getSize()
+	PlayerTurnButton.rotation = mainPlayerRot
+	PlayerTurnButton.position = PlayerBar.position - 5*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
+	#PlayerTurnButton.position = (PlayerBarRadius-5)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot)) + (-windowSize.x/2 + buttonSize.x/2 + 5)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
+	#PlayerTurnButton.position = Vector2(-windowSize.x/2 + PlayerTurnButton.size.x/2 + 5, PlayerBar_Y-5)
+	PlayerTurnButton.position += ((buttonSize.x - windowSize.x)/2 + 5)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
 	
+	BaitButton.rotation = mainPlayerRot
 	BaitButton.position = PlayerTurnButton.position
-	BaitButton.position.x += PlayerTurnButton.size.x+10
-	BaitButton.position.y -= (PlayerTurnButton.size.y - BaitButton.size.y)/2
+	BaitButton.position += (buttonSize.x+10)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
+	BaitButton.position -= (buttonSize.y - BaitButton.getSize().y)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
 	
 	GameShop.position = Vector2(-windowSize.x/2, MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2)
 	
@@ -188,9 +236,24 @@ func createSelectionScreen(option: SelectScreen.SelectOption, selectionOptions: 
 	add_child(currSelectScreen)
 
 func EndRound() -> void:
-	myTurn = false
-	PlayerTurnButton.changeButtonAction(TurnButton.ButtonAction.SHOP)
-	EndOfRound.emit()
+	#if()
+	if(myTurn):
+		myTurn = false
+		PlayerTurnButton.changeButtonAction(TurnButton.ButtonAction.SHOP)
+		EndOfRound.emit()
+		
+		MultiplayerHandler.send_data("round_end", "round_end".to_utf8_buffer())
+	
+	if(MultiplayerHandler.players.size() > 0):
+		#var rotStep: float = 2*PI/MultiplayerHandler.players.size()
+		
+		MultiplayerHandler.player_currTurn += 1
+		
+		var tween: Tween = create_tween()
+		tween.tween_method(func(newRot: float) -> void:
+			MainPlayer.GameBoard.rotation = newRot
+			MainPlayer.GameBoard.global_position =  Vector2(BoardRadius*sin(-newRot), BoardRadius*cos(-newRot))
+		, MainPlayer.GameBoard.rotation, MainPlayer.GameBoard.rotation-interPlayer_rotationStep, 1)
 	
 	NextPlayer()
 
@@ -208,3 +271,14 @@ func NextPlayer() -> void:
 			#TurnButton.changeVisuals(StringsManager.UIStrings["TURN"][1], Color.RED)
 		#else:
 			#TurnButton.changeVisuals(StringsManager.UIStrings["TURN"][0], Color.BLACK)
+
+func handlePlayerCommands(source: String, command: String, params: PackedByteArray) -> void:
+	match command:
+		"round_end":
+			EndRound()
+		"draw":
+			MainPlayer.receive_otherPlayer_draw(params)
+			#var newTile: Tile = dict_to_inst(JSON.parse_string(params.get_string_from_utf8()))
+			#newTile.number = int(newTile.number)
+			#Player.GameBoard.addTile(TileContainer.new(newTile, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.BOARD), Board.TileOrigin.OTHER_PLAYER)
+	#if(command == "round_end"):

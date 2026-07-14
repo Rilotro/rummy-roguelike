@@ -25,9 +25,9 @@ func _init() -> void:
 	
 	for i in range(13):
 		for color in Tile.TileColors:
-			DeckTiles.append(Tile.new(i+1, color, -1, Tile.Rarity.PORCELAIN, [Tile.Effect.WINGED]))
+			DeckTiles.append(Tile.new(i+1, color))#, -1, Tile.Rarity.PORCELAIN, [Tile.Effect.WINGED]))
 	
-	DeckTiles.append(Joker.new())
+	#DeckTiles.append(Joker.new())
 	DeckTiles.shuffle()
 
 func _process(delta: float) -> void:
@@ -41,7 +41,7 @@ func getName(Tip: UITip) -> String:
 func getKeywords(Tip: UITip) -> String:
 	var keywords: String = StringsManager.UIStrings["DECK"]["KEYWORDS"][0]
 	
-	if(isEnabled):
+	if(enabled):
 		keywords += ", " + StringsManager.UIStrings["DECK"]["KEYWORDS"][1]
 	
 	keywords += " - " + str(DeckTiles.size())
@@ -60,7 +60,7 @@ func getDescription(Tip: UITip) -> String:
 	else:
 		description +=  str(DeckTiles.size()) + StringsManager.UIStrings["DECK"]["DESCRIPTION"][2]
 	
-	if(isEnabled):
+	if(enabled):
 		description += StringsManager.UIStrings["DECK"]["DESCRIPTION"][3]
 		
 		description += StringsManager.UIStrings["DECK"]["DESCRIPTION"][1]
@@ -130,9 +130,9 @@ func DIS_ENable(enable: bool) -> void:
 	if(tween != null):
 		tween.stop()
 	
-	isEnabled = enable
+	#isEnabled = enable
 	
-	if(isEnabled):
+	if(enable):
 		changeVisuals(ButtonText.text, Color.GOLD, size)
 	else:
 		changeVisuals(ButtonText.text, Color.WHITE, size)
@@ -150,7 +150,7 @@ func popTile(fromBack: bool = true, deckPosition: int = -1) -> Tile:
 var tween: Tween
 
 func handleActiveEffects(_delta: float) -> void:
-	if(!isEnabled):
+	if(!enabled):
 		return
 	
 	if(tween == null || !tween.is_running()):
@@ -162,11 +162,11 @@ func handleActiveEffects(_delta: float) -> void:
 		#hoverTimer += delta
 
 func finalPress() -> void:
-	if(!isEnabled):
+	if(!enabled):
 		return
 	
 	GameScene.Game.StartRound()
-	GameScene.MainPlayer.Draw()
+	GameScene.MainPlayer.Draw(14)
 	
 	DIS_ENable(false)
 

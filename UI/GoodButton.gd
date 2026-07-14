@@ -6,6 +6,13 @@ class_name GoodButton
 const PRESS_TIMER_THRESHOLD: float = 0.5
 const TIP_TIMER_TRIGGER: float = 1
 
+@export var enabled: bool = true:
+	set(enable):
+		if(enable != enabled):
+			DIS_ENable(enable)
+		
+		enabled = enable
+
 @export_group("Label")
 @export var text: String = "":
 	set(newText):
@@ -68,7 +75,7 @@ var mouse_inside: bool = false
 var stillPressingInside: bool = false
 var hoverTimer: float = 0
 var pressingTimer: float = 0
-var isEnabled: bool = true
+#var isEnabled: bool = true
 var IconOrigColor: Color
 var IconHighlightColor: Color
 var IconCurrentColor: Color
@@ -163,8 +170,6 @@ func _init(newText: String = "", IconColor: Color = Color.TRANSPARENT, newButton
 	mouse_entered.connect(_mouse_entered)
 	mouse_exited.connect(_mouse_exited)
 	
-	isEnabled = enable
-	
 	ButtonIcon = Sprite2D.new()
 	
 	ButtonIcon.name = "ButtonIcon"
@@ -217,21 +222,23 @@ func _init(newText: String = "", IconColor: Color = Color.TRANSPARENT, newButton
 	custom_minimum_size = newSize
 	ButtonIcon.position = newSize/2
 	
-	if(!isEnabled):
+	enabled = enable
+	
+	if(!enabled):
 		ButtonIcon.self_modulate -= ButtonIcon.self_modulate*0.2
 		ButtonIcon.self_modulate.a = 1
 
 func DIS_ENable(enable: bool) -> void:#, newText: String = ""
-	if(isEnabled != enable):
-		if(enable):
-			ButtonIcon.self_modulate = IconOrigColor
-		else:
-			ButtonIcon.self_modulate = IconDisabledColor#-= ButtonIcon.self_modulate*0.2
-			#ButtonIcon.self_modulate.a = 1
+	#if(enabled != enable):
+	if(enable):
+		ButtonIcon.self_modulate = IconOrigColor
+	else:
+		ButtonIcon.self_modulate = IconDisabledColor#-= ButtonIcon.self_modulate*0.2
+		#ButtonIcon.self_modulate.a = 1
 		
 		IconCurrentColor = ButtonIcon.self_modulate
 	
-	isEnabled = enable
+	#enabled = enable
 	#ButtonText.text = newText
 	#ButtonText.custom_minimum_size = ButtonText.get_theme_font("font").get_string_size(newText)
 	#custom_minimum_size = ButtonText.custom_minimum_size
@@ -284,7 +291,7 @@ func changeVisuals(newText: String, newColor: Color = IconOrigColor, newSize: Ve
 	IconPressingColor = IconDisabledColor
 	IconHighlightDisabledColor = IconDisabledColor + (Color.WHITE - IconDisabledColor)*0.3
 	
-	if(!isEnabled):
+	if(!enabled):
 		IconCurrentColor = IconDisabledColor
 	
 	ButtonIcon.self_modulate = IconCurrentColor
@@ -295,10 +302,11 @@ func _process(delta: float) -> void:
 		checkButtonAction(delta)
 
 func getSize() -> Vector2:
-	var unrotatedSize: Vector2 = size*scale
-	var size_X: float = unrotatedSize.x*cos(rotation) + unrotatedSize.y*sin(rotation)
-	var size_Y: float = unrotatedSize.y*cos(rotation) - unrotatedSize.x*sin(rotation)
-	return Vector2(size_X, size_Y)
+	return size*scale
+	#var unrotatedSize: Vector2 = size*scale
+	#var size_X: float = unrotatedSize.x*cos(rotation) + unrotatedSize.y*sin(rotation)
+	#var size_Y: float = unrotatedSize.y*cos(rotation) - unrotatedSize.x*sin(rotation)
+	#return Vector2(size_X, size_Y)
 
 func getName(Tip: UITip) -> String:
 	match buttonType:
@@ -550,11 +558,11 @@ func checkHovering(delta: float) -> void:
 	if(mouse_inside && !stillPressingInside):
 		hoverTimer += delta
 		
-		if(hoverTimer >= TIP_TIMER_TRIGGER && Tip == null):
-			Tip = UITip.new(self)
-			Tip.name = "UITip"
-			Tip.visible = false
-			GameScene.Game.add_child(Tip)
+		#if(hoverTimer >= TIP_TIMER_TRIGGER && Tip == null):
+			#Tip = UITip.new(self)
+			#Tip.name = "UITip"
+			#Tip.visible = false
+			#GameScene.Game.add_child(Tip)
 	
 	if(Tip != null && !Tip.visible && Tip.resizeComplete):
 		Tip.visible = true
@@ -563,7 +571,7 @@ func checkButtonAction(delta: float) -> void:
 	if(Input.is_action_just_released("Left_Click") && stillPressingInside):
 		stillPressingInside = false
 		
-		if(isEnabled):
+		if(enabled):
 			if(mouse_inside):
 				ButtonIcon.self_modulate = IconHighlightColor
 			else:
@@ -583,7 +591,7 @@ func checkButtonAction(delta: float) -> void:
 		initialPress()
 
 func initialPress() -> void:
-	if(isEnabled):
+	if(enabled):
 		ButtonIcon.self_modulate = IconPressingColor
 	
 	stillPressingInside = true
@@ -591,7 +599,7 @@ func initialPress() -> void:
 	hoverTimer = 0
 	pressingTimer = 0
 	
-	if(Tip != null && isEnabled):
+	if(Tip != null && enabled):
 		Tip.queue_free()
 
 func pressing(delta: float) -> void:
@@ -600,10 +608,10 @@ func pressing(delta: float) -> void:
 signal press()#button: GoodButton
 
 func finalPress() -> void:
-	if(!isEnabled):
+	if(!enabled):
 		return
 	
-	if(Tip != null && isEnabled):
+	if(Tip != null && enabled):
 		Tip.queue_free()
 	
 	press.emit()
@@ -611,14 +619,14 @@ func finalPress() -> void:
 func lateFinalPress() -> void:
 	pressingTimer = 0
 	
-	if(Tip != null && isEnabled):
+	if(Tip != null && enabled):
 		Tip.queue_free()
 
 func _mouse_entered() -> void:
 	mouse_inside = true
 	hoverTimer = 0
 	
-	if(isEnabled):
+	if(enabled):
 		ButtonIcon.self_modulate = IconHighlightColor #+= (Color.WHITE - ButtonIcon.self_modulate)*0.3
 	else:
 		ButtonIcon.self_modulate = IconHighlightDisabledColor

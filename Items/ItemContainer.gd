@@ -110,7 +110,7 @@ func DIS_ENable(enable: bool) -> void:
 	else:
 		FrameOutline.self_modulate = Color.RED
 	
-	isEnabled = enable
+	#isEnabled = enable
 
 func checkShopAffordability() -> void:
 	super()
@@ -130,7 +130,7 @@ func finalPress() -> void:
 	
 	super()
 	
-	if(isEnabled && container_type == ContainerType.SHOP):
+	if(enabled && container_type == ContainerType.SHOP):
 		SOLD.visible = true
 
 func _mouse_entered() -> void:

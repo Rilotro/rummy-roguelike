@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://chet0dxnbb2qs"]
+[gd_scene format=3 uid="uid://chet0dxnbb2qs"]
 
 [ext_resource type="Script" uid="uid://c7vjdyaj3o0p0" path="res://Player/Player.gd" id="1_hp6x6"]
 [ext_resource type="Script" uid="uid://dxpv5jxqv1c1b" path="res://Player/Board.gd" id="2_3tkgg"]
@@ -29,48 +29,48 @@ shader_parameter/loadingTime = 0.0
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_0j2ni"]
 
-[node name="PlayerArea" type="Node2D"]
+[node name="PlayerArea" type="Node2D" unique_id=166352985]
 position = Vector2(576, 588)
 script = ExtResource("1_hp6x6")
 
-[node name="Board" type="Node2D" parent="."]
+[node name="Board" type="Node2D" parent="." unique_id=1953894442]
 script = ExtResource("2_3tkgg")
 
-[node name="Board_Row1" type="Sprite2D" parent="Board"]
+[node name="Board_Row1" type="Sprite2D" parent="Board" unique_id=1088818787]
 self_modulate = Color(0.5882353, 0.43137255, 0.29411766, 1)
 texture = SubResource("CanvasTexture_n5ooj")
 region_enabled = true
 region_rect = Rect2(0, 0, 970, 120)
 
-[node name="Board_Row2" type="Sprite2D" parent="Board"]
+[node name="Board_Row2" type="Sprite2D" parent="Board" unique_id=67940552]
 self_modulate = Color(0.47058824, 0.34509805, 0.23529412, 1)
 position = Vector2(0, -120)
 texture = SubResource("CanvasTexture_n5ooj")
 region_enabled = true
 region_rect = Rect2(0, 0, 970, 120)
 
-[node name="Spread" type="Node2D" parent="."]
+[node name="Spread" type="Node2D" parent="." unique_id=1627730075]
 position = Vector2(1223.5, 0)
 script = ExtResource("3_l6ohk")
 
-[node name="Sprite2D" type="Sprite2D" parent="Spread"]
+[node name="Sprite2D" type="Sprite2D" parent="Spread" unique_id=1376989115]
 position = Vector2(0, -240)
 texture = SubResource("CanvasTexture_j23h2")
 region_enabled = true
 region_rect = Rect2(0, 0, 455, 600)
 
-[node name="River" type="Node2D" parent="."]
+[node name="River" type="Node2D" parent="." unique_id=498799030]
 position = Vector2(-427.5, -360)
 script = ExtResource("4_oudfo")
 
-[node name="PlayerDeck" type="Sprite2D" parent="."]
+[node name="PlayerDeck" type="Sprite2D" parent="." unique_id=1959390983]
 position = Vector2(-447.5, -242.5)
 texture = SubResource("CanvasTexture_ddoul")
 region_enabled = true
 region_rect = Rect2(0, 0, 75, 105)
 script = ExtResource("5_8g4oa")
 
-[node name="DeckLabel" type="Label" parent="PlayerDeck"]
+[node name="DeckLabel" type="Label" parent="PlayerDeck" unique_id=567674981]
 custom_minimum_size = Vector2(75, 105)
 offset_left = -37.5
 offset_top = -52.5
@@ -83,10 +83,10 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 1
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1895817743]
 position = Vector2(0, -264)
 
-[node name="SpreadTransition" type="Control" parent="."]
+[node name="SpreadTransition" type="Control" parent="." unique_id=339499637]
 custom_minimum_size = Vector2(300, 648)
 layout_mode = 3
 anchors_preset = 0
@@ -96,7 +96,7 @@ offset_right = 576.0
 offset_bottom = 60.0
 script = ExtResource("6_vlldt")
 
-[node name="LoadingSprite" type="Sprite2D" parent="SpreadTransition"]
+[node name="LoadingSprite" type="Sprite2D" parent="SpreadTransition" unique_id=1669896654]
 self_modulate = Color(1, 1, 0, 1)
 material = SubResource("ShaderMaterial_0j2ni")
 position = Vector2(252.5, 324)
@@ -104,11 +104,11 @@ texture = SubResource("CanvasTexture_vlldt")
 region_enabled = true
 region_rect = Rect2(0, 0, 85, 310)
 
-[node name="SpreadImage" type="Sprite2D" parent="SpreadTransition"]
+[node name="SpreadImage" type="Sprite2D" parent="SpreadTransition" unique_id=565915085]
 position = Vector2(252.5, 324)
 texture = ExtResource("7_s1rgi")
 
-[node name="ProximitySensor" type="Control" parent="SpreadTransition"]
+[node name="ProximitySensor" type="Control" parent="SpreadTransition" unique_id=1600352308]
 custom_minimum_size = Vector2(75, 300)
 anchors_preset = 0
 offset_left = 215.0
@@ -117,7 +117,7 @@ offset_right = 290.0
 offset_bottom = 474.0
 mouse_filter = 2
 
-[node name="BarStandIn" type="Sprite2D" parent="."]
+[node name="BarStandIn" type="Sprite2D" parent="." unique_id=504851890]
 visible = false
 self_modulate = Color(0, 0, 1, 1)
 position = Vector2(0, -533)
@@ -125,27 +125,27 @@ texture = SubResource("CanvasTexture_s1rgi")
 region_enabled = true
 region_rect = Rect2(0, 0, 1152, 110)
 
-[node name="Sprite2D" parent="." instance=ExtResource("9_j23h2")]
+[node name="Sprite2D" parent="." unique_id=1707067731 instance=ExtResource("9_j23h2")]
 position = Vector2(7, -463)
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=150694060]
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="Control" type="Control" parent="."]
+[node name="Control" type="Control" parent="." unique_id=176056491]
 clip_contents = true
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 16.0
 
-[node name="Sprite2D" type="Sprite2D" parent="Control"]
+[node name="Sprite2D" type="Sprite2D" parent="Control" unique_id=1061479608]
 visible = false
 texture = SubResource("CanvasTexture_0j2ni")
 region_enabled = true
 region_rect = Rect2(0, 0, 40, 40)
 
-[node name="RichTextLabel" type="RichTextLabel" parent="Control"]
+[node name="RichTextLabel" type="RichTextLabel" parent="Control" unique_id=797333955]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0

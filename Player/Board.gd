@@ -30,7 +30,7 @@ func _init() -> void:
 		add_child(newBoard)
 
 enum TileOrigin{
-	DECK, DECK_BURNING_SHOES, RIVER, SELECTION, SHOP
+	DECK, DECK_BURNING_SHOES, RIVER, SELECTION, SHOP, OTHER_PLAYER
 }
 
 var delayForAdditionalDraw: float = 0
@@ -59,12 +59,18 @@ func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK) -
 	BoardRows[index.x][index.y] = newTile
 	
 	newTile.name = "BoardTile" + str(index.y+1)
+	
+	var endPos: Vector2 = Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
+	if(tileOrigin == TileOrigin.OTHER_PLAYER):
+		get_child(index.x).add_child(newTile)
+		newTile.position = endPos
+	
 	if(tileOrigin == TileOrigin.DECK || tileOrigin == TileOrigin.DECK_BURNING_SHOES):
 		get_child(index.x).add_child(newTile)
 	else:
 		newTile.reparent(get_child(index.x))
 	
-	var endPos: Vector2 = Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
+	#var endPos: Vector2 = Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
 	delayForAdditionalDraw += 0.1
 	match tileOrigin:
 		TileOrigin.DECK:

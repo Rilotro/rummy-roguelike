@@ -26,6 +26,7 @@ offset_bottom = 40.0
 custom_minimum_size = Vector2(104.5, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "SinglePlayer"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -34,6 +35,7 @@ metadata/_custom_type_script = "uid://btk2q6bqte15i"
 custom_minimum_size = Vector2(97.9, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Multiplayer"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -43,6 +45,7 @@ visible = false
 custom_minimum_size = Vector2(158.4, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Create New Server"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -52,6 +55,7 @@ visible = false
 custom_minimum_size = Vector2(106.7, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Join a Server"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -61,6 +65,7 @@ visible = false
 custom_minimum_size = Vector2(69.3, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Go Back"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -115,6 +120,7 @@ theme_override_constants/separation = 140
 custom_minimum_size = Vector2(101.2, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Start Server"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -123,6 +129,7 @@ metadata/_custom_type_script = "uid://btk2q6bqte15i"
 custom_minimum_size = Vector2(57.2, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Cancel"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -151,17 +158,6 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_sg2au")
 text = "Server List"
 horizontal_alignment = 1
 
-[node name="RefreshList" type="Control" parent="ServerList/ServerBanner" unique_id=1927660382]
-custom_minimum_size = Vector2(66, 23)
-anchors_preset = 0
-offset_left = 315.0
-offset_right = 381.0
-offset_bottom = 23.0
-script = ExtResource("2_tcrr2")
-text = "Refresh"
-color = Color(0.19607843, 0.19607843, 0.19607843, 1)
-metadata/_custom_type_script = "uid://btk2q6bqte15i"
-
 [node name="Spacer2" type="Control" parent="ServerList" unique_id=777687362]
 custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
@@ -173,6 +169,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(40.7, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Back"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -207,6 +204,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(52.8, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Ready"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -232,6 +230,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(37.4, 23)
 layout_mode = 2
 script = ExtResource("2_tcrr2")
+enabled = null
 text = "Quit"
 color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
@@ -243,7 +242,5 @@ metadata/_custom_type_script = "uid://btk2q6bqte15i"
 [connection signal="press" from="MenuButtons/Back" to="." method="_on_cancel_button_pressed"]
 [connection signal="press" from="ServerForm/FormButtons/StartServer" to="." method="create_server"]
 [connection signal="press" from="ServerForm/FormButtons/Cancel" to="." method="cancel_server_creation"]
-[connection signal="press" from="ServerList/ServerBanner/RefreshList" to="." method="refresh_list"]
 [connection signal="press" from="ServerList/Back" to="." method="cancel_join_lobby"]
 [connection signal="press" from="LobbyRoom/LobbyButtons/Ready" to="." method="toggleReady"]
-[connection signal="press" from="LobbyRoom/LobbyButtons/StartGame" to="." method="startGame"]

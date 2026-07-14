@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://dxjwym20i4dgm"]
+
+[ext_resource type="Script" uid="uid://bxu4cakpoy406" path="res://tests/test.gd" id="1_5wekd"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_1q5vg"]
+
+[node name="Node2D" type="Node2D" unique_id=1322491906]
+script = ExtResource("1_5wekd")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1814029964]
+texture = SubResource("CanvasTexture_1q5vg")
+region_enabled = true
+region_rect = Rect2(0, 0, 100, 100)

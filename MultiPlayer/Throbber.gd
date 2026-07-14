@@ -5,6 +5,7 @@ class_name Throbber
 const DISK_COUNT: int = 8
 
 var Background: Sprite2D
+var BG_Obfuscator: Control
 var Body: Sprite2D
 
 func _init() -> void:
@@ -14,6 +15,12 @@ func _init() -> void:
 	Background.self_modulate = Color(Color.BLACK, 0.5)
 	Background.name = "Background"
 	add_child(Background)
+	
+	BG_Obfuscator = Control.new()
+	BG_Obfuscator.name = "BG_Obfuscator"
+	BG_Obfuscator.mouse_filter = Control.MOUSE_FILTER_STOP
+	BG_Obfuscator.z_index = 1
+	add_child(BG_Obfuscator)
 	
 	Body = Sprite2D.new()
 	Body.texture = CanvasTexture.new()
@@ -27,6 +34,8 @@ func _ready() -> void:
 	var windowSize: Vector2 = get_viewport_rect().size
 	
 	Background.region_rect = Rect2(Vector2(0, 0), windowSize)
+	BG_Obfuscator.size = windowSize
+	BG_Obfuscator.position = -windowSize/2
 	
 	var new_disk: Sprite2D
 	for i in range(DISK_COUNT):

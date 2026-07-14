@@ -66,7 +66,7 @@ func changeButtonAction(newButtonAction: ButtonAction) -> void:
 			changeVisuals(StringsManager.UIStrings["SHOP"][0], Color.GOLD)
 
 func finalPress() -> void:
-	if(!isEnabled):
+	if(!enabled):
 		return
 	
 	match(currButtonAction):

@@ -8,7 +8,7 @@ const SPREAD_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.SPREAD
 const RIVER_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.RIVER
 
 var SpreadTransition_ProximitySensor: Control
-var GameBoard: Board
+static var GameBoard: Board
 var PlayerSpread: Spread
 var GameRiver: River
 var PlayerDeck: Deck
@@ -25,13 +25,17 @@ static var minMAXTilesToDiscard: Vector2i = Vector2i(1, 2)
 var inProximity: bool = false
 var currentCameraPos: CameraPosition = CameraPosition.BOARD
 
+var isMainPlayer: bool = true
+var hasBoard: bool = false
+
 signal PlayerDraw(fromDeck: bool)
 
 enum CameraPosition{
 	BOARD, SPREAD, ALL_PLAYERS, RIVER
 }
 
-func _init() -> void:
+func _init(player: PlayerData = null) -> void:
+	isMainPlayer = player == MultiplayerHandler.currPlayer
 	#var testArray1: Array[Tile] = [Tile.new(1, Color.BLACK), Tile.new(2, Color.BLUE), Tile.new(3, Color.RED), Tile.new(4, Color.GREEN)]
 	#var testArray2: Array[Tile]
 	#testArray2.append_array(testArray1)
@@ -48,59 +52,64 @@ func _init() -> void:
 	ExpBar.name = "ExperienceBar"
 	add_child(ExpBar)
 	
-	SpreadTransition_ProximitySensor = Control.new()
-	SpreadTransition_ProximitySensor.name = "SpreadTransition_ProximitySensor"
-	add_child(SpreadTransition_ProximitySensor)
+	if(isMainPlayer):
+		SpreadTransition_ProximitySensor = Control.new()
+		SpreadTransition_ProximitySensor.name = "SpreadTransition_ProximitySensor"
+		add_child(SpreadTransition_ProximitySensor)
 	
-	GameBoard = Board.new()
-	GameBoard.name = "GameBoard"
-	add_child(GameBoard)
+	hasBoard = (player == null || player.order == 0)
+	if(hasBoard):
+		GameBoard = Board.new()
+		GameBoard.name = "GameBoard"
+		add_child(GameBoard)
 	
 	PlayerSpread = Spread.new()
 	PlayerSpread.name = "PlayerSpread"
 	add_child(PlayerSpread)
 	
-	GameRiver = River.new()
-	GameRiver.name = "GameRiver"
-	add_child(GameRiver)
-	
-	PlayerDeck = Deck.new()
-	PlayerDeck.name = "PlayerDeck"
-	PlayerDeck.position = Vector2(-Board.BOARD_WIDTH/2 + Board.SPACE_BETWEEN_TILES, -(Board.BOARD_HEIGHT)*(GameBoard.BoardRows.size()-0.5) - ResourceContainer.BASE_RESOURCE_SIZE.y - 10)
-	add_child(PlayerDeck)
-	
-	Camera = Camera2D.new()
-	Camera.position = Vector2(0, -264.0)
-	add_child(Camera)
-	
-	SpreadButton = GoodButton.new("Spread!", Color.GOLD, GoodButton.ButtonType.SPREAD)
-	SpreadButton.position = Vector2(200, -240)
-	SpreadButton.name = "SpreadButton"
-	SpreadButton.visible = false
-	add_child(SpreadButton)
-	SpreadButton.press.connect(SpreadButtonPressed)
-	
-	DiscardButton = GoodButton.new("Discard!", Color.RED, GoodButton.ButtonType.DISCARD)
-	DiscardButton.position = Vector2(-200, -240)
-	DiscardButton.name = "DiscardButton"
-	DiscardButton.visible = false
-	add_child(DiscardButton)
-	DiscardButton.press.connect(DiscardButtonPressed)
-	
-	SpreadCameraTransition = SpreadTransition.new()
-	SpreadCameraTransition.name = "SpreadCameraTransition"
-	SpreadCameraTransition.visible = false
-	add_child(SpreadCameraTransition)
-	
-	
-	SpreadCameraTransition.press.connect(func() -> void:
-		if(currentCameraPos != CameraPosition.SPREAD):
-			moveCamera(CameraPosition.SPREAD)
-		else:
-			moveCamera(CameraPosition.BOARD))
-	
-	SpreadTransition_ProximitySensor.mouse_entered.connect(_mouse_inProximity)
-	SpreadTransition_ProximitySensor.mouse_exited.connect(_mouse_outsideProximity)
+	if(isMainPlayer):
+		GameRiver = River.new()
+		GameRiver.name = "GameRiver"
+		add_child(GameRiver)
+		
+		PlayerDeck = Deck.new()
+		PlayerDeck.name = "PlayerDeck"
+		PlayerDeck.position = Vector2(-Board.BOARD_WIDTH/2 + Board.SPACE_BETWEEN_TILES, -(Board.BOARD_HEIGHT)*(Board.STARTING_BOARD_ROWS-0.5) - ResourceContainer.BASE_RESOURCE_SIZE.y - 10)
+		add_child(PlayerDeck)
+		
+		Camera = Camera2D.new()
+		Camera.ignore_rotation = false
+		Camera.position = Vector2(0, -264.0)
+		add_child(Camera)
+		
+		SpreadButton = GoodButton.new("Spread!", Color.GOLD, GoodButton.ButtonType.SPREAD)
+		SpreadButton.position = Vector2(200, -240)
+		SpreadButton.name = "SpreadButton"
+		SpreadButton.visible = false
+		add_child(SpreadButton)
+		SpreadButton.press.connect(SpreadButtonPressed)
+		
+		DiscardButton = GoodButton.new("Discard!", Color.RED, GoodButton.ButtonType.DISCARD)
+		DiscardButton.position = Vector2(-200, -240)
+		DiscardButton.name = "DiscardButton"
+		DiscardButton.visible = false
+		add_child(DiscardButton)
+		DiscardButton.press.connect(DiscardButtonPressed)
+		
+		SpreadCameraTransition = SpreadTransition.new()
+		SpreadCameraTransition.name = "SpreadCameraTransition"
+		SpreadCameraTransition.visible = false
+		add_child(SpreadCameraTransition)
+		
+		
+		SpreadCameraTransition.press.connect(func() -> void:
+			if(currentCameraPos != CameraPosition.SPREAD):
+				moveCamera(CameraPosition.SPREAD)
+			else:
+				moveCamera(CameraPosition.BOARD))
+		
+		SpreadTransition_ProximitySensor.mouse_entered.connect(_mouse_inProximity)
+		SpreadTransition_ProximitySensor.mouse_exited.connect(_mouse_outsideProximity)
 
 var SpreadCameraTransition_positionBoard: Vector2
 var SpreadCameraTransition_positionSpread: Vector2
@@ -114,17 +123,28 @@ func _ready() -> void:
 	var PlayerSpread_posX: float = (windowSize.x + Spread.ROW_WIDTH)/2 + 420
 	PlayerSpread.position = Vector2(PlayerSpread_posX, 0)
 	
-	SpreadCameraTransition.position = Vector2(windowSize.x/2 - SpreadCameraTransition.size.x-10, -(windowSize.y - Board.BOARD_HEIGHT + SpreadCameraTransition.size.y)/2)
-	SpreadCameraTransition_positionBoard = SpreadCameraTransition.position
-	SpreadCameraTransition_positionSpread = SpreadCameraTransition.position + Vector2(PlayerSpread.position.x- windowSize.x + SpreadCameraTransition.size.x + 20, 0)
+	if(isMainPlayer):
+		SpreadCameraTransition.position = Vector2(windowSize.x/2 - SpreadCameraTransition.size.x-10, -(windowSize.y - Board.BOARD_HEIGHT + SpreadCameraTransition.size.y)/2)
+		SpreadCameraTransition_positionBoard = SpreadCameraTransition.position
+		SpreadCameraTransition_positionSpread = SpreadCameraTransition.position + Vector2(PlayerSpread.position.x- windowSize.x + SpreadCameraTransition.size.x + 20, 0)
+		
+		SpreadTransition_ProximitySensor.custom_minimum_size = Vector2(515, windowSize.y)
+		var posX: float = SpreadCameraTransition.position.x - (SpreadTransition_ProximitySensor.custom_minimum_size.x - SpreadCameraTransition.size.x - 10)/2
+		SpreadTransition_ProximitySensor.position = Vector2(posX, Board.BOARD_HEIGHT/2 - windowSize.y)
+		SpreadTransition_ProximitySensor.custom_minimum_size.x = 700
+		
+		#Draw(14)
+		#PlayerDeck.DIS_ENable(true)
 	
-	SpreadTransition_ProximitySensor.custom_minimum_size = Vector2(515, windowSize.y)
-	var posX: float = SpreadCameraTransition.position.x - (SpreadTransition_ProximitySensor.custom_minimum_size.x - SpreadCameraTransition.size.x - 10)/2
-	SpreadTransition_ProximitySensor.position = Vector2(posX, Board.BOARD_HEIGHT/2 - windowSize.y)
-	SpreadTransition_ProximitySensor.custom_minimum_size.x = 700
-	
-	Draw(14)
-	PlayerDeck.DIS_ENable(true)
+	if(hasBoard):
+		GameBoard.position.y = -windowSize.y
+		
+		var boardTween: Tween = create_tween()
+		boardTween.tween_property(GameBoard, "position:y", 0, 3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT).set_delay(1)
+		if(isMainPlayer):
+			boardTween.finished.connect(func() ->void:
+				#Draw(14)
+				PlayerDeck.DIS_ENable(true))
 	
 	#var bytes1: PackedByteArray = var_to_bytes(inst_to_dict(test1))
 	#test1 = dict_to_inst(bytes_to_var(bytes1))
@@ -164,12 +184,43 @@ func Draw(drawNumber: int = 1) -> void:
 	if(drawNumber > PlayerDeck.DeckTiles.size()):
 		drawNumber = PlayerDeck.DeckTiles.size()
 	
+	var lastTile: Tile
+	var drwanTiles: Array[Tile]
+	
+	var tileStrings: String = ""
 	var newTile: TileContainer
 	for i in range(drawNumber):
-		##THE BACK IS NOT PlayerDeck.DeckTiles[0]!!!
-		newTile = TileContainer.new(PlayerDeck.popTile(true), PLAYER_CONTAINER, -1, BOARD_SPACE)
+		#THE BACK IS NOT PlayerDeck.DeckTiles[0]!!!
+		lastTile = PlayerDeck.popTile(true)
+		drwanTiles.append(lastTile)
+		newTile = TileContainer.new(lastTile, PLAYER_CONTAINER, -1, BOARD_SPACE)
+		
+		if(!tileStrings.is_empty()):
+			tileStrings += "::"
+		
+		tileStrings += str(lastTile)
 		
 		GameBoard.addTile(newTile)
+	
+	MultiplayerHandler.send_data("draw", (str(drawNumber) + "::" + tileStrings).to_utf8_buffer())
+
+func receive_otherPlayer_draw(drawnTiles_bytes: PackedByteArray) -> void:
+	var SEPARATOR: PackedByteArray = "::".to_utf8_buffer()
+	var drwanTiles: Array[Tile]
+	var tileSeparator: int = MultiplayerHandler.findSubArrayLocation(drawnTiles_bytes, SEPARATOR)
+	var drawSize: int = int(drawnTiles_bytes.slice(0, tileSeparator).get_string_from_utf8())
+	drawnTiles_bytes = drawnTiles_bytes.slice(tileSeparator+SEPARATOR.size())
+	
+	var newTile: Tile
+	for i in range(drawSize):
+		tileSeparator = MultiplayerHandler.findSubArrayLocation(drawnTiles_bytes, SEPARATOR)
+		if(tileSeparator < 0):
+			break
+		
+		newTile = Tile._from_bytes(drawnTiles_bytes.slice(0, tileSeparator))
+		drawnTiles_bytes = drawnTiles_bytes.slice(tileSeparator+SEPARATOR.size())
+		
+		Player.GameBoard.addTile(TileContainer.new(newTile, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.BOARD), Board.TileOrigin.OTHER_PLAYER)
 
 func Draw_fromRiver(baitAmmount: int = 0, startingTile: TileContainer = null) -> void:
 	if(baitAmmount <= 0):

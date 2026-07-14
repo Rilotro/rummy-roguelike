@@ -7,8 +7,8 @@ var color: Color
 var joker_id: int = -1
 var rarity: Rarity
 
-var potential_colors: Array[int]
-var potential_number: Array[int]
+#var potential_colors: Array[int]
+#var potential_number: Array[int]
 
 var points: int = 0
 
@@ -292,3 +292,39 @@ static func getRandomJoker() -> Tile:
 			return Vampire.new()
 	
 	return null
+
+func _to_string() -> String:
+	var returnVal: String = str(number) + ":" + str(TileColors.find(color)) + ":" + str(rarity) + ":" + str(effects.size())
+	for effect in effects:
+		returnVal += ":" + str(effect)
+	
+	return returnVal
+
+static func _from_bytes(bytes: PackedByteArray) -> Tile:
+	var sepByte: int = MultiplayerHandler.SEPARATOR_BYTE
+	
+	var index: int = bytes.find(sepByte)
+	var tileN: int = int(bytes.slice(0, index).get_string_from_utf8())
+	#print("HERE1.1 - " + str(tileN))
+	
+	bytes = bytes.slice(index+1)
+	index = bytes.find(sepByte)
+	#var test: String = bytes.slice(0, index).get_string_from_utf8()
+	#print("HERE1.2 - " + test)
+	var tileC: Color = TileColors[int(bytes.slice(0, index).get_string_from_utf8())]
+	
+	bytes = bytes.slice(index+1)
+	index = bytes.find(sepByte)
+	var tileR: Rarity = int(bytes.slice(0, index).get_string_from_utf8()) as Rarity
+	
+	bytes = bytes.slice(index+1)
+	index = bytes.find(sepByte)
+	var effectsSize: int = int(bytes.slice(0, index).get_string_from_utf8())
+	
+	var tileE: Array[Effect]
+	for i in range(effectsSize):
+		bytes = bytes.slice(index+1)
+		index = bytes.find(sepByte)
+		tileE.append(int(bytes.slice(0, index).get_string_from_utf8()))
+	
+	return Tile.new(tileN, tileC, -1, tileR, tileE)

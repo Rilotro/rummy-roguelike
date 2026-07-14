@@ -172,7 +172,7 @@ func finalPress() -> void:
 	
 	super()
 	
-	if(!isEnabled):
+	if(!enabled):
 		return
 	
 	parentEffector.containerPressed(self)
