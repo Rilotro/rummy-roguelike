@@ -15,7 +15,7 @@ var PlayerDeck: Deck
 var Camera: Camera2D
 var SpreadButton: GoodButton
 var DiscardButton: GoodButton
-var SpreadCameraTransition: SpreadTransition
+var SpreadCameraTransition: Transition
 var ExpBar: ExperienceBar
 
 static var selectedTiles: Array[TileContainer]
@@ -82,21 +82,21 @@ func _init(player: PlayerData = null) -> void:
 		Camera.position = Vector2(0, -264.0)
 		add_child(Camera)
 		
-		SpreadButton = GoodButton.new("Spread!", Color.GOLD, GoodButton.ButtonType.SPREAD)
+		SpreadButton = GoodButton.new("Spread!", Color.GOLD, Vector2(-1, -1), null, false, ButtonCallables.Callables["SPREAD"]["NAME"], ButtonCallables.Callables["SPREAD"]["KEYWORDS"], ButtonCallables.Callables["SPREAD"]["DESCRIPTION"])#, GoodButton.ButtonType.SPREAD
 		SpreadButton.position = Vector2(200, -240)
 		SpreadButton.name = "SpreadButton"
 		SpreadButton.visible = false
 		add_child(SpreadButton)
 		SpreadButton.press.connect(SpreadButtonPressed)
 		
-		DiscardButton = GoodButton.new("Discard!", Color.RED, GoodButton.ButtonType.DISCARD)
+		DiscardButton = GoodButton.new("Discard!", Color.RED, Vector2(-1, -1), null, true, ButtonCallables.Callables["DISCARD"]["NAME"], ButtonCallables.Callables["DISCARD"]["KEYWORDS"], ButtonCallables.Callables["DISCARD"]["DESCRIPTION"])#, GoodButton.ButtonType.DISCARD
 		DiscardButton.position = Vector2(-200, -240)
 		DiscardButton.name = "DiscardButton"
 		DiscardButton.visible = false
 		add_child(DiscardButton)
 		DiscardButton.press.connect(DiscardButtonPressed)
 		
-		SpreadCameraTransition = SpreadTransition.new()
+		SpreadCameraTransition = Transition.new(Transition.Target.SPREAD, 0)
 		SpreadCameraTransition.name = "SpreadCameraTransition"
 		SpreadCameraTransition.visible = false
 		add_child(SpreadCameraTransition)
@@ -140,11 +140,12 @@ func _ready() -> void:
 		GameBoard.position.y = -windowSize.y
 		
 		var boardTween: Tween = create_tween()
-		boardTween.tween_property(GameBoard, "position:y", 0, 3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT).set_delay(1)
+		boardTween.tween_property(GameBoard, "position:y", 0, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT).set_delay(0.1)
 		if(isMainPlayer):
 			boardTween.finished.connect(func() ->void:
 				#Draw(14)
-				PlayerDeck.DIS_ENable(true))
+				PlayerDeck.enabled = true
+				)
 	
 	#var bytes1: PackedByteArray = var_to_bytes(inst_to_dict(test1))
 	#test1 = dict_to_inst(bytes_to_var(bytes1))
@@ -287,39 +288,51 @@ func containerPressed(tileContainer: TileContainer) -> void:
 			currentSpreadEligibility = Spread_Info.getSpreadEligibility(selectedTiles)
 			match currentSpreadEligibility:
 				Spread_Info.SpreadCheck.ELIGIBLE:
-					SpreadButton.DIS_ENable(true)
-					SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][0], SpreadButton.IconOrigColor)
+					SpreadButton.enabled = true
+					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][0]
+					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][0], SpreadButton.IconOrigColor)
 				Spread_Info.SpreadCheck.SHORT:
-					SpreadButton.DIS_ENable(false)
-					SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][1], SpreadButton.IconOrigColor)
+					SpreadButton.enabled = false
+					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][1]
+					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][1], SpreadButton.IconOrigColor)
 				Spread_Info.SpreadCheck.VAGUE:
-					SpreadButton.DIS_ENable(false)
-					SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][2], SpreadButton.IconOrigColor)
+					SpreadButton.enabled = false
+					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][2]
+					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][2], SpreadButton.IconOrigColor)
 				Spread_Info.SpreadCheck.NO_PATTERN:
-					SpreadButton.DIS_ENable(false)
-					SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][3], SpreadButton.IconOrigColor)
+					SpreadButton.enabled = false
+					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][3]
+					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][3], SpreadButton.IconOrigColor)
 				Spread_Info.SpreadCheck.DUPLICATE_COLOR:
-					SpreadButton.DIS_ENable(false)
-					SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][4], SpreadButton.IconOrigColor)
+					SpreadButton.enabled = false
+					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][4]
+					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][4], SpreadButton.IconOrigColor)
 				Spread_Info.SpreadCheck.TOO_MANY_COLORS:
-					SpreadButton.DIS_ENable(false)
-					SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][5], SpreadButton.IconOrigColor)
+					SpreadButton.enabled = false
+					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][5]
+					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][5], SpreadButton.IconOrigColor)
 				Spread_Info.SpreadCheck.SEQUENCE_OOB:
-					SpreadButton.DIS_ENable(false)
-					SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][6], SpreadButton.IconOrigColor)
+					SpreadButton.enabled = false
+					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][6]
+					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][6], SpreadButton.IconOrigColor)
 	else:
 		if(selectedTiles.size() < minMAXTilesToDiscard.x):
-			DiscardButton.DIS_ENable(false)
+			DiscardButton.enabled = false
 		elif(selectedTiles.size() <= minMAXTilesToDiscard.y):
-			DiscardButton.DIS_ENable(true)
+			DiscardButton.enabled = true
 		else:
 			selectedTiles.erase(tileContainer)
 		
 		var baseTextSize: Vector2 = DiscardButton.ButtonText.get_theme_font("font").get_string_size("Discard")
 		var textSize_X: float = baseTextSize.x
 		var textSize_Y: float = 2*baseTextSize.y + DiscardButton.ButtonText.get_theme_constant("line_spacing")
-		var newText: String = "Discard\n" + str(selectedTiles.size()) + "/" + str(minMAXTilesToDiscard.x) + "(" + str(minMAXTilesToDiscard.y) + ")"
-		DiscardButton.changeVisuals(newText, DiscardButton.IconOrigColor, Vector2(textSize_X, textSize_Y))
+		var newText: String = "Discard\n" + str(selectedTiles.size()) + "\n/" + str(minMAXTilesToDiscard.x) + "(" + str(minMAXTilesToDiscard.y) + ")"
+		
+		print("HERE1 - " + str(DiscardButton.getTextRealSize(newText)))
+		
+		DiscardButton.text = newText
+		DiscardButton.size.y = textSize_Y
+		#DiscardButton.changeVisuals(newText, DiscardButton.IconOrigColor, Vector2(textSize_X, textSize_Y))
 	
 
 func SpreadButtonPressed() -> void:
@@ -357,13 +370,16 @@ func EN_DISableDiscarding() -> void:
 	
 	GameBoard.changeHighlightColor(newTileHighlightColor)
 	DiscardButton.visible = isDiscarding
-	DiscardButton.DIS_ENable(false)
+	DiscardButton.enabled = false
 	
 	if(isDiscarding):
 		var textSize_X: float = DiscardButton.ButtonText.get_theme_font("font").get_string_size(StringsManager.UIStrings["TURN"]["TEXT"][2]).x
 		var textSize_Y: float = 46+DiscardButton.ButtonText.get_theme_constant("line_spacing")
 		var newText: String = StringsManager.UIStrings["TURN"]["TEXT"][2] + "\n0/" + str(minMAXTilesToDiscard.x) + "(" + str(minMAXTilesToDiscard.y) + ")"
-		DiscardButton.changeVisuals(newText, DiscardButton.IconOrigColor, Vector2(textSize_X, textSize_Y))
+		
+		DiscardButton.text = newText
+		DiscardButton.size.y = textSize_Y
+		#DiscardButton.changeVisuals(newText, DiscardButton.IconOrigColor, Vector2(textSize_X, textSize_Y))
 	
 
 func DiscardButtonPressed() -> void:
@@ -384,22 +400,22 @@ func moveCamera(newPos: CameraPosition) -> void:
 	
 	currentCameraPos = newPos
 	
-	match newPos:
-		CameraPosition.BOARD:
-			SpreadCameraTransition.buttonType = GoodButton.ButtonType.TRANSITION_SPREAD
-			var windowSize: Vector2 = get_viewport_rect().size
-			var tween: Tween = create_tween()
-			tween.tween_property(Camera, "position", Vector2(0, Board.BOARD_HEIGHT/2 - windowSize.y/2), 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
-		CameraPosition.SPREAD:
-			SpreadCameraTransition.buttonType = GoodButton.ButtonType.TRANSITION_BOARD
-			var windowSize: Vector2 = get_viewport_rect().size
-			var tween: Tween = create_tween()
-			tween.tween_property(Camera, "position", Vector2(PlayerSpread.position.x, Board.BOARD_HEIGHT/2 - windowSize.y/2), 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
-		CameraPosition.RIVER:
-			var tween: Tween = create_tween()
-			tween.set_parallel()
-			tween.tween_property(Camera, "global_position", Vector2(0, 0), 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
-			#tween.tween_property(Camera, "")
+	#match newPos:
+		#CameraPosition.BOARD:
+			#SpreadCameraTransition.buttonType = GoodButton.ButtonType.TRANSITION_SPREAD
+			#var windowSize: Vector2 = get_viewport_rect().size
+			#var tween: Tween = create_tween()
+			#tween.tween_property(Camera, "position", Vector2(0, Board.BOARD_HEIGHT/2 - windowSize.y/2), 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
+		#CameraPosition.SPREAD:
+			#SpreadCameraTransition.buttonType = GoodButton.ButtonType.TRANSITION_BOARD
+			#var windowSize: Vector2 = get_viewport_rect().size
+			#var tween: Tween = create_tween()
+			#tween.tween_property(Camera, "position", Vector2(PlayerSpread.position.x, Board.BOARD_HEIGHT/2 - windowSize.y/2), 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
+		#CameraPosition.RIVER:
+			#var tween: Tween = create_tween()
+			#tween.set_parallel()
+			#tween.tween_property(Camera, "global_position", Vector2(0, 0), 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
+			##tween.tween_property(Camera, "")
 
 var proxmityTween: Tween
 

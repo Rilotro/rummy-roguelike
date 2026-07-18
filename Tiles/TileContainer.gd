@@ -378,7 +378,7 @@ var isMoving: bool = false
 func pressing(delta: float) -> void:
 	super(delta)
 	
-	if(pressingTimer > PRESS_TIMER_THRESHOLD && playerSpace == PlayerSpace.BOARD):
+	if(pressingTimer > Press_TimerThreshold && playerSpace == PlayerSpace.BOARD):
 		global_position = get_global_mouse_position() - BASE_RESOURCE_SIZE/2
 		isMoving = true
 		z_index = 1

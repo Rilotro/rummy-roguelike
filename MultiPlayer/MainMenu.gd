@@ -2,27 +2,29 @@ extends Node2D
 
 const MAX_PLAYERS_IN_LOBBY: int = 4
 
-@onready var MenuButtons: VBoxContainer = $MenuButtons
+@onready var MenuButtons: Control = $MenuButtons
 @onready var SPButton: GoodButton = $MenuButtons/SinglePlayer
 @onready var MPButton: GoodButton = $MenuButtons/MultiPlayer
 @onready var NSButton: GoodButton = $MenuButtons/NewServer
 @onready var JSButton: GoodButton = $MenuButtons/JoinServer
 @onready var BButton: GoodButton = $MenuButtons/Back
 
-@onready var ServerForm: VBoxContainer = $ServerForm
+@onready var ServerForm: Control = $ServerForm
 @onready var Username: TextEdit = $ServerForm/UsernameInput
 @onready var Servername: TextEdit = $ServerForm/ServernameInput
-@onready var ErrorText: RichTextLabel = $ServerForm/Separatorn/ErrorText
+@onready var ErrorText: RichTextLabel = $ServerForm/ErrorText
 
-@onready var ServerList: VBoxContainer = $ServerList
+@onready var ServerList: Control = $ServerList
 @onready var Username_J: TextEdit = $ServerList/UsernameInput
 @onready var ServerButtons: VBoxContainer = $ServerList/ServerButtons
-@onready var CancelListButton: GoodButton = $ServerList/Back
+#@onready var CancelListButton: GoodButton = $ServerList/Back
 
-@onready var LobbyRoom: VBoxContainer = $LobbyRoom
+@onready var LobbyRoom: Control = $LobbyRoom
 @onready var LobbyBanner: Label = $LobbyRoom/LobbyBanner
 @onready var PlayerList: VBoxContainer = $LobbyRoom/Players
-@onready var LobbyButtons: HBoxContainer = $LobbyRoom/LobbyButtons
+@onready var Ready: GoodButton = $LobbyRoom/Ready
+@onready var StartGame: GoodButton = $LobbyRoom/StartGame
+@onready var QuitLobby: GoodButton = $LobbyRoom/Back
 
 var currThrobber: Throbber
 var chosenUserName: String
@@ -39,6 +41,8 @@ func _ready() -> void:
 			continue
 		
 		space += (child as Control).size.y
+	
+	BButton.text = BButton.text
 	
 	ServerButtons.custom_minimum_size.y = screen_size.y - space - 10
 	
@@ -158,11 +162,15 @@ func create_lobby_response(_source: String, command: String, params: PackedByteA
 		newUserBanner.name = "UserBanner1"
 		PlayerList.add_child(newUserBanner)
 		
-		var newLength: float = (LobbyRoom.size.x - LobbyButtons.get_theme_constant("separation")*4 - LobbyButtons.get_child(0).size.x - LobbyButtons.get_child(2).size.x - LobbyButtons.get_child(4).size.x)/2
-		LobbyButtons.get_child(1).custom_minimum_size.x = newLength
-		LobbyButtons.get_child(3).custom_minimum_size.x = newLength
-		LobbyButtons.get_child(2).visible = true
-		LobbyButtons.get_child(3).visible = true
+		var newLength: float = (300 - Ready.size.x - StartGame.size.x - QuitLobby.size.x)/2
+		StartGame.position.x = Ready.size.x + newLength
+		QuitLobby.position.x = Ready.size.x + StartGame.size.x + 2*newLength
+		
+		Ready.position.y += newUserBanner.size.y
+		StartGame.position.y += newUserBanner.size.y
+		QuitLobby.position.y += newUserBanner.size.y
+		
+		StartGame.visible = true
 		
 		LobbyRoom.visible = true
 	elif(command == "create_lobby_failed"):
@@ -317,17 +325,21 @@ func confirm_join_lobby(_source: String, command: String, params: PackedByteArra
 		newUserBanner.name = "UserBanner" + str(bannerIndex)
 		PlayerList.add_child(newUserBanner)
 		
-		var newLength: float = LobbyRoom.size.x - LobbyButtons.get_theme_constant("separation")*2 - LobbyButtons.get_child(0).size.x - LobbyButtons.get_child(4).size.x
-		LobbyButtons.get_child(1).custom_minimum_size.x = newLength
-		LobbyButtons.get_child(2).visible = false
-		LobbyButtons.get_child(3).visible = false
+		var newLength: float = 300 - Ready.size.x - QuitLobby.size.x
+		QuitLobby.position.x = Ready.size.x + newLength
+		
+		Ready.position.y += newUserBanner.size.y * (users_inLobby.size()+1)
+		StartGame.position.y += newUserBanner.size.y * (users_inLobby.size()+1)
+		QuitLobby.position.y += newUserBanner.size.y * (users_inLobby.size()+1)
+		
+		StartGame.visible = false
 		
 		LobbyRoom.visible = true
 
 func otherPlayer_lobbyActions(source: String, command: String, params: PackedByteArray) -> void:
 	if(command == "user_joined_lobby"):
 		if(MultiplayerHandler.lobbyOwner):
-			(LobbyButtons.get_child(2) as GoodButton).enabled = false
+			StartGame.enabled = false
 		
 		var username: String = params.get_string_from_utf8()
 		var newPlayer: PlayerData = PlayerData.new(int(source))
@@ -352,6 +364,10 @@ func otherPlayer_lobbyActions(source: String, command: String, params: PackedByt
 		PlayerList.add_child(newUserBanner)
 		
 		LobbyBanner.text = chosenLobbyName + " (" + str(playersSize) + "/4)"
+		
+		Ready.position.y += newUserBanner.size.y
+		StartGame.position.y += newUserBanner.size.y
+		QuitLobby.position.y += newUserBanner.size.y
 	elif(command == "toggle_ready"):
 		var playerReadiness: String = params.get_string_from_utf8()
 		assert(playerReadiness == "true" || playerReadiness == "false", "Message Parameter Value is Unknown!")
@@ -363,12 +379,12 @@ func otherPlayer_lobbyActions(source: String, command: String, params: PackedByt
 			MultiplayerHandler.playersReady += 1
 			playerBanner.text += "[color=green]Ready[/color]"
 			if(MultiplayerHandler.lobbyOwner && MultiplayerHandler.playersReady >= MultiplayerHandler.players.size()):
-				(LobbyButtons.get_child(2) as GoodButton).enabled = true
+				StartGame.enabled = true
 		else:
 			MultiplayerHandler.playersReady -= 1
 			playerBanner.text += "[color=red]Not Ready[/color]"
 			if(MultiplayerHandler.lobbyOwner):
-				(LobbyButtons.get_child(2) as GoodButton).enabled = false
+				StartGame.enabled = false
 	elif(command == "start_game"):
 		get_tree().root.add_child(GameScene.new())
 		self.queue_free()
@@ -384,12 +400,12 @@ func toggleReady() -> void:
 		MultiplayerHandler.playersReady += 1
 		myBanner.text += "[color=green]Ready[/color]"
 		if(MultiplayerHandler.lobbyOwner && MultiplayerHandler.playersReady >= MultiplayerHandler.players.size()):
-			(LobbyButtons.get_child(2) as GoodButton).enabled = true
+			StartGame.enabled = true
 	else:
 		MultiplayerHandler.playersReady -= 1
 		myBanner.text += "[color=red]Not Ready[/color]"
 		if(MultiplayerHandler.lobbyOwner):
-			(LobbyButtons.get_child(2) as GoodButton).enabled = false
+			StartGame.enabled = false
 
 func startGame() -> void:
 	MultiplayerHandler.send_data("start_game", "settings_cammel".to_utf8_buffer())

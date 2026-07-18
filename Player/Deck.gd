@@ -13,19 +13,24 @@ enum TileSource{
 }
 
 func _init() -> void:
-	super(StringsManager.UIStrings["DECK"]["MISCELLANEOUS"][0], Color.WHITE, GoodButton.ButtonType.NONE, ResourceContainer.BASE_RESOURCE_SIZE)
+	super("", Color.GOLD, ResourceContainer.BASE_RESOURCE_SIZE, null, false)
+	hasTip = true
 	
-	var newLabelSettings: LabelSettings = LabelSettings.new()
-	newLabelSettings.font_color = Color.BLACK
+	HighlighColor = Color.GOLD
+	PressedColor = Color.GOLD
+	DisabledColor = Color.WHITE
 	
-	ButtonText.label_settings = newLabelSettings
-	ButtonText.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	ButtonText.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	ButtonText.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	text_color = Color.BLACK
+	horizontal_alignment = 1
+	vertical_alignment = 1
+	
+	text_wrap = true
 	
 	for i in range(13):
-		for color in Tile.TileColors:
-			DeckTiles.append(Tile.new(i+1, color))#, -1, Tile.Rarity.PORCELAIN, [Tile.Effect.WINGED]))
+		for tileColor in Tile.TileColors:
+			DeckTiles.append(Tile.new(i+1, tileColor))#, -1, Tile.Rarity.PORCELAIN, [Tile.Effect.WINGED]))
+	
+	text = StringsManager.UIStrings["DECK"]["MISCELLANEOUS"][0] + " " + str(DeckTiles.size())
 	
 	#DeckTiles.append(Joker.new())
 	DeckTiles.shuffle()
@@ -35,10 +40,10 @@ func _process(delta: float) -> void:
 	
 	handleActiveEffects(delta)
 
-func getName(Tip: UITip) -> String:
+func getName(_TipRef: UITip) -> String:
 	return StringsManager.UIStrings["DECK"]["NAME"]
 
-func getKeywords(Tip: UITip) -> String:
+func getKeywords(_TipRef: UITip) -> String:
 	var keywords: String = StringsManager.UIStrings["DECK"]["KEYWORDS"][0]
 	
 	if(enabled):
@@ -52,7 +57,7 @@ func getKeywords(Tip: UITip) -> String:
 	
 	return keywords
 
-func getDescription(Tip: UITip) -> String:
+func getDescription(_TipRef: UITip) -> String:
 	var description: String = StringsManager.UIStrings["DECK"]["DESCRIPTION"][0]
 	
 	if(DeckTiles.size() == 1):
@@ -126,17 +131,11 @@ func addTile(newTile: TileContainer, source: TileSource) -> void:
 	
 	ButtonText.text = StringsManager.UIStrings["DECK"]["MISCELLANEOUS"][0] + str(DeckTiles.size())
 
-func DIS_ENable(enable: bool) -> void:
+func set_enable(enable: bool):
+	super(enable)
+	
 	if(tween != null):
 		tween.stop()
-	
-	#isEnabled = enable
-	
-	if(enable):
-		changeVisuals(ButtonText.text, Color.GOLD, size)
-	else:
-		changeVisuals(ButtonText.text, Color.WHITE, size)
-	
 
 func popTile(fromBack: bool = true, deckPosition: int = -1) -> Tile:
 	ButtonText.text = StringsManager.UIStrings["DECK"]["MISCELLANEOUS"][0] + str(DeckTiles.size()-1)
@@ -157,19 +156,13 @@ func handleActiveEffects(_delta: float) -> void:
 		tween = create_tween()
 		tween.tween_property(ButtonIcon, "self_modulate:a", 1-ButtonIcon.self_modulate.a, 1.5)
 
-#func checkHovering(delta: float) -> void:
-	#if(mouse_inside && !stillPressingInside):
-		#hoverTimer += delta
-
 func finalPress() -> void:
 	if(!enabled):
 		return
 	
+	super()
+	
 	GameScene.Game.StartRound()
 	GameScene.MainPlayer.Draw(14)
 	
-	DIS_ENable(false)
-
-func _mouse_entered() -> void:
-	mouse_inside = true
-	hoverTimer = 0
+	enabled = false

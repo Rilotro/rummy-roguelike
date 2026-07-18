@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://dc0w08vts0ohm"]
+
+[ext_resource type="Script" uid="uid://btk2q6bqte15i" path="res://UI/GoodButton.gd" id="1_npvay"]
+
+[node name="GoodButton" type="Control" unique_id=102217023]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 253.0
+offset_bottom = 23.0
+script = ExtResource("1_npvay")
+text = "Buttonaaaaaaaaaaaaaaaaaaa"
+HighlighColor = Color(1, 1, 1, 1)
+metadata/_custom_type_script = "uid://btk2q6bqte15i"

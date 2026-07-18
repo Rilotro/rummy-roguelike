@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://dd1a04lwwm5yw" path="res://Player/Deck.gd" id="5_8g4oa"]
 [ext_resource type="Script" uid="uid://bixwq60jl7w87" path="res://UI/SpreadTransition.gd" id="6_vlldt"]
 [ext_resource type="Shader" uid="uid://6luis7yimwxf" path="res://shaders/LoadingOutline.gdshader" id="7_j23h2"]
-[ext_resource type="Texture2D" uid="uid://cl67e0oddo5mr" path="res://UI/TrabsitionArraows.png" id="7_s1rgi"]
+[ext_resource type="Texture2D" uid="uid://cl67e0oddo5mr" path="res://UI/TransitionArrows.png" id="7_s1rgi"]
 [ext_resource type="PackedScene" uid="uid://brxaidy7oal4n" path="res://UI/ProgressBar.tscn" id="9_j23h2"]
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_n5ooj"]

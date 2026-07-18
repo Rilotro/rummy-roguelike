@@ -19,6 +19,7 @@ modulate_color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 script = ExtResource("1_twder")
 
 [node name="MenuButtons" type="Control" parent="." unique_id=1889782574]
+visible = false
 layout_mode = 3
 anchors_preset = 0
 
@@ -50,10 +51,10 @@ PressedColor = Color(0.08156863, 0.08156863, 0.08156863, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
 
 [node name="NewServer" type="Control" parent="MenuButtons" unique_id=429322972]
-visible = false
 anchors_preset = 0
+offset_top = 54.0
 offset_right = 158.4
-offset_bottom = 23.0
+offset_bottom = 77.0
 script = ExtResource("2_tcrr2")
 text = "Create New Server"
 text_color = Color(1, 1, 1, 1)
@@ -64,11 +65,10 @@ PressedColor = Color(0.08156863, 0.08156863, 0.08156863, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
 
 [node name="JoinServer" type="Control" parent="MenuButtons" unique_id=1279467509]
-visible = false
 anchors_preset = 0
-offset_top = 27.0
+offset_top = 81.0
 offset_right = 106.7
-offset_bottom = 50.0
+offset_bottom = 104.0
 script = ExtResource("2_tcrr2")
 text = "Join a Server"
 text_color = Color(1, 1, 1, 1)
@@ -79,11 +79,10 @@ PressedColor = Color(0.08156863, 0.08156863, 0.08156863, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
 
 [node name="Back" type="Control" parent="MenuButtons" unique_id=1564812019]
-visible = false
 anchors_preset = 0
-offset_top = 54.0
+offset_top = 108.0
 offset_right = 69.3
-offset_bottom = 77.0
+offset_bottom = 131.0
 script = ExtResource("2_tcrr2")
 text = "Go Back"
 text_color = Color(1, 1, 1, 1)
@@ -135,7 +134,7 @@ placeholder_text = "Server Name
 [node name="StartServer" type="Control" parent="ServerForm" unique_id=1177360181]
 anchors_preset = 0
 offset_top = 196.0
-offset_right = 101.2
+offset_right = 92.0
 offset_bottom = 219.0
 script = ExtResource("2_tcrr2")
 text = "Start Server"
@@ -150,7 +149,7 @@ metadata/_custom_type_script = "uid://btk2q6bqte15i"
 anchors_preset = 0
 offset_left = 248.0
 offset_top = 196.0
-offset_right = 305.2
+offset_right = 300.0
 offset_bottom = 219.0
 script = ExtResource("2_tcrr2")
 text = "Cancel"
@@ -160,19 +159,6 @@ HighlighColor = Color(0.37137255, 0.37137255, 0.37137255, 0.72)
 DisabledColor = Color(0.08156863, 0.08156863, 0.08156863, 0.6)
 PressedColor = Color(0.08156863, 0.08156863, 0.08156863, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
-
-[node name="ErrorText" type="RichTextLabel" parent="ServerForm" unique_id=1607216264]
-visible = false
-layout_mode = 0
-offset_top = 223.0
-offset_right = 300.0
-offset_bottom = 269.0
-bbcode_enabled = true
-text = "[color=red]Both User Name and Server Name Text Areas must be filled!"
-fit_content = true
-scroll_active = false
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="ServerList" type="Control" parent="." unique_id=1536050477]
 visible = false
@@ -241,7 +227,6 @@ PressedColor = Color(0.08156863, 0.08156863, 0.08156863, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
 
 [node name="LobbyRoom" type="Control" parent="." unique_id=1903851728]
-visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_right = 300.0
@@ -266,7 +251,7 @@ offset_bottom = 88.0
 [node name="Ready" type="Control" parent="LobbyRoom" unique_id=1289948647]
 anchors_preset = 0
 offset_top = 116.0
-offset_right = 52.8
+offset_right = 48.0
 offset_bottom = 139.0
 script = ExtResource("2_tcrr2")
 text = "Ready"
@@ -281,7 +266,7 @@ metadata/_custom_type_script = "uid://btk2q6bqte15i"
 visible = false
 anchors_preset = 0
 offset_top = 116.0
-offset_right = 96.8
+offset_right = 88.0
 offset_bottom = 139.0
 script = ExtResource("2_tcrr2")
 enabled = false
@@ -296,7 +281,7 @@ metadata/_custom_type_script = "uid://btk2q6bqte15i"
 [node name="Back" type="Control" parent="LobbyRoom" unique_id=836201509]
 anchors_preset = 0
 offset_top = 116.0
-offset_right = 37.4
+offset_right = 34.0
 offset_bottom = 139.0
 script = ExtResource("2_tcrr2")
 text = "Quit"

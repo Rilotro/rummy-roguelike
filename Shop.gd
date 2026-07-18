@@ -92,15 +92,15 @@ func _init() -> void:
 	#TileSelections_Box.self_modulate = Color.BLUE
 	TileSelections_Box.name = "TileSelections_Box"
 	
-	var currSelectionSize: float = STARTING_TILE_CONTAINERS*(ResourceContainer.BASE_RESOURCE_SIZE.x + 50)# - 20
-	TileSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), GoodButton.ButtonType.SENSOR_TILE, Vector2(currSelectionSize, ResourceContainer.BASE_RESOURCE_SIZE.y+15))
-	TileSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
-	TileSelection_Sensor.visible = false
-	#TileSelection_Sensor.position = TileSelections_Box.position
-	#TileSelection_Sensor.position.x += HORIZONTAL_SELECTIONS_BOX_WIDTH - currSelectionSize
-	#TileSelection_Sensor.position.y -= 7.5
-	TileSelection_Sensor.name = "TileSelection_Sensor"
-	add_child(TileSelection_Sensor)
+	#var currSelectionSize: float = STARTING_TILE_CONTAINERS*(ResourceContainer.BASE_RESOURCE_SIZE.x + 50)# - 20
+	#TileSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), Vector2(currSelectionSize, ResourceContainer.BASE_RESOURCE_SIZE.y+15))#, GoodButton.ButtonType.SENSOR_TILE
+	#TileSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	#TileSelection_Sensor.visible = false
+	##TileSelection_Sensor.position = TileSelections_Box.position
+	##TileSelection_Sensor.position.x += HORIZONTAL_SELECTIONS_BOX_WIDTH - currSelectionSize
+	##TileSelection_Sensor.position.y -= 7.5
+	#TileSelection_Sensor.name = "TileSelection_Sensor"
+	#add_child(TileSelection_Sensor)
 	
 	add_child(TileSelections_Box)
 	
@@ -114,14 +114,14 @@ func _init() -> void:
 	#JokerSelections_Box.self_modulate = Color.BLUE
 	JokerSelections_Box.name = "JokerSelections_Box"
 	
-	JokerSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), GoodButton.ButtonType.SENSOR_JOKER, Vector2(ResourceContainer.BASE_RESOURCE_SIZE.x+15, VERTICAL_SELECTIONS_BOX_HEIGHT+50))
-	JokerSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
-	JokerSelection_Sensor.visible = false
-	JokerSelection_Sensor.position = JokerSelections_Box.position
-	JokerSelection_Sensor.position.y -= 25
-	JokerSelection_Sensor.position.x -= 7.5
-	JokerSelection_Sensor.name = "JokerSelection_Sensor"
-	add_child(JokerSelection_Sensor)
+	#JokerSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), Vector2(ResourceContainer.BASE_RESOURCE_SIZE.x+15, VERTICAL_SELECTIONS_BOX_HEIGHT+50))#, GoodButton.ButtonType.SENSOR_JOKER
+	#JokerSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	#JokerSelection_Sensor.visible = false
+	#JokerSelection_Sensor.position = JokerSelections_Box.position
+	#JokerSelection_Sensor.position.y -= 25
+	#JokerSelection_Sensor.position.x -= 7.5
+	#JokerSelection_Sensor.name = "JokerSelection_Sensor"
+	#add_child(JokerSelection_Sensor)
 	
 	add_child(JokerSelections_Box)
 	
@@ -135,19 +135,19 @@ func _init() -> void:
 	#ItemSelections_Box.self_modulate = Color.BLUE
 	ItemSelections_Box.name = "ItemSelections_Box"
 	
-	currSelectionSize = STARTING_ITEM_CONTAINERS*(ResourceContainer.BASE_RESOURCE_SIZE.x + 100)# - 20
-	ItemSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), GoodButton.ButtonType.SENSOR_ITEM, Vector2(currSelectionSize, ResourceContainer.BASE_RESOURCE_SIZE.y+15))
-	ItemSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
-	ItemSelection_Sensor.visible = false
-	ItemSelection_Sensor.position = ItemSelections_Box.position
-	ItemSelection_Sensor.position.x += HORIZONTAL_SELECTIONS_BOX_WIDTH - currSelectionSize
-	ItemSelection_Sensor.position.y -= 7.5
-	ItemSelection_Sensor.name = "ItemSelection_Sensor"
-	add_child(ItemSelection_Sensor)
+	#currSelectionSize = STARTING_ITEM_CONTAINERS*(ResourceContainer.BASE_RESOURCE_SIZE.x + 100)# - 20
+	#ItemSelection_Sensor = GoodButton.new("", Color(MAIN_BACKGROUND_COLOR, 0), Vector2(currSelectionSize, ResourceContainer.BASE_RESOURCE_SIZE.y+15))#, GoodButton.ButtonType.SENSOR_ITEM
+	#ItemSelection_Sensor.IconHighlightColor = MAIN_BACKGROUND_COLOR
+	#ItemSelection_Sensor.visible = false
+	#ItemSelection_Sensor.position = ItemSelections_Box.position
+	#ItemSelection_Sensor.position.x += HORIZONTAL_SELECTIONS_BOX_WIDTH - currSelectionSize
+	#ItemSelection_Sensor.position.y -= 7.5
+	#ItemSelection_Sensor.name = "ItemSelection_Sensor"
+	#add_child(ItemSelection_Sensor)
 	
 	add_child(ItemSelections_Box)
 	
-	ExitShop = GoodButton.new("", Color.WHITE, GoodButton.ButtonType.EXIT_SHOP, Vector2(-1, -1), load("res://UI/Exit.png"))
+	ExitShop = GoodButton.new("", Color.WHITE, Vector2(-1, -1), load("res://UI/Exit.png"))#, GoodButton.ButtonType.EXIT_SHOP
 	ExitShop.scale = Vector2(0.5, 0.5)
 	ExitShop.name = "ExitShop"
 	add_child(ExitShop)
@@ -175,7 +175,7 @@ func _init() -> void:
 		TileSelections.append(newTile)
 		newTile.name = "TileSelection" + str(STARTING_TILE_CONTAINERS-i)
 	
-	TileSelection_Sensor.global_position = TileSelections[0].global_position
+	#TileSelection_Sensor.global_position = TileSelections[0].global_position
 	#TileSelection_Sensor.position.x += 15
 	#TileSelection_Sensor.position.y -= 7.5
 	
@@ -213,32 +213,32 @@ func _init() -> void:
 		ItemSelections.append(newItem)
 		newItem.name = "ItemSelection" + str(STARTING_ITEM_CONTAINERS-i)
 	
-	ItemSelection_Sensor.global_position = ItemSelections[0].global_position
-	ItemSelection_Sensor.position.x += 15
-	ItemSelection_Sensor.position.y -= 7.5
+	#ItemSelection_Sensor.global_position = ItemSelections[0].global_position
+	#ItemSelection_Sensor.position.x += 15
+	#ItemSelection_Sensor.position.y -= 7.5
 	
 	ExitShop.press.connect(func() -> void: visible = false)
 	
-	TileSelection_Sensor.press.connect(func() -> void:
-		if(GameScene.usingItem == null):
-			return
-		
-		await GameScene.usingItem.resource.useOnHighlight(TileSelection_Sensor)
-		add_TileSelection())
-		
-	JokerSelection_Sensor.press.connect(func() -> void:
-		if(GameScene.usingItem == null):
-			return
-		
-		await GameScene.usingItem.resource.useOnHighlight(JokerSelection_Sensor)
-		add_JokerSelection())
-		
-	ItemSelection_Sensor.press.connect(func() -> void:
-		if(GameScene.usingItem == null):
-			return
-		
-		await GameScene.usingItem.resource.useOnHighlight(ItemSelection_Sensor)
-		add_ItemSelection())
+	#TileSelection_Sensor.press.connect(func() -> void:
+		#if(GameScene.usingItem == null):
+			#return
+		#
+		#await GameScene.usingItem.resource.useOnHighlight(TileSelection_Sensor)
+		#add_TileSelection())
+		#
+	#JokerSelection_Sensor.press.connect(func() -> void:
+		#if(GameScene.usingItem == null):
+			#return
+		#
+		#await GameScene.usingItem.resource.useOnHighlight(JokerSelection_Sensor)
+		#add_JokerSelection())
+		#
+	#ItemSelection_Sensor.press.connect(func() -> void:
+		#if(GameScene.usingItem == null):
+			#return
+		#
+		#await GameScene.usingItem.resource.useOnHighlight(ItemSelection_Sensor)
+		#add_ItemSelection())
 
 func _ready() -> void:
 	var windowSize: Vector2 = get_viewport_rect().size

@@ -13,8 +13,11 @@ func _init(initButtonAction: ButtonAction) -> void:
 	match(initButtonAction):
 		ButtonAction.END_TURN:
 			super(StringsManager.UIStrings["TURN"]["TEXT"][0], Color.BLACK)
+			text_color = Color.WHITE
 		ButtonAction.SHOP:
 			super(StringsManager.UIStrings["SHOP"][0], Color.GOLD)
+	
+	hasTip = true
 
 func getName(Tip: UITip) -> String:
 	match currButtonAction:
@@ -59,11 +62,15 @@ func getDescription(Tip: UITip) -> String:
 
 func changeButtonAction(newButtonAction: ButtonAction) -> void:
 	currButtonAction = newButtonAction
+	
 	match(currButtonAction):
 		ButtonAction.END_TURN:
-			changeVisuals(StringsManager.UIStrings["TURN"]["TEXT"][0], Color.BLACK)
+			text = StringsManager.UIStrings["TURN"]["TEXT"][0]
+			color = Color.BLACK
+			text_color = Color.WHITE
 		ButtonAction.SHOP:
-			changeVisuals(StringsManager.UIStrings["SHOP"][0], Color.GOLD)
+			text = StringsManager.UIStrings["SHOP"][0]
+			color = Color.GOLD
 
 func finalPress() -> void:
 	if(!enabled):
@@ -74,10 +81,17 @@ func finalPress() -> void:
 			GameScene.MainPlayer.EN_DISableDiscarding()
 			
 			if(Player.isDiscarding):
-				changeVisuals(StringsManager.UIStrings["TURN"]["TEXT"][1], Color.RED)
+				text = StringsManager.UIStrings["TURN"]["TEXT"][1]
+				color = Color.RED
+				text_color = Color.WHITE
+				#changeVisuals(StringsManager.UIStrings["TURN"]["TEXT"][1], Color.RED)
 			else:
-				changeVisuals(StringsManager.UIStrings["TURN"]["TEXT"][0], Color.BLACK)
+				text = StringsManager.UIStrings["TURN"]["TEXT"][0]
+				color = Color.BLACK
+				text_color = Color.WHITE
+				#changeVisuals(StringsManager.UIStrings["TURN"]["TEXT"][0], Color.BLACK)
 		ButtonAction.SHOP:
 			GameScene.GameShop.visible = true
 	
-	press.emit()
+	super()
+	#press.emit()

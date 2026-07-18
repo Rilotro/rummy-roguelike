@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cl67e0oddo5mr"
-path="res://.godot/imported/TrabsitionArraows.png-e98cad08504d27252de4e5d44015326a.ctex"
+uid="uid://dkrfnvxmbphf5"
+path="res://.godot/imported/TransitionArrows_small.png-e33e5ca3a65d0585986d867bfda755bb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://UI/TrabsitionArraows.png"
-dest_files=["res://.godot/imported/TrabsitionArraows.png-e98cad08504d27252de4e5d44015326a.ctex"]
+source_file="res://UI/TransitionArrows_small.png"
+dest_files=["res://.godot/imported/TransitionArrows_small.png-e33e5ca3a65d0585986d867bfda755bb.ctex"]
 
 [params]
 

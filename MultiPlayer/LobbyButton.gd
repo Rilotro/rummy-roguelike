@@ -1,4 +1,3 @@
-@warning_ignore("missing_tool")
 extends GoodButton
 
 class_name LobbyButton
@@ -22,7 +21,8 @@ func _init(lobbyName_param: String = "test", userNames: Array[String] = ["test1"
 		if(i < userNames.size()-1):
 			lobbyText += ", "
 	
-	super(lobbyText, BUTTON_COLOR, GoodButton.ButtonType.NONE, Vector2(0, 40))
+	super(lobbyText, BUTTON_COLOR, Vector2(0, 40))
+	self.text_color = Color.WHITE
 	
 	ErrorText = RichTextLabel.new()
 	ErrorText.bbcode_enabled = true
@@ -49,7 +49,7 @@ func _init(lobbyName_param: String = "test", userNames: Array[String] = ["test1"
 	ErrorText.name = "ErrorText"
 	add_child(ErrorText)
 	
-	joinButton = GoodButton.new("Join", BUTTON_COLOR, GoodButton.ButtonType.NONE, Vector2(0, 40), null, false)
+	joinButton = GoodButton.new("Join", BUTTON_COLOR, Vector2(0, 40), null, false)
 	joinButton.visible = false
 	joinButton.name = "joinButton"
 	add_child(joinButton)
@@ -81,6 +81,7 @@ func _init(lobbyName_param: String = "test", userNames: Array[String] = ["test1"
 		MultiplayerHandler.send_data("join_lobby", param.to_utf8_buffer()))
 
 func _ready() -> void:
+	text_color = Color.WHITE
 	MainMenu = get_parent().get_parent().get_parent()
 
 func finalPress() -> void:

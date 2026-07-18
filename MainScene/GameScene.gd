@@ -68,7 +68,7 @@ func _init() -> void:
 	PlayerBar.name = "PlayerBar"
 	add_child(PlayerBar)
 	
-	BaitButton = GoodButton.new(StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(0), Color.TRANSPARENT, GoodButton.ButtonType.BAIT)
+	BaitButton = GoodButton.new(StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(0), Color.TRANSPARENT, Vector2(-1, -1), null, true, ButtonCallables.Callables["BAIT"]["NAME"], ButtonCallables.Callables["BAIT"]["KEYWORDS"], ButtonCallables.Callables["BAIT"]["DESCRIPTION"])#, GoodButton.ButtonType.BAIT
 	BaitButton.name = "BaitButton"
 	add_child(BaitButton)
 	
@@ -76,23 +76,23 @@ func _init() -> void:
 	PlayerTurnButton.name = "TurnButton"
 	add_child(PlayerTurnButton)
 	
-	Transition_toRiver_Button = GoodButton.new("", Color.WHITE, GoodButton.ButtonType.TRANSITION_RIVER, Vector2(-1, -1), load("res://UI/TrabsitionArraows.png"))
-	Transition_toRiver_Button.rotation = -PI/2
-	Transition_toRiver_Button.scale = Vector2(0.5, 0.5)
+	Transition_toRiver_Button = Transition.new(Transition.Target.RIVER, -PI/2, -1, false)#, GoodButton.ButtonType.TRANSITION_RIVER
+	#Transition_toRiver_Button.rotation = -PI/2
+	#Transition_toRiver_Button.scale = Vector2(0.5, 0.5)
 	Transition_toRiver_Button.name = "Transition_toRiver_Button"
 	add_child(Transition_toRiver_Button)
 	
-	Transition_BackToBoard_Button = GoodButton.new("", Color.WHITE, GoodButton.ButtonType.TRANSITION_BOARD, Vector2(-1, -1), load("res://UI/TrabsitionArraows.png"))
-	Transition_BackToBoard_Button.rotation = PI/2
-	Transition_BackToBoard_Button.scale = Vector2(0.5, 0.5)
+	Transition_BackToBoard_Button = Transition.new(Transition.Target.MAIN_PLAYER, PI/2, -1, false)#, GoodButton.ButtonType.TRANSITION_BOARD
+	#Transition_BackToBoard_Button.rotation = PI/2
+	#Transition_BackToBoard_Button.scale = Vector2(0.5, 0.5)
 	Transition_BackToBoard_Button.name = "Transition_BackToBoard_Button"
 	add_child(Transition_BackToBoard_Button)
 	
-	DiscardButton = GoodButton.new("Discard", Color.RED)
-	DiscardButton.position = Vector2(10, 40)
-	DiscardButton.visible = false
-	DiscardButton.name = "DiscardButton"
-	add_child(DiscardButton)
+	#DiscardButton = GoodButton.new("Discard", Color.RED)
+	#DiscardButton.position = Vector2(10, 40)
+	#DiscardButton.visible = false
+	#DiscardButton.name = "DiscardButton"
+	#add_child(DiscardButton)
 	
 	GameShop = Shop.new()
 	GameShop.visible = false
@@ -125,8 +125,8 @@ func _init() -> void:
 	
 	PlayerTurnButton.resized.connect(func() -> void:
 		BaitButton.position = PlayerTurnButton.position
-		BaitButton.position += (PlayerTurnButton.getSize().x+10)*Vector2(cos(BaitButton.rotation), sin(BaitButton.rotation))
-		BaitButton.position -= (PlayerTurnButton.getSize().y - BaitButton.getSize().y)*Vector2(-sin(BaitButton.rotation), cos(BaitButton.rotation))/2)
+		BaitButton.position += (PlayerTurnButton.size.x+10)*Vector2(cos(BaitButton.rotation), sin(BaitButton.rotation))
+		BaitButton.position -= (PlayerTurnButton.size.y - BaitButton.size.y)*Vector2(-sin(BaitButton.rotation), cos(BaitButton.rotation))/2)
 
 func _ready() -> void:
 	var windowSize: Vector2 = get_viewport_rect().size
@@ -159,17 +159,17 @@ func _ready() -> void:
 	#PlayerBar.position = Vector2(0, PlayerBar_Y)
 	#PlayerBar.position = PlayerBarRadius*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	
-	var buttonSize: Vector2 = Transition_toRiver_Button.getSize()
+	var buttonSize: Vector2 = Transition_toRiver_Button.size
 	Transition_toRiver_Button.rotation = mainPlayerRot - PI/2
 	Transition_toRiver_Button.position = PlayerBar.position
 	Transition_toRiver_Button.position -= buttonSize.y*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))/2 + buttonSize.x*Vector2(sin(mainPlayerRot), -cos(mainPlayerRot))/2
 	#Transition_toRiver_Button.position = Vector2(0, PlayerBar_Y) - Vector2(Transition_toRiver_Button.size.y, -Transition_toRiver_Button.size.x)/4
 	Transition_toRiver_Button.position -= ((GameBar.SLOT_SIZE.y+5) - buttonSize.x)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
 	
-	buttonSize = Transition_BackToBoard_Button.getSize()
+	buttonSize = Transition_BackToBoard_Button.size
 	Transition_BackToBoard_Button.position = Vector2(buttonSize.y/2, windowSize.y/2 - 2*buttonSize.x)#-Transition_BackToBoard_Button.size.y/2
 	
-	buttonSize = PlayerTurnButton.getSize()
+	buttonSize = PlayerTurnButton.size
 	PlayerTurnButton.rotation = mainPlayerRot
 	PlayerTurnButton.position = PlayerBar.position - 5*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	#PlayerTurnButton.position = (PlayerBarRadius-5)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot)) + (-windowSize.x/2 + buttonSize.x/2 + 5)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
@@ -179,7 +179,7 @@ func _ready() -> void:
 	BaitButton.rotation = mainPlayerRot
 	BaitButton.position = PlayerTurnButton.position
 	BaitButton.position += (buttonSize.x+10)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
-	BaitButton.position -= (buttonSize.y - BaitButton.getSize().y)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
+	BaitButton.position -= (buttonSize.y - BaitButton.size.y)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
 	
 	GameShop.position = Vector2(-windowSize.x/2, MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2)
 	
