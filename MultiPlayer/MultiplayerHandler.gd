@@ -54,6 +54,13 @@ func receiveData(_source: String, command: String, params: PackedByteArray) -> v
 		currPlayer = PlayerData.new(int(params.get_string_from_utf8()))
 		players.append(currPlayer)
 
+func getCurrentActivePlayer() -> PlayerData:
+	for player in  players:
+		if(player.playerSpace.hasBoard):
+			return player
+	
+	return null
+
 func getPlayer_byID(ID: int) -> PlayerData:
 	for player in players:
 		if(player.ID == ID):
@@ -111,7 +118,6 @@ func send_data(command: String, params: PackedByteArray) -> void:
 		data.append_array(params)
 		
 		var dataSize: int = data.size()
-		#print("HERE0 - " + str(dataSize))
 		
 		var message = (str(dataSize) + ":").to_utf8_buffer()
 		message.append_array(data)

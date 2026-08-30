@@ -6,6 +6,8 @@ class_name GoodButton
 #const PRESS_TIMER_THRESHOLD: float = 0.5
 #const TIP_TIMER_TRIGGER: float = 1
 
+const BASE_RESOURCE_SIZE: Vector2 = Vector2(75, 105)
+
 @export_range(0, 3, 0.01, "or_greater", "prefer_slider") var Press_TimerThreshold: float = 0.5
 @export_range(0, 3, 0.01, "or_greater", "prefer_slider") var Tip_TimerThreshold: float = 1.0
 @export var hasTip: bool = false
@@ -14,12 +16,15 @@ func set_enable(enable: bool):
 	if(enable != enabled):
 		if(enable):
 			if(mouse_inside):
-				ButtonIcon.self_modulate = HighlighColor
+				changeColor(HighlighColor)
+				#ButtonIcon.self_modulate = HighlighColor
 			else:
-				ButtonIcon.self_modulate = color
+				changeColor(color)
+				#ButtonIcon.self_modulate = color
 		else:
 			stillPressingInside = false
-			ButtonIcon.self_modulate = DisabledColor
+			changeColor(DisabledColor)
+			#ButtonIcon.self_modulate = DisabledColor
 	
 	enabled = enable
 
@@ -35,7 +40,7 @@ func set_enable(enable: bool):
 			isShrinking = textSize.x < getTextRealSize(text).x
 		
 		text = newText
-		ButtonText.text = text
+		ButtonText.text = newText
 		
 		if(Icon_isImage):
 			return
@@ -255,17 +260,36 @@ func getTextRealSize(newText: String, override_maxWidth: float = -1) -> Vector2:
 		
 		REassignColor()
 
+var colorTransitionTween: Tween
+@export_range(0, 1, 0.01, "prefer_slider") var colorTransitionTime: float = 0.1
+
 func REassignColor() -> void:
 	if(enabled):
 		if(mouse_inside):
 			if(stillPressingInside):
-				ButtonIcon.self_modulate = PressedColor
+				changeColor(PressedColor)
 			else:
-				ButtonIcon.self_modulate = HighlighColor
+				changeColor(HighlighColor)
 		else:
-			ButtonIcon.self_modulate = color
+			changeColor(color)
 	else:
-		ButtonIcon.self_modulate = DisabledColor
+		changeColor(DisabledColor)
+
+func changeColor(newColor: Color) -> void:
+	if(colorTransitionTime > 0):
+		if(colorTransitionTween != null && colorTransitionTween.is_running()):
+			#if(colorTransitionTween.fin)
+			#colorTransitionTween.get_loops_left()
+			colorTransitionTween.stop()
+		
+		colorTransitionTween = create_tween()
+		colorTransitionTween.tween_property(ButtonIcon, "self_modulate", newColor, colorTransitionTime)
+	
+	else:
+		if(ButtonIcon.self_modulate == newColor):
+			return
+		
+		ButtonIcon.self_modulate = newColor
 
 @export_subgroup("Color Options")
 ##The Color the Button's Background takes when the mouse hovers over it and is enabled.
@@ -424,7 +448,7 @@ func _property_get_revert(property: StringName) -> Variant:
 	
 	return null
 
-func _init(newText: String = "Button", IconColor: Color = Color.WHITE, newSize: Vector2 = size, newImage: Texture = null, enable: bool = true, TN: Callable = Callable(), TK: Callable = Callable(), TD: Callable = Callable()) -> void:#----------------------------------------------------------------------------------
+func _init(newText: String = "a", IconColor: Color = Color.WHITE, newSize: Vector2 = size, newImage: Texture = null, enable: bool = true, TN: Callable = Callable(), TK: Callable = Callable(), TD: Callable = Callable()) -> void:#----------------------------------------------------------------------------------
 	TipName = TN
 	TipKeywords = TK
 	TipDescription = TD

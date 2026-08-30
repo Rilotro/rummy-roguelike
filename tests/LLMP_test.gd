@@ -55,9 +55,6 @@ func _process(_delta: float) -> void:
 		var test: Array[int] = Array(JSON.parse_string(msg), TYPE_INT, "", null)
 		#var test: Vector2 = JSON.parse_string(msg)
 		
-		print("HERE0")
-		print(test)
-		
 		#var test: Dictionary
 		#JSON.parse_string()
 		

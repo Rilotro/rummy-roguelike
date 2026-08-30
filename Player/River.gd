@@ -19,16 +19,18 @@ static var bait: int = 0
 func DiscardTiles(newTiles: Array[TileContainer]) -> void:
 	bait += newTiles.size()
 	
-	GameScene.BaitButton.changeVisuals(StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(bait))
+	GameScene.BaitButton.text = StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(bait)
+	
+	#GameScene.BaitButton.changeVisuals()
 	
 	var oldSize: int = river.size()
 	
 	for tile in newTiles:
 		tile.reparent(self)
-		tile.playerSpace = Player.RIVER_SPACE
-		tile.DIS_ENable(false)
+		#tile.playerSpace = Player.RIVER_SPACE
+		tile.enabled = false
 		tile.Highlight.visible = false
-		tile.Highlight.self_modulate = TileContainer.HIGHLIGHT_RIVER_COLOR
+		#tile.Highlight.self_modulate = TileContainer.HIGHLIGHT_RIVER_COLOR
 	
 	river.append_array(newTiles)
 	

@@ -2,6 +2,8 @@ extends Resource
 
 class_name Spread_Info
 
+const SPREAD_SPACING: float = 15
+
 var Tiles: Array[TileContainer]
 
 enum SpreadCheck{
@@ -33,7 +35,7 @@ static func getSpreadEligibility(SpreadTiles: Array[TileContainer]) -> SpreadChe
 	
 	var tile_info: Tile
 	for tile in SpreadTiles:
-		tile_info = tile.resource
+		tile_info = tile.tile
 		
 		if(hasWrapped):
 			sequenceOutOfBounds = true
@@ -44,7 +46,7 @@ static func getSpreadEligibility(SpreadTiles: Array[TileContainer]) -> SpreadChe
 				curentNumber = 1
 				hasWrapped = true
 		
-		if(tile_info.joker_id >= 0):
+		if(tile_info.jokerID >= 0):
 			jokerCount += 1
 			anyColorCount += 1
 			continue
@@ -83,7 +85,7 @@ static func getSpreadEligibility(SpreadTiles: Array[TileContainer]) -> SpreadChe
 		if(hasColorDuplicate):
 			return SpreadCheck.DUPLICATE_COLOR
 		
-		if(colors.size() + anyColorCount > Tile.TileColors.size()):
+		if(colors.size() + anyColorCount > Tile.COLORS.size()):
 			return SpreadCheck.TOO_MANY_COLORS
 	
 	if(isSequence):

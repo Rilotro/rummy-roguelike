@@ -3,19 +3,23 @@ extends Node2D
 class_name Player
 
 const PLAYER_CONTAINER: ResourceContainer.ContainerType = ResourceContainer.ContainerType.PLAYER_TILE#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-const BOARD_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.BOARD
-const SPREAD_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.SPREAD
-const RIVER_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.RIVER
+#const BOARD_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.BOARD
+#const SPREAD_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.SPREAD
+#const RIVER_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.RIVER
 
-var SpreadTransition_ProximitySensor: Control
+
 static var GameBoard: Board
+var SpreadAndBoard_Transition_ProximitySensor: Control
+var SpreadCameraTransition: Transition
+var BoardCameraTransition: Transition
+var PlayerButtons: Array[PlayerTransition]
 var PlayerSpread: Spread
 var GameRiver: River
 var PlayerDeck: Deck
+var otherPlayerDeck: Sprite2D
 var Camera: Camera2D
 var SpreadButton: GoodButton
 var DiscardButton: GoodButton
-var SpreadCameraTransition: Transition
 var ExpBar: ExperienceBar
 
 static var selectedTiles: Array[TileContainer]
@@ -48,14 +52,30 @@ func _init(player: PlayerData = null) -> void:
 	#print(testArray1)
 	#print(testArray2)
 	
+	SpreadAndBoard_Transition_ProximitySensor = Control.new()
+	SpreadAndBoard_Transition_ProximitySensor.name = "SpreadAndBoard_Transition_ProximitySensor"
+	add_child(SpreadAndBoard_Transition_ProximitySensor)
+	
 	ExpBar = ExperienceBar.new()
 	ExpBar.name = "ExperienceBar"
 	add_child(ExpBar)
 	
-	if(isMainPlayer):
-		SpreadTransition_ProximitySensor = Control.new()
-		SpreadTransition_ProximitySensor.name = "SpreadTransition_ProximitySensor"
-		add_child(SpreadTransition_ProximitySensor)
+	#if(isMainPlayer):
+	var id: int = -1
+	if(player != null):
+		id = player.ID
+	
+	SpreadCameraTransition = Transition.new(Transition.Target.SPREAD, 0, id)
+	SpreadCameraTransition.name = "SpreadCameraTransition"
+	SpreadCameraTransition.enabled = false
+	#SpreadCameraTransition.visible = false
+	add_child(SpreadCameraTransition)
+	
+	BoardCameraTransition = Transition.new(Transition.Target.BOARD, PI, id)
+	BoardCameraTransition.name = "BoardCameraTransition"
+	BoardCameraTransition.enabled = false
+	#BoardCameraTransition.visible = false
+	add_child(BoardCameraTransition)
 	
 	hasBoard = (player == null || player.order == 0)
 	if(hasBoard):
@@ -68,6 +88,17 @@ func _init(player: PlayerData = null) -> void:
 	add_child(PlayerSpread)
 	
 	if(isMainPlayer):
+		var newPlayerButton: PlayerTransition
+		for playerData in MultiplayerHandler.players:
+			if(playerData == player):
+				continue
+			
+			newPlayerButton = PlayerTransition.new(playerData.ID)
+			newPlayerButton.modulate.a = 0.5
+			newPlayerButton.name = "PlayerButton-" + str(playerData.ID)
+			PlayerButtons.append(newPlayerButton)
+			add_child(newPlayerButton)
+		
 		GameRiver = River.new()
 		GameRiver.name = "GameRiver"
 		add_child(GameRiver)
@@ -83,9 +114,11 @@ func _init(player: PlayerData = null) -> void:
 		add_child(Camera)
 		
 		SpreadButton = GoodButton.new("Spread!", Color.GOLD, Vector2(-1, -1), null, false, ButtonCallables.Callables["SPREAD"]["NAME"], ButtonCallables.Callables["SPREAD"]["KEYWORDS"], ButtonCallables.Callables["SPREAD"]["DESCRIPTION"])#, GoodButton.ButtonType.SPREAD
+		SpreadButton.DisabledColor = Color.TRANSPARENT
+		SpreadButton.text_color = Color.TRANSPARENT
+		SpreadButton.enabled = false
 		SpreadButton.position = Vector2(200, -240)
 		SpreadButton.name = "SpreadButton"
-		SpreadButton.visible = false
 		add_child(SpreadButton)
 		SpreadButton.press.connect(SpreadButtonPressed)
 		
@@ -95,24 +128,45 @@ func _init(player: PlayerData = null) -> void:
 		DiscardButton.visible = false
 		add_child(DiscardButton)
 		DiscardButton.press.connect(DiscardButtonPressed)
+	else:
+		var newPlayerButton: PlayerTransition
+		newPlayerButton = PlayerTransition.new(MultiplayerHandler.currPlayer.ID)
+		newPlayerButton.modulate.a = 0.5
+		newPlayerButton.name = "PlayerButton-" + str(MultiplayerHandler.currPlayer.ID)
+		PlayerButtons.append(newPlayerButton)
+		add_child(newPlayerButton)
 		
-		SpreadCameraTransition = Transition.new(Transition.Target.SPREAD, 0)
-		SpreadCameraTransition.name = "SpreadCameraTransition"
-		SpreadCameraTransition.visible = false
-		add_child(SpreadCameraTransition)
+		otherPlayerDeck = Sprite2D.new()
+		otherPlayerDeck.region_enabled = true
+		otherPlayerDeck.region_rect = Rect2(Vector2(), ResourceContainer.BASE_RESOURCE_SIZE)
+		otherPlayerDeck.texture = CanvasTexture.new()
+		otherPlayerDeck.name = "otherPlayerDeck"
+		otherPlayerDeck.position = Vector2(-Board.BOARD_WIDTH/2 + Board.SPACE_BETWEEN_TILES, -(Board.BOARD_HEIGHT)*(Board.STARTING_BOARD_ROWS-0.5) - ResourceContainer.BASE_RESOURCE_SIZE.y - 10)
+		add_child(otherPlayerDeck)
 		
+		#SpreadCameraTransition.press.connect(func() -> void:
+			#if(currentCameraPos != CameraPosition.SPREAD):
+				#moveCamera(CameraPosition.SPREAD)
+			#else:
+				#moveCamera(CameraPosition.BOARD))
 		
-		SpreadCameraTransition.press.connect(func() -> void:
-			if(currentCameraPos != CameraPosition.SPREAD):
-				moveCamera(CameraPosition.SPREAD)
-			else:
-				moveCamera(CameraPosition.BOARD))
+		#SpreadTransition_ProximitySensor.mouse_entered.connect(_mouse_inProximity)
+		#SpreadTransition_ProximitySensor.mouse_exited.connect(_mouse_outsideProximity)
+	
+	SpreadAndBoard_Transition_ProximitySensor.mouse_entered.connect(func() -> void:
+		SpreadCameraTransition.enabled = true
+		BoardCameraTransition.enabled = true)
+	
+	SpreadAndBoard_Transition_ProximitySensor.mouse_exited.connect(func() -> void:
+		await get_tree().create_timer(0.0001).timeout
+		if(!SpreadCameraTransition.mouse_inside):
+			SpreadCameraTransition.enabled = false
 		
-		SpreadTransition_ProximitySensor.mouse_entered.connect(_mouse_inProximity)
-		SpreadTransition_ProximitySensor.mouse_exited.connect(_mouse_outsideProximity)
+		if(!BoardCameraTransition.mouse_inside):
+			BoardCameraTransition.enabled = false)
 
-var SpreadCameraTransition_positionBoard: Vector2
-var SpreadCameraTransition_positionSpread: Vector2
+#var SpreadCameraTransition_positionBoard: Vector2
+#var SpreadCameraTransition_positionSpread: Vector2
 
 func _ready() -> void:
 	var windowSize: Vector2 = get_viewport_rect().size
@@ -120,19 +174,25 @@ func _ready() -> void:
 	var ExpBar_Y: float = -windowSize.y + Board.BOARD_HEIGHT/2 + ExperienceBar.BAR_SIZE.y/2 + GameBar.SLOT_BAR_SIZE.y+5
 	ExpBar.position = Vector2(0, ExpBar_Y)
 	
-	var PlayerSpread_posX: float = (windowSize.x + Spread.ROW_WIDTH)/2 + 420
+	var PlayerSpread_posX: float = windowSize.x + Spread.ROW_WIDTH/2# + 420
 	PlayerSpread.position = Vector2(PlayerSpread_posX, 0)
 	
-	if(isMainPlayer):
-		SpreadCameraTransition.position = Vector2(windowSize.x/2 - SpreadCameraTransition.size.x-10, -(windowSize.y - Board.BOARD_HEIGHT + SpreadCameraTransition.size.y)/2)
-		SpreadCameraTransition_positionBoard = SpreadCameraTransition.position
-		SpreadCameraTransition_positionSpread = SpreadCameraTransition.position + Vector2(PlayerSpread.position.x- windowSize.x + SpreadCameraTransition.size.x + 20, 0)
+	var start_y: float = -windowSize.y + Board.BOARD_HEIGHT/2 + GameBar.SLOT_SIZE.y+5 + 10
+	for button in PlayerButtons:
+		button.position = Vector2(10-windowSize.x/2, start_y)
 		
-		SpreadTransition_ProximitySensor.custom_minimum_size = Vector2(515, windowSize.y)
-		var posX: float = SpreadCameraTransition.position.x - (SpreadTransition_ProximitySensor.custom_minimum_size.x - SpreadCameraTransition.size.x - 10)/2
-		SpreadTransition_ProximitySensor.position = Vector2(posX, Board.BOARD_HEIGHT/2 - windowSize.y)
-		SpreadTransition_ProximitySensor.custom_minimum_size.x = 700
-		
+		start_y += button.CameraTransition.size.y + 10
+	
+	SpreadCameraTransition.position = Vector2(windowSize.x/2 - SpreadCameraTransition.size.x-10, -(windowSize.y - Board.BOARD_HEIGHT + SpreadCameraTransition.size.y)/2)
+	BoardCameraTransition.position = SpreadCameraTransition.position + Vector2(PlayerSpread.position.x - windowSize.x + SpreadCameraTransition.size.x + 20, 0)
+	BoardCameraTransition.position += BoardCameraTransition.size
+	
+	SpreadAndBoard_Transition_ProximitySensor.size = Vector2(515, windowSize.y)
+	var posX: float = SpreadCameraTransition.position.x - (SpreadAndBoard_Transition_ProximitySensor.size.x - SpreadCameraTransition.size.x - 10)/2
+	SpreadAndBoard_Transition_ProximitySensor.position = Vector2(posX, Board.BOARD_HEIGHT/2 - windowSize.y)
+	SpreadAndBoard_Transition_ProximitySensor.size.x = 700
+	
+	#if(isMainPlayer):
 		#Draw(14)
 		#PlayerDeck.DIS_ENable(true)
 	
@@ -162,20 +222,27 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	#print("HERE0 - " + str(GameRiver.global_position))
-	if(Input.is_action_just_pressed("Debug_Draw")):
+	if(Input.is_action_just_pressed("Debug_Draw") && isMainPlayer):
 		Draw()
 		#ExpBar.gainExperience(100)
 	
 	#ExperienceTest.currScore += 1
-	if(falsePositive):
-		var distances: Vector2 = SpreadTransition_ProximitySensor.size
-		var mousePos: Vector2 = get_global_mouse_position()
-		var sensorPos: Vector2 = SpreadTransition_ProximitySensor.global_position
-		var diffPos: Vector2 = mousePos - sensorPos
-		
-		if(diffPos.x < 0 || diffPos.x > distances.x || diffPos.y < 0 || diffPos.y > distances.y):
-			falsePositive = false
-			_mouse_outsideProximity()
+	#if(falsePositive):
+		#var distances: Vector2 = SpreadTransition_ProximitySensor.size
+		#var mousePos: Vector2 = get_global_mouse_position()
+		#var sensorPos: Vector2 = SpreadTransition_ProximitySensor.global_position
+		#var diffPos: Vector2 = mousePos - sensorPos
+		#
+		#if(diffPos.x < 0 || diffPos.x > distances.x || diffPos.y < 0 || diffPos.y > distances.y):
+			#falsePositive = false
+			#_mouse_outsideProximity()
+
+func getPlayerButton(playerID: int) -> PlayerTransition:
+	for PB in PlayerButtons:
+		if(PB.playerID == playerID):
+			return PB
+	
+	return null
 
 func Draw(drawNumber: int = 1) -> void:
 	PlayerDraw.emit(true)
@@ -194,34 +261,29 @@ func Draw(drawNumber: int = 1) -> void:
 		#THE BACK IS NOT PlayerDeck.DeckTiles[0]!!!
 		lastTile = PlayerDeck.popTile(true)
 		drwanTiles.append(lastTile)
-		newTile = TileContainer.new(lastTile, PLAYER_CONTAINER, -1, BOARD_SPACE)
+		newTile = TileContainer.new(lastTile)
+		
+		var tilePos: Vector2i = GameBoard.addTile(newTile)
 		
 		if(!tileStrings.is_empty()):
 			tileStrings += "::"
 		
-		tileStrings += str(lastTile)
-		
-		GameBoard.addTile(newTile)
+		tileStrings += str(lastTile) + ":" + str(tilePos.x) + ":" + str(tilePos.y)
 	
 	MultiplayerHandler.send_data("draw", (str(drawNumber) + "::" + tileStrings).to_utf8_buffer())
 
-func receive_otherPlayer_draw(drawnTiles_bytes: PackedByteArray) -> void:
-	var SEPARATOR: PackedByteArray = "::".to_utf8_buffer()
-	var drwanTiles: Array[Tile]
-	var tileSeparator: int = MultiplayerHandler.findSubArrayLocation(drawnTiles_bytes, SEPARATOR)
-	var drawSize: int = int(drawnTiles_bytes.slice(0, tileSeparator).get_string_from_utf8())
-	drawnTiles_bytes = drawnTiles_bytes.slice(tileSeparator+SEPARATOR.size())
+func receive_otherPlayer_draw(drawnTiles_str: String) -> void:
+	var drawSize: int = int(drawnTiles_str.get_slice("::", 0))
 	
 	var newTile: Tile
+	var tilePos: Vector2i
+	var argv: Array
 	for i in range(drawSize):
-		tileSeparator = MultiplayerHandler.findSubArrayLocation(drawnTiles_bytes, SEPARATOR)
-		if(tileSeparator < 0):
-			break
+		argv = Tile._from_str(drawnTiles_str.get_slice("::", i+1), true)
+		newTile = argv[0]
+		tilePos = argv[1]
 		
-		newTile = Tile._from_bytes(drawnTiles_bytes.slice(0, tileSeparator))
-		drawnTiles_bytes = drawnTiles_bytes.slice(tileSeparator+SEPARATOR.size())
-		
-		Player.GameBoard.addTile(TileContainer.new(newTile, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.BOARD), Board.TileOrigin.OTHER_PLAYER)
+		Player.GameBoard.addTile(TileContainer.new(newTile), Board.TileOrigin.OTHER_PLAYER, tilePos, self)
 
 func Draw_fromRiver(baitAmmount: int = 0, startingTile: TileContainer = null) -> void:
 	if(baitAmmount <= 0):
@@ -231,8 +293,6 @@ func Draw_fromRiver(baitAmmount: int = 0, startingTile: TileContainer = null) ->
 	River.bait = 0
 	
 	GameScene.BaitButton.changeVisuals(StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(0))
-	
-	print("HERE0")
 	
 	var startingIndex: int = River.river.find(startingTile)
 	if(startingIndex < 0):
@@ -250,99 +310,148 @@ func Draw_fromRiver(baitAmmount: int = 0, startingTile: TileContainer = null) ->
 
 static var currentSpreadEligibility: Spread_Info.SpreadCheck
 
-func containerPressed(tileContainer: TileContainer) -> void:
-	if(River.river.has(tileContainer)):
-		if(BeaverTeeth.Beaver_Teeth_Activated):
-			BeaverTeeth.chosenRiverTile = tileContainer
-		
-		return
-	
-	if(GameScene.usingItem != null && GameScene.usingItem.resource.target == Item.ItemTarget.VIABLE_BOARD_TILE):
-		if(tileContainer.playerSpace != BOARD_SPACE):
-			return
-		
-		#if(GameScene.usingItem.resource.isTileValid(tile)):
-		GameScene.usingItem.resource.useOnTile(tileContainer)
-		return
-	
-	if(selectedTiles.has(tileContainer)):
-		selectedTiles.erase(tileContainer)
+func tilePressed(tile: TileContainer) -> void:
+	if(selectedTiles.has(tile)):
+		selectedTiles.erase(tile)
 	else:
-		selectedTiles.append(tileContainer)
+		selectedTiles.append(tile)
 	
-	if(!isDiscarding):
-		#if(River.river.has(tileContainer)):
-			#for tile in selectedTiles:
-				#if(tile != tileContainer && River.river.has(tile)):
-					#tile.Highlight.visible = false
-					#selectedTiles.erase(tile)
-					#break
+	GameBoard.SpreadHelper(selectedTiles)
 		
-		GameBoard.SpreadHelper(selectedTiles)
-		
-		if(selectedTiles.size() == 0):
-			SpreadButton.visible = false
-		else:
-			SpreadButton.visible = true
-			
-			currentSpreadEligibility = Spread_Info.getSpreadEligibility(selectedTiles)
-			match currentSpreadEligibility:
-				Spread_Info.SpreadCheck.ELIGIBLE:
-					SpreadButton.enabled = true
-					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][0]
-					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][0], SpreadButton.IconOrigColor)
-				Spread_Info.SpreadCheck.SHORT:
-					SpreadButton.enabled = false
-					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][1]
-					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][1], SpreadButton.IconOrigColor)
-				Spread_Info.SpreadCheck.VAGUE:
-					SpreadButton.enabled = false
-					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][2]
-					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][2], SpreadButton.IconOrigColor)
-				Spread_Info.SpreadCheck.NO_PATTERN:
-					SpreadButton.enabled = false
-					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][3]
-					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][3], SpreadButton.IconOrigColor)
-				Spread_Info.SpreadCheck.DUPLICATE_COLOR:
-					SpreadButton.enabled = false
-					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][4]
-					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][4], SpreadButton.IconOrigColor)
-				Spread_Info.SpreadCheck.TOO_MANY_COLORS:
-					SpreadButton.enabled = false
-					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][5]
-					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][5], SpreadButton.IconOrigColor)
-				Spread_Info.SpreadCheck.SEQUENCE_OOB:
-					SpreadButton.enabled = false
-					SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][6]
-					#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][6], SpreadButton.IconOrigColor)
+	if(selectedTiles.size() == 0):
+		SpreadButton.enabled = false
+		SpreadButton.text_color = Color.TRANSPARENT
 	else:
-		if(selectedTiles.size() < minMAXTilesToDiscard.x):
-			DiscardButton.enabled = false
-		elif(selectedTiles.size() <= minMAXTilesToDiscard.y):
-			DiscardButton.enabled = true
-		else:
-			selectedTiles.erase(tileContainer)
+		SpreadButton.enabled = true
+		#SpreadButton.DisabledColor
+		SpreadButton.text_color = Color.BLACK
 		
-		var baseTextSize: Vector2 = DiscardButton.ButtonText.get_theme_font("font").get_string_size("Discard")
-		var textSize_X: float = baseTextSize.x
-		var textSize_Y: float = 2*baseTextSize.y + DiscardButton.ButtonText.get_theme_constant("line_spacing")
-		var newText: String = "Discard\n" + str(selectedTiles.size()) + "\n/" + str(minMAXTilesToDiscard.x) + "(" + str(minMAXTilesToDiscard.y) + ")"
-		
-		print("HERE1 - " + str(DiscardButton.getTextRealSize(newText)))
-		
-		DiscardButton.text = newText
-		DiscardButton.size.y = textSize_Y
-		#DiscardButton.changeVisuals(newText, DiscardButton.IconOrigColor, Vector2(textSize_X, textSize_Y))
-	
+		currentSpreadEligibility = Spread_Info.getSpreadEligibility(selectedTiles)
+		match currentSpreadEligibility:
+			Spread_Info.SpreadCheck.ELIGIBLE:
+				SpreadButton.enabled = true
+				SpreadButton.text_color = Color.BLACK
+				SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][0]
+				#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][0], SpreadButton.IconOrigColor)
+			Spread_Info.SpreadCheck.SHORT:
+				SpreadButton.enabled = false
+				SpreadButton.text_color = Color.TRANSPARENT
+				SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][1]
+				#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][1], SpreadButton.IconOrigColor)
+			Spread_Info.SpreadCheck.VAGUE:
+				SpreadButton.enabled = false
+				SpreadButton.text_color = Color.TRANSPARENT
+				SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][2]
+				#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][2], SpreadButton.IconOrigColor)
+			Spread_Info.SpreadCheck.NO_PATTERN:
+				SpreadButton.enabled = false
+				SpreadButton.text_color = Color.TRANSPARENT
+				SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][3]
+				#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][3], SpreadButton.IconOrigColor)
+			Spread_Info.SpreadCheck.DUPLICATE_COLOR:
+				SpreadButton.enabled = false
+				SpreadButton.text_color = Color.TRANSPARENT
+				SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][4]
+				#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][4], SpreadButton.IconOrigColor)
+			Spread_Info.SpreadCheck.TOO_MANY_COLORS:
+				SpreadButton.enabled = false
+				SpreadButton.text_color = Color.TRANSPARENT
+				SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][5]
+				#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][5], SpreadButton.IconOrigColor)
+			Spread_Info.SpreadCheck.SEQUENCE_OOB:
+				SpreadButton.enabled = false
+				SpreadButton.text_color = Color.TRANSPARENT
+				SpreadButton.text = StringsManager.UIStrings["SPREAD"]["TEXT"][6]
+				#SpreadButton.changeVisuals(StringsManager.UIStrings["SPREAD"]["TEXT"][6], SpreadButton.IconOrigColor)
 
-func SpreadButtonPressed() -> void:
-	#var outcome: Spread_Info.SpreadCheck = Spread_Info.getSpreadEligibility(selectedTiles)
-	#if(outcome == Spread_Info.SpreadCheck.ELIGIBLE):
-		#PlayerSpread.SpreadTiles(selectedTiles.duplicate())
+var spreadFinishCount: int = 0
+
+func SpreadButtonPressed(byMainPlayer: bool = true, overrideSelectedTiles: Array[TileContainer] = []) -> void:
+	if(byMainPlayer):
+		SpreadButton.enabled = false
+		SpreadButton.text_color = Color.TRANSPARENT
 	
-	GameBoard.removeTiles(selectedTiles)
+	var spreadSpaceSum: float = TileContainer.BASE_RESOURCE_SIZE.x + Spread_Info.SPREAD_SPACING
+	var startPosx: float = -(spreadSpaceSum*(selectedTiles.size()-1) + TileContainer.BASE_RESOURCE_SIZE.x)/2
+	var spreadTween: Tween = create_tween()
+	var spreadDelay: float = 0
+	var tempSelectedTiles: Array[TileContainer]
+	if(overrideSelectedTiles.is_empty()):
+		tempSelectedTiles = selectedTiles.duplicate()
+	else:
+		tempSelectedTiles = overrideSelectedTiles
 	
-	PlayerSpread.SpreadTiles(selectedTiles.duplicate())
+	if(byMainPlayer):
+		var tilePosMessage: String = str(tempSelectedTiles.size())
+		var tempPos: Vector2i
+		
+		for tile in tempSelectedTiles:
+			tempPos = GameBoard.getTilePos(tile)
+			tilePosMessage += "::" + str(tempPos.x) + ":" + str(tempPos.y)
+		
+		MultiplayerHandler.send_data("spread", tilePosMessage.to_utf8_buffer())
+	
+	spreadTween.set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	
+	if(byMainPlayer):
+		selectedTiles.clear()
+		
+		for Row in GameBoard.BoardRows:
+			for tile: TileContainer in Row:
+				if(tile == null):
+					continue
+				
+				tile.flash(false)
+	
+	for tile in tempSelectedTiles:
+		tile.enabled = false
+		tile.z_index = 1
+		tile.show_count(-1)
+		tile._mouse_exited()
+		tile.reparent(self)
+		GameBoard.removeTile(tile)
+		
+		spreadTween.tween_property(tile, "position", Vector2(startPosx, -300), 0.4).set_delay(spreadDelay)
+		
+		spreadDelay += 0.1
+		startPosx += spreadSpaceSum
+	
+	await spreadTween.finished
+	
+	spreadFinishCount = 0
+	
+	for tile in tempSelectedTiles:
+		await tile.activate()
+	
+	while(spreadFinishCount < tempSelectedTiles.size()):
+		await get_tree().create_timer(0.001).timeout
+	
+	spreadTween = create_tween()
+	spreadTween.tween_property(TileContainer.pointSumBubble, "position", ExpBar.position, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	spreadTween.finished.connect(func() -> void:
+		TileContainer.pointSumBubble.queue_free()
+		
+		ExpBar.gainExperience(TileContainer.currPointSum)
+		
+		TileContainer.currPointSum = 0
+		TileContainer.currPointVal = 0
+		
+		PlayerSpread.SpreadTiles(tempSelectedTiles))
+	#selectedTiles.clear()
+	
+	#var tilePoses_string: String = str(selectedTiles.size()) + "::"
+	#var tilePose: Vector2i
+	#for tile in selectedTiles:
+		#tilePose = GameBoard.getTilePos(tile)
+		#tilePoses_string += str(tilePose.x) + ":" + str(tilePose.y)
+		#if(tile != selectedTiles[selectedTiles.size()-1]):
+			#tilePoses_string += "::"
+	#
+	#MultiplayerHandler.send_data("tiles_spread", tilePoses_string.to_utf8_buffer())
+	#
+	#GameBoard.removeTiles(selectedTiles)
+	#
+	#PlayerSpread.SpreadTiles(selectedTiles.duplicate())
 	
 	#for tile in selectedTiles:
 		##if(River.river.has(tile)):
@@ -353,10 +462,28 @@ func SpreadButtonPressed() -> void:
 	
 	
 	
-	selectedTiles.clear()
-	GameBoard.SpreadHelper(selectedTiles)
-	#GameBoard.changeHighlightColor()
-	SpreadButton.visible = false
+	#selectedTiles.clear()
+	#GameBoard.SpreadHelper(selectedTiles)
+	##GameBoard.changeHighlightColor()
+	#SpreadButton.enabled = false
+	#SpreadButton.text_color = Color.TRANSPARENT
+
+func otherPlayer_Spread(tilePoses: String) -> void:
+	var tileCount: int = int(tilePoses.get_slice("::", 0))
+	
+	var slice: String
+	#var tilePose: Vector2i
+	#var currTile: TileContainer
+	var temp_selectedTiles: Array[TileContainer]
+	for i in range(tileCount):
+		slice = tilePoses.get_slice("::", i+1)
+		#tilePose = Vector2(int(slice.get_slice(":", 0)), int(slice.get_slice(":", 1)))
+		
+		temp_selectedTiles.append(GameBoard.BoardRows[int(slice.get_slice(":", 0))][int(slice.get_slice(":", 1))])
+	
+	GameBoard.removeTiles(temp_selectedTiles)
+	
+	PlayerSpread.SpreadTiles(temp_selectedTiles.duplicate())
 
 func EN_DISableDiscarding() -> void:
 	isDiscarding = !isDiscarding
@@ -419,44 +546,44 @@ func moveCamera(newPos: CameraPosition) -> void:
 
 var proxmityTween: Tween
 
-func _mouse_inProximity() -> void:
-	inProximity = true
-	
-	if(proxmityTween != null && proxmityTween.is_running()):
-		proxmityTween.stop()
-	
-	if(!falsePositive):
-		SpreadCameraTransition.visible = true
-		SpreadCameraTransition.modulate.a = 0
-	
-	proxmityTween = create_tween()
-	proxmityTween.tween_property(SpreadCameraTransition, "modulate:a", 1, 1-SpreadCameraTransition.modulate.a)
+#func _mouse_inProximity() -> void:
+	#inProximity = true
+	#
+	#if(proxmityTween != null && proxmityTween.is_running()):
+		#proxmityTween.stop()
+	#
+	#if(!falsePositive):
+		#SpreadCameraTransition.visible = true
+		#SpreadCameraTransition.modulate.a = 0
+	#
+	#proxmityTween = create_tween()
+	#proxmityTween.tween_property(SpreadCameraTransition, "modulate:a", 1, 1-SpreadCameraTransition.modulate.a)
 
 var falsePositive: bool = false
 
-func _mouse_outsideProximity() -> void:
-	var distances: Vector2 = SpreadTransition_ProximitySensor.size
-	var mousePos: Vector2 = get_global_mouse_position()
-	var sensorPos: Vector2 = SpreadTransition_ProximitySensor.global_position
-	var diffPos: Vector2 = mousePos - sensorPos
-	
-	if(diffPos.x >= 0 && diffPos.x <= distances.x && diffPos.y >= 0 && diffPos.y <= distances.y):
-		falsePositive = true
-		return
-	
-	inProximity = false
-	
-	if(proxmityTween != null && proxmityTween.is_running()):
-		proxmityTween.stop()
-	
-	proxmityTween = create_tween()
-	proxmityTween.tween_property(SpreadCameraTransition, "modulate:a", 0, SpreadCameraTransition.modulate.a)
-	proxmityTween.finished.connect(func() -> void:
-		SpreadCameraTransition.visible = false
-		if currentCameraPos == CameraPosition.SPREAD:
-			SpreadCameraTransition.ButtonIcon.flip_h = true
-			SpreadCameraTransition.position = SpreadCameraTransition_positionSpread
-		else: 
-			SpreadCameraTransition.ButtonIcon.flip_h = false
-			SpreadCameraTransition.position = SpreadCameraTransition_positionBoard
-	)
+#func _mouse_outsideProximity() -> void:
+	#var distances: Vector2 = SpreadTransition_ProximitySensor.size
+	#var mousePos: Vector2 = get_global_mouse_position()
+	#var sensorPos: Vector2 = SpreadTransition_ProximitySensor.global_position
+	#var diffPos: Vector2 = mousePos - sensorPos
+	#
+	#if(diffPos.x >= 0 && diffPos.x <= distances.x && diffPos.y >= 0 && diffPos.y <= distances.y):
+		#falsePositive = true
+		#return
+	#
+	#inProximity = false
+	#
+	#if(proxmityTween != null && proxmityTween.is_running()):
+		#proxmityTween.stop()
+	#
+	#proxmityTween = create_tween()
+	#proxmityTween.tween_property(SpreadCameraTransition, "modulate:a", 0, SpreadCameraTransition.modulate.a)
+	#proxmityTween.finished.connect(func() -> void:
+		#SpreadCameraTransition.visible = false
+		#if currentCameraPos == CameraPosition.SPREAD:
+			#SpreadCameraTransition.ButtonIcon.flip_h = true
+			#SpreadCameraTransition.position = SpreadCameraTransition_positionSpread
+		#else: 
+			#SpreadCameraTransition.ButtonIcon.flip_h = false
+			#SpreadCameraTransition.position = SpreadCameraTransition_positionBoard
+	#)

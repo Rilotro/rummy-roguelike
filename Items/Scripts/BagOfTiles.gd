@@ -60,13 +60,13 @@ func use() -> bool:
 func waitForSelectionEnd() -> void:
 	await GameScene.currSelectScreen.selectionEnded
 	
-	for tile in SelectScreen.Selections:
-		if(SelectScreen.finalSelections.has(tile)):
-			GameScene.MainPlayer.GameBoard.addTile(tile, Board.TileOrigin.SELECTION)
-		else:
-			GameScene.MainPlayer.PlayerDeck.addTile(tile, Deck.TileSource.SELECTION)
+	#for tile in SelectScreen.Selections:
+		#if(SelectScreen.finalSelections.has(tile)):
+			#GameScene.MainPlayer.GameBoard.addTile(tile, Board.TileOrigin.SELECTION)
+		#else:
+			#GameScene.MainPlayer.PlayerDeck.addTile(tile, Deck.TileSource.SELECTION)
 		
-		await GameScene.Game.get_tree().create_timer(0.1).timeout
+		#await GameScene.Game.get_tree().create_timer(0.1).timeout
 	
 	GameScene.currSelectScreen.queue_free()
 	GameScene.PlayerBar.endItemUse(GameScene.PlayerBar.getItemSlot(self))

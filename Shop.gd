@@ -166,7 +166,7 @@ func _init() -> void:
 	
 	var newTile: TileContainer
 	for i in range(STARTING_TILE_CONTAINERS):
-		newTile = TileContainer.new(Tile.getRandomTile(3), ResourceContainer.ContainerType.SHOP)
+		newTile = TileContainer.new(Tile.getRandomTile())
 		
 		#newTile.price = 0
 		#newTile.checkShopAffordability()
@@ -179,22 +179,22 @@ func _init() -> void:
 	#TileSelection_Sensor.position.x += 15
 	#TileSelection_Sensor.position.y -= 7.5
 	
-	var newJoker: TileContainer
-	var jokerIDs: Array[int]
-	var joker: Tile
-	for i in range(STARTING_JOKER_CONTAINERS):
-		joker = Tile.getRandomJoker()
-		while(jokerIDs.has(joker.joker_id)):
-			joker = Tile.getRandomJoker()
-		
-		jokerIDs.append(joker.joker_id)
-		newJoker = TileContainer.new(joker, ResourceContainer.ContainerType.SHOP)
-		
-		newJoker.price = 0
-		
-		JokerSelections_Box.add_child(newJoker)
-		JokerSelections.append(newJoker)
-		newJoker.name = "JokerSelection" + str(STARTING_JOKER_CONTAINERS-i)
+	#var newJoker: TileContainer
+	#var jokerIDs: Array[int]
+	#var joker: Tile
+	#for i in range(STARTING_JOKER_CONTAINERS):
+		#joker = Tile.getRandomJoker()
+		#while(jokerIDs.has(joker.joker_id)):
+			#joker = Tile.getRandomJoker()
+		#
+		#jokerIDs.append(joker.joker_id)
+		#newJoker = TileContainer.new(joker, ResourceContainer.ContainerType.SHOP)
+		#
+		#newJoker.price = 0
+		#
+		#JokerSelections_Box.add_child(newJoker)
+		#JokerSelections.append(newJoker)
+		#newJoker.name = "JokerSelection" + str(STARTING_JOKER_CONTAINERS-i)
 	
 	var newItem: ItemContainer
 	var itemIDs: Array[int]
@@ -272,7 +272,7 @@ func _ready() -> void:
 
 func add_TileSelection() -> void:
 	var origPos: Vector2 = TileSelections[0].global_position
-	var new_TileSelection: TileContainer = TileContainer.new(null, ResourceContainer.ContainerType.SHOP, 3)#load("res://TileSelection.tscn").instantiate()
+	var new_TileSelection: TileContainer = TileContainer.new(null)#load("res://TileSelection.tscn").instantiate()
 	TileSelections.append(new_TileSelection)
 	TileSelections_Box.add_child(new_TileSelection)
 	TileSelections_Box.move_child(new_TileSelection, TileSelections.size()-1)
@@ -293,18 +293,18 @@ func add_TileSelection() -> void:
 	TileSelection_Sensor.position.x -= separation#/2.0
 	TileSelection_Sensor.position.y -= 7.5
 
-func add_JokerSelection() -> void:
-	var joker_ids: Array[int]
-	for jokerSlot in JokerSelections:
-		joker_ids.append(jokerSlot.resource.joker_id)
-	
-	var newJoker: Tile = Tile.getRandomJoker()
-	while(joker_ids.has(newJoker.joker_id)):
-		newJoker = Tile.getRandomJoker()
-	
-	var new_JokerSelection: TileContainer = TileContainer.new(newJoker, ResourceContainer.ContainerType.SHOP)
-	JokerSelections.append(new_JokerSelection)
-	JokerSelections_Box.add_child(new_JokerSelection)
+#func add_JokerSelection() -> void:
+	#var joker_ids: Array[int]
+	#for jokerSlot in JokerSelections:
+		#joker_ids.append(jokerSlot.resource.joker_id)
+	#
+	#var newJoker: Tile = Tile.getRandomJoker()
+	#while(joker_ids.has(newJoker.joker_id)):
+		#newJoker = Tile.getRandomJoker()
+	#
+	#var new_JokerSelection: TileContainer = TileContainer.new(newJoker, ResourceContainer.ContainerType.SHOP)
+	#JokerSelections.append(new_JokerSelection)
+	#JokerSelections_Box.add_child(new_JokerSelection)
 	
 	#await get_tree().create_timer(0.001).timeout
 	#
@@ -348,20 +348,20 @@ func add_ItemSelection() -> void:
 	ItemSelection_Sensor.position.y -= 7.5
 
 func REgenerateResources() -> void:
-	var joker_ids: Array[int]
+	#var joker_ids: Array[int]
 	var item_ids: Array[String]
 	#var curr_id: int
 	
 	for TileSlot in TileSelections:
 		TileSlot.REgenerateResource(null, 3)
 	
-	var newJoker: Tile
-	for JokerSelection in JokerSelections:
-		newJoker = Tile.getRandomJoker()
-		while(joker_ids.has(newJoker.joker_id)):
-			newJoker = Tile.getRandomJoker()
-		
-		JokerSelection.REgenerateResource(newJoker)
+	#var newJoker: Tile
+	#for JokerSelection in JokerSelections:
+		#newJoker = Tile.getRandomJoker()
+		#while(joker_ids.has(newJoker.joker_id)):
+			#newJoker = Tile.getRandomJoker()
+		#
+		#JokerSelection.REgenerateResource(newJoker)
 	
 	var newItem: Item
 	for ItemSlot in ItemSelections:
@@ -371,7 +371,7 @@ func REgenerateResources() -> void:
 		
 		ItemSlot.REgenerateResource(newItem)
 
-func containerPressed(container: ResourceContainer) -> void:
+func containerPressed(container: TileContainer) -> void:#ResourceContainer
 	if(GameScene.myTurn):
 		return
 	
@@ -381,12 +381,14 @@ func containerPressed(container: ResourceContainer) -> void:
 	else:
 		update_currency(-container.price)
 	
-	match container.resource_type:
-		ResourceContainer.ResourceType.TILE:
-			GameScene.MainPlayer.PlayerDeck.addTile(container, Deck.TileSource.SHOP)
-			container.REgenerateResource(Tile.getRandomJoker())
-		ResourceContainer.ResourceType.ITEM:
-			GameScene.PlayerBar.add_item(container.resource)
+	GameScene.MainPlayer.PlayerDeck.addTile(container, Deck.TileSource.SHOP)
+	
+	#match container.resource_type:
+		#ResourceContainer.ResourceType.TILE:
+			#GameScene.MainPlayer.PlayerDeck.addTile(container, Deck.TileSource.SHOP)
+			#container.REgenerateResource(Tile.getRandomJoker())
+		#ResourceContainer.ResourceType.ITEM:
+			#GameScene.PlayerBar.add_item(container.resource)
 
 func update_currency(newCurrency: int) -> void:
 	currency += newCurrency

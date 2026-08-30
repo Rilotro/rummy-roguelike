@@ -27,7 +27,7 @@ func _init(newSize: Vector2, density: Vector2i = Vector2i(1, 10), holeShape: Hol
 	HoleSize = holeSize
 	isTopLevel = topLevel
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	var Sparkle_count: int = randi_range(LowerBound_density, UpperBound_density)
 	if(Sparkle_count > 0):
 		var new_Sparkle: Sparkle
@@ -42,6 +42,7 @@ func _process(delta: float) -> void:
 						sparklePos = Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
 			
 			new_Sparkle = Sparkle.new()
+			new_Sparkle.z_index = z_index
 			add_child(new_Sparkle)
 			new_Sparkle.top_level = isTopLevel
 			if(isTopLevel):

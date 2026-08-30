@@ -23,6 +23,8 @@ static var usingItem: ItemContainer
 static var interPlayer_rotationStep: float
 static var BoardRadius: float
 
+static var inProximity_ofTransButton: bool = false
+
 signal StartOfRound
 signal EndOfRound
 
@@ -39,6 +41,7 @@ func _init() -> void:
 		interPlayer_rotationStep = 2*PI/MultiplayerHandler.players.size()
 		
 		var otherPlayer: Player
+		
 		for player in MultiplayerHandler.players:
 			if(player == MultiplayerHandler.currPlayer):
 				continue
@@ -48,6 +51,7 @@ func _init() -> void:
 			add_child(otherPlayer)
 			
 			player.playerSpace = otherPlayer
+			
 	
 	if(MultiplayerHandler.players.size() > 1):
 		pass
@@ -82,7 +86,7 @@ func _init() -> void:
 	Transition_toRiver_Button.name = "Transition_toRiver_Button"
 	add_child(Transition_toRiver_Button)
 	
-	Transition_BackToBoard_Button = Transition.new(Transition.Target.MAIN_PLAYER, PI/2, -1, false)#, GoodButton.ButtonType.TRANSITION_BOARD
+	Transition_BackToBoard_Button = Transition.new(Transition.Target.BOARD, PI/2, -1, false)#, GoodButton.ButtonType.TRANSITION_BOARD
 	#Transition_BackToBoard_Button.rotation = PI/2
 	#Transition_BackToBoard_Button.scale = Vector2(0.5, 0.5)
 	Transition_BackToBoard_Button.name = "Transition_BackToBoard_Button"
@@ -94,10 +98,10 @@ func _init() -> void:
 	#DiscardButton.name = "DiscardButton"
 	#add_child(DiscardButton)
 	
-	GameShop = Shop.new()
-	GameShop.visible = false
-	GameShop.name = "GameShop"
-	add_child(GameShop)
+	#GameShop = Shop.new()
+	#GameShop.visible = false
+	#GameShop.name = "GameShop"
+	#add_child(GameShop)
 	
 	Transition_BackToBoard_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.BOARD))
 	Transition_toRiver_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.RIVER))
@@ -105,7 +109,7 @@ func _init() -> void:
 		if(BeaverTeeth.Beaver_Teeth_Activated):
 			Transition_BackToBoard_Button.visible = false
 			for tile in River.river:
-				tile.DIS_ENable(true)
+				tile.enabled = true
 			
 			MainPlayer.moveCamera(Player.CameraPosition.RIVER)
 			
@@ -113,7 +117,7 @@ func _init() -> void:
 				await get_tree().create_timer(0.001).timeout
 			
 			for tile in River.river:
-				tile.DIS_ENable(false)
+				tile.enabled = false
 			
 			MainPlayer.Draw_fromRiver(River.bait, BeaverTeeth.chosenRiverTile)
 			BeaverTeeth.chosenRiverTile = null
@@ -122,6 +126,19 @@ func _init() -> void:
 			return
 		
 		MainPlayer.Draw_fromRiver(River.bait))
+	
+		#inProximity_ofTransButton = true
+		#
+		#if(proxmityTween != null && proxmityTween.is_running()):
+			#proxmityTween.stop()
+		#
+		#if(!falsePositive):
+			#SpreadCameraTransition.visible = true
+			#SpreadCameraTransition.modulate.a = 0
+		#
+		#proxmityTween = create_tween()
+		#proxmityTween.tween_property(SpreadCameraTransition, "modulate:a", 1, 1-SpreadCameraTransition.modulate.a))
+	#SpreadTransition_ProximitySensor.mouse_exited.connect(_mouse_outsideProximity)
 	
 	PlayerTurnButton.resized.connect(func() -> void:
 		BaitButton.position = PlayerTurnButton.position
@@ -159,6 +176,13 @@ func _ready() -> void:
 	#PlayerBar.position = Vector2(0, PlayerBar_Y)
 	#PlayerBar.position = PlayerBarRadius*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	
+	#var button_y: float
+	#var buttonIndex: int = 0
+	#for playerButton in PlayerButtons:
+		#playerButton.rotation = mainPlayerRot
+		#playerButton.position = PlayerBar.position - (windowSize.x/2 - 10)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot)) + ((GameBar.SLOT_SIZE.y+15)/2 + (15+playerButton.CameraTransition.size.y)*buttonIndex)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
+		#buttonIndex += 1
+	
 	var buttonSize: Vector2 = Transition_toRiver_Button.size
 	Transition_toRiver_Button.rotation = mainPlayerRot - PI/2
 	Transition_toRiver_Button.position = PlayerBar.position
@@ -181,7 +205,7 @@ func _ready() -> void:
 	BaitButton.position += (buttonSize.x+10)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
 	BaitButton.position -= (buttonSize.y - BaitButton.size.y)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
 	
-	GameShop.position = Vector2(-windowSize.x/2, MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2)
+	#GameShop.position = Vector2(-windowSize.x/2, MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2)
 	
 	#PlayerBar.addModifier(ArchitectsForge.new())
 
@@ -259,7 +283,7 @@ func EndRound() -> void:
 
 ##Will have greater multiplayer functionality in the future
 func NextPlayer() -> void:
-	MainPlayer.PlayerDeck.DIS_ENable(true)
+	MainPlayer.PlayerDeck.enabled = true
 
 #func onTurnButtonPressed() -> void:
 	#if(!myTurn):
@@ -277,8 +301,10 @@ func handlePlayerCommands(source: String, command: String, params: PackedByteArr
 		"round_end":
 			EndRound()
 		"draw":
-			MainPlayer.receive_otherPlayer_draw(params)
-			#var newTile: Tile = dict_to_inst(JSON.parse_string(params.get_string_from_utf8()))
-			#newTile.number = int(newTile.number)
-			#Player.GameBoard.addTile(TileContainer.new(newTile, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.BOARD), Board.TileOrigin.OTHER_PLAYER)
-	#if(command == "round_end"):
+			MultiplayerHandler.getPlayer_byID(int(source)).playerSpace.receive_otherPlayer_draw(params.get_string_from_utf8())
+		"tile_moved":
+			Player.GameBoard.otherPlayer_movedTile(params.get_string_from_utf8())
+		"spread":
+			var spreadRow: Array[TileContainer] = Player.GameBoard.getTiles_fromMessage(params.get_string_from_utf8())
+			MainPlayer.getPlayerButton(int(source)).miniSpreadView(spreadRow)
+			MultiplayerHandler.getPlayer_byID(int(source)).playerSpace.SpreadButtonPressed(false, spreadRow)

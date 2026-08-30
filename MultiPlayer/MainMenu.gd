@@ -16,8 +16,9 @@ const MAX_PLAYERS_IN_LOBBY: int = 4
 
 @onready var ServerList: Control = $ServerList
 @onready var Username_J: TextEdit = $ServerList/UsernameInput
-@onready var ServerButtons: VBoxContainer = $ServerList/ServerButtons
-#@onready var CancelListButton: GoodButton = $ServerList/Back
+@onready var ServerButtons: Control = $ServerList/ServerButtons
+@onready var SL_BackButton: GoodButton = $ServerList/Back
+var origBackButton_pos: float = 0
 
 @onready var LobbyRoom: Control = $LobbyRoom
 @onready var LobbyBanner: Label = $LobbyRoom/LobbyBanner
@@ -47,6 +48,8 @@ func _ready() -> void:
 	ServerButtons.custom_minimum_size.y = screen_size.y - space - 10
 	
 	PlayerList.custom_minimum_size.y = MAX_PLAYERS_IN_LOBBY*40 + (MAX_PLAYERS_IN_LOBBY-1)*PlayerList.get_theme_constant("separation")
+	
+	origBackButton_pos = SL_BackButton.position.y
 	
 	#var LobbyButtons: HBoxContainer = LobbyRoom.get_child(-1)
 	#var newLength: float = LobbyButtons.size.x - LobbyButtons.get_theme_constant("separation") - (LobbyButtons.get_child(0) as GoodButton).size.x - (LobbyButtons.get_child(2) as GoodButton).size.x
@@ -80,9 +83,9 @@ func new_server() -> void:
 	ServerForm.visible = true
 
 func join_server() -> void:
-	NSButton.DIS_ENable(false)
-	JSButton.DIS_ENable(false)
-	BButton.DIS_ENable(false)
+	NSButton.enabled = false
+	JSButton.enabled = false
+	BButton.enabled = false
 	
 	#MenuButtons.visible = false
 	#ServerList.visible = true
@@ -195,9 +198,9 @@ func populate_server_list(_source: String, command: String, params: PackedByteAr
 		MenuButtons.visible = false
 		currThrobber.queue_free()
 		MultiplayerHandler.receivedData.disconnect(populate_server_list)
-		NSButton.DIS_ENable(true)
-		JSButton.DIS_ENable(true)
-		BButton.DIS_ENable(true)
+		NSButton.enabled = true
+		JSButton.enabled = true
+		BButton.enabled = true
 		
 		var serverList: Array[Array] = Array(JSON.parse_string(params.get_string_from_utf8()), TYPE_ARRAY, "", null)
 		
@@ -209,7 +212,10 @@ func populate_server_list(_source: String, command: String, params: PackedByteAr
 			
 			newServerBanner = LobbyButton.new(server[0], Array(server.slice(1), TYPE_STRING, "", null), true)
 			newServerBanner.name = "Banner" + str(bannerIndex)
+			newServerBanner.position.y = 44*(bannerIndex-1)
 			ServerButtons.add_child(newServerBanner)
+		
+		SL_BackButton.position.y += LobbyButton.BUTTON_HEIGHT*serverList.size()
 		
 		ServerList.visible = true
 	elif(command == "server_list_empty"):
@@ -236,6 +242,8 @@ func populate_server_list(_source: String, command: String, params: PackedByteAr
 func refresh_list() -> void:
 	for child in ServerButtons.get_children():
 		child.queue_free()
+	
+	SL_BackButton.position.y = origBackButton_pos
 	
 	currThrobber = Throbber.new()
 	add_child(currThrobber)

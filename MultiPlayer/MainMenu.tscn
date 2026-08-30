@@ -219,8 +219,8 @@ DisabledColor = Color(0.15686275, 0.15686275, 0.15686275, 1)
 PressedColor = Color(0.15686275, 0.15686275, 0.15686275, 1)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
 
-[node name="ServerButtons" type="VBoxContainer" parent="ServerList" unique_id=1698868773]
-layout_mode = 0
+[node name="ServerButtons" type="Control" parent="ServerList" unique_id=1236940577]
+anchors_preset = 0
 offset_top = 131.0
 offset_right = 171.0
 offset_bottom = 131.0

@@ -45,8 +45,8 @@ func updateWhileUsing(delta: float) -> void:
 		MidasSparkle.global_position = GameScene.Game.get_global_mouse_position()
 
 func isTileValid(tile: TileContainer) -> bool:
-	if(tile.container_type != ResourceContainer.ContainerType.PLAYER_TILE || tile.playerSpace != TileContainer.PlayerSpace.BOARD):
-		return false
+	#if(tile.container_type != ResourceContainer.ContainerType.PLAYER_TILE || tile.playerSpace != TileContainer.PlayerSpace.BOARD):
+		#return false
 	
 	if(tile.resource.joker_id >= 0 || tile.resource.rarity == Tile.Rarity.GOLD):
 		return false

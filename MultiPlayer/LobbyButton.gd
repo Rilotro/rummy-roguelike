@@ -3,6 +3,7 @@ extends GoodButton
 class_name LobbyButton
 
 const BUTTON_COLOR: Color = Color(0.1, 0.1, 0.1, 0.6)
+const BUTTON_HEIGHT: float = 40
 
 var PassInput: TextEdit
 var ErrorText: RichTextLabel
@@ -13,7 +14,7 @@ var isRevealed: bool = false
 var revealTween: Tween
 var lobbyName: String
 
-func _init(lobbyName_param: String = "test", userNames: Array[String] = ["test1", "test2"], hasPass: bool = false) -> void:
+func _init(lobbyName_param: String = "test", userNames: Array[String] = ["test1", "test2"], hasPass: bool = true) -> void:
 	lobbyName = lobbyName_param
 	var lobbyText: String = lobbyName + " - "
 	for i in range(userNames.size()):
@@ -30,9 +31,10 @@ func _init(lobbyName_param: String = "test", userNames: Array[String] = ["test1"
 	
 	if(hasPass):
 		PassInput = TextEdit.new()
-		PassInput.placeholder_text = "Enter Password"
+		PassInput.placeholder_text = "Password"
 		PassInput.size = custom_minimum_size
 		PassInput.self_modulate.a = 0
+		PassInput.size = Vector2(100, 40)
 		PassInput.visible = false
 		PassInput.name = "PasswordInput"
 		PassInput.editable = false
@@ -85,10 +87,10 @@ func _ready() -> void:
 	MainMenu = get_parent().get_parent().get_parent()
 
 func finalPress() -> void:
-	super()
-	
 	if(!enabled):
 		return
+	
+	super()
 	
 	Reveal()
 
@@ -126,6 +128,17 @@ func Reveal() -> void:
 		revealTween.tween_property(joinButton, "self_modulate:a", 1, 0.3)
 		revealTween.tween_property(joinButton, "position:y", finalPos, 0.3)
 		
+		var isBellow: bool = false
+		for label: LobbyButton in MainMenu.ServerButtons.get_children():
+			if(label == self):
+				isBellow = true
+				continue
+			
+			if(isBellow):
+				revealTween.tween_property(label, "position:y", label.position.y+finalPos, 0.3)
+		
+		revealTween.tween_property(MainMenu.SL_BackButton, "position:y", MainMenu.SL_BackButton.position.y+finalPos, 0.3)
+		
 		ErrorText.position = Vector2(joinButton.size.x+5, finalPos)
 	else:
 		if(PassInput != null):
@@ -141,7 +154,9 @@ func Reveal() -> void:
 		revealTween = create_tween()
 		revealTween.set_parallel()
 		
+		var finalPos_diff: float = 50
 		if(PassInput != null):
+			finalPos_diff += 50
 			revealTween.tween_property(PassInput, "self_modulate:a", 0, 0.15)
 			revealTween.tween_property(PassInput, "position:y", 0, 0.15)
 		
@@ -150,6 +165,17 @@ func Reveal() -> void:
 		
 		revealTween.tween_property(ErrorText, "position:y", 0, 0.15)
 		revealTween.tween_property(ErrorText, "self_modulate:a", 0, 0.15)
+		
+		var isBellow: bool = false
+		for label: LobbyButton in MainMenu.ServerButtons.get_children():
+			if(label == self):
+				isBellow = true
+				continue
+			
+			if(isBellow):
+				revealTween.tween_property(label, "position:y", label.position.y-finalPos_diff, 0.3)
+		
+		revealTween.tween_property(MainMenu.SL_BackButton, "position:y", MainMenu.SL_BackButton.position.y-finalPos_diff, 0.3)
 	
 	revealTween.finished.connect(tweenFinished)
 
@@ -170,5 +196,5 @@ func tweenFinished(forcedKill: bool = false) -> void:
 			ErrorText.visible = false
 			ErrorText.self_modulate.a = 1
 			
-			joinButton.self_modulate.a = joinButton.IconOrigColor.a
+			joinButton.self_modulate.a = joinButton.color.a
 			joinButton.visible = false

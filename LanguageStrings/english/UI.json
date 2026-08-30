@@ -112,14 +112,15 @@
 	},
 	
 	"CAMERA":{
-		"NAME": ["Player Area", "Spread", "River", "Transition", "Yours"],
+		"NAME": ["Board ", "Player Space ", "Spread ", "River ", "Transition", "Yours"],
 		"KEYWORDS": "Camera Transition",
-		"DESCRIPTION": ["Move Your [b]Camera[/b] to ",
-						"[b]Your ",
-						"'s ",
-						"Board[/b].",
-						"the [b]Spread Area[/b].",
-						"the [b]River Area[/b]."]
+		"DESCRIPTION": ["Move the [b]Camera[/b] ",
+						"back to the [b]Board[/b].",
+						"back to Your [b]Player Space[/b].",
+						"to [b]",
+						"'s Player Space[/b].",
+						"to the [b]Spread Column[/b].",
+						"to the [b]River[/b]."]
 	},
 	
 	"SHOP": ["Shop",

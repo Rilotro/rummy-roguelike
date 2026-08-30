@@ -3,7 +3,7 @@ extends GoodButton
 
 class_name ResourceContainer
 
-const BASE_RESOURCE_SIZE: Vector2 = Vector2(75, 105)
+#const BASE_RESOURCE_SIZE: Vector2 = Vector2(75, 105)
 #const PRESS_TIMER_THRESHOLD: float = 0.5
 
 var resource: Resource

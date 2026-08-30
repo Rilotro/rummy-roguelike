@@ -115,7 +115,7 @@ func _ready() -> void:
 			var nameIndex: int = 0
 			for i in range(rowNumber):
 				for j in range(RowSelectionsizes[i]):
-					new_selection = TileContainer.new(null, ResourceContainer.ContainerType.SELECTION, currentFlags.EffectsChance)
+					new_selection = TileContainer.new(null)
 					new_selection.name = "Tile_Selection" + str(nameIndex*i + j)
 					SelectionContainers[i].add_child(new_selection)
 					Selections.append(new_selection)

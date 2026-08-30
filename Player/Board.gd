@@ -9,6 +9,7 @@ const SPACE_BETWEEN_TILES: float = 20
 const BOARD_HEIGHT: float = 120
 const BOARD_WIDTH: float = ROW_TILE_SIZE*ResourceContainer.BASE_RESOURCE_SIZE.x + (ROW_TILE_SIZE+1)*SPACE_BETWEEN_TILES
 const MAX_BOARD_ROWS: int = 5
+const MOVE_TILE_DURATION: float = 0.35
 
 var BoardRows: Array[Array]
 
@@ -35,9 +36,9 @@ enum TileOrigin{
 
 var delayForAdditionalDraw: float = 0
 
-func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK) -> void:
+func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK, overridePos: Vector2i = Vector2i(-1, -1), playerOrigin: Player = GameScene.MainPlayer) -> Vector2i:
 	var boardSpace: bool
-	var index: Vector2i = Vector2(-1, -1)
+	var index: Vector2i = overridePos
 	for i in range(BoardRows.size()):
 		if(getActualBoardSpace(i) > 0):
 			#index.x = i
@@ -48,12 +49,12 @@ func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK) -
 		addBoard()
 		index.x = BoardRows.size()-1
 	else:
-		index.x = randi_range(0, BoardRows.size()-1)
-		while(getActualBoardSpace(index.x) <= 0):
+		#index.x = randi_range(0, BoardRows.size()-1)
+		while(index.x == -1 || getActualBoardSpace(index.x) <= 0):
 			index.x = randi_range(0, BoardRows.size()-1)
 	
-	index.y = randi_range(0, ROW_TILE_SIZE-1)
-	while(BoardRows[index.x][index.y] != null):
+	#index.y = randi_range(0, ROW_TILE_SIZE-1)
+	while(index.y == -1 || BoardRows[index.x][index.y] != null):
 		index.y = randi_range(0, ROW_TILE_SIZE-1)
 	
 	BoardRows[index.x][index.y] = newTile
@@ -61,18 +62,48 @@ func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK) -
 	newTile.name = "BoardTile" + str(index.y+1)
 	
 	var endPos: Vector2 = Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
-	if(tileOrigin == TileOrigin.OTHER_PLAYER):
-		get_child(index.x).add_child(newTile)
-		newTile.position = endPos
+	#if():
+		#get_child(index.x).add_child(newTile)
+		#newTile.position = endPos
+		
+		#return index
 	
-	if(tileOrigin == TileOrigin.DECK || tileOrigin == TileOrigin.DECK_BURNING_SHOES):
+	if(tileOrigin == TileOrigin.DECK || tileOrigin == TileOrigin.DECK_BURNING_SHOES || tileOrigin == TileOrigin.OTHER_PLAYER):
 		get_child(index.x).add_child(newTile)
 	else:
 		newTile.reparent(get_child(index.x))
 	
-	#var endPos: Vector2 = Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
+	handleTileMovement(newTile, endPos, tileOrigin, playerOrigin)
+	
+	return index
+
+func handleTileMovement(newTile: TileContainer, endPos: Vector2, tileOrigin: TileOrigin = TileOrigin.DECK, playerOrigin: Player = GameScene.MainPlayer) -> void:
 	delayForAdditionalDraw += 0.1
 	match tileOrigin:
+		TileOrigin.OTHER_PLAYER:
+			newTile.modulate.a = 0
+			newTile.scale = Vector2(0.1, 0.1)
+			newTile.global_position = playerOrigin.otherPlayerDeck.global_position
+			
+			await get_tree().create_timer(delayForAdditionalDraw).timeout
+			
+			var displacement: Vector2 = Vector2(randf_range(0, 170), randf_range(-230, 0))
+			while(displacement.length() < 150):
+				displacement = Vector2(randf_range(-170, 0), randf_range(-230, 0))
+			
+			var tween: Tween = create_tween()
+			tween.set_parallel()
+			tween.tween_property(newTile, "modulate:a", 1, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+			tween.tween_property(newTile, "scale", Vector2(1, 1), MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+			tween.tween_property(newTile, "position", newTile.position+displacement, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+			
+			await tween.finished
+			
+			tween = create_tween()
+			
+			tween.tween_property(newTile, "position", endPos, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
+			
+			await tween.finished
 		TileOrigin.DECK:
 			newTile.modulate.a = 0
 			newTile.scale = Vector2(0.1, 0.1)
@@ -86,11 +117,17 @@ func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK) -
 			
 			var tween: Tween = create_tween()
 			tween.set_parallel()
-			tween.tween_property(newTile, "modulate:a", 1, TileContainer.MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-			tween.tween_property(newTile, "scale", Vector2(1, 1), TileContainer.MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+			tween.tween_property(newTile, "modulate:a", 1, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+			tween.tween_property(newTile, "scale", Vector2(1, 1), MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+			tween.tween_property(newTile, "position", newTile.position+displacement, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
 			
-			await newTile.moveTile(newTile.position+displacement, tween, Tween.TRANS_QUINT, Tween.EASE_OUT)
-			await newTile.moveTile(endPos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
+			await tween.finished
+			
+			tween = create_tween()
+			
+			tween.tween_property(newTile, "position", endPos, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
+			
+			await tween.finished
 		TileOrigin.DECK_BURNING_SHOES:
 			var BurningTile: Sprite2D = Sprite2D.new()
 			BurningTile.texture = load(BurningShoes.SPRITE_BASE_PATH + "01.png")
@@ -136,13 +173,20 @@ func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK) -
 			
 			BurningTile.queue_free()
 			
-			#await newTile.moveTile(newTile.position+displacement, tween, Tween.TRANS_QUINT, Tween.EASE_OUT)
-			await newTile.moveTile(endPos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
+			tween = create_tween()
+			
+			tween.tween_property(newTile, "position", endPos, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
+			
+			await tween.finished
 		TileOrigin.RIVER, TileOrigin.SELECTION:
 			await get_tree().create_timer(delayForAdditionalDraw).timeout
 			newTile.Highlight.visible = false
 			newTile.Highlight.self_modulate = TileContainer.HIGHLIGHT_BASE_COLOR
-			await newTile.moveTile(endPos, null, Tween.TRANS_BACK, Tween.EASE_IN, 0.3)
+			var tween: Tween = create_tween()
+			
+			tween.tween_property(newTile, "position", endPos, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+			
+			await tween.finished
 	
 	delayForAdditionalDraw -= 0.1
 
@@ -165,17 +209,17 @@ func removeTile(tile: TileContainer) -> void:
 		for i in range(Row.size()):
 			if(Row[i] == tile):
 				Row[i] = null
-				break
+				return
 
 func removeTiles(tiles: Array[TileContainer]) -> void:
 	for Row in BoardRows:
 		for i in range(Row.size()):
 			if(Row[i] != null && tiles.has(Row[i])):
-				Row[i].resource.onRemovedFromBoard()
+				Row[i].tile.onRemovedFromBoard()
 				Row[i] = null
 	
-	GameScene.MainPlayer.Draw(Tile.accumulatedWingedDraw)
-	Tile.accumulatedWingedDraw = 0
+	#GameScene.MainPlayer.Draw(Tile.accumulatedWingedDraw)
+	#Tile.accumulatedWingedDraw = 0
 
 func getActualBoardSpace(index: int) -> int:
 	var space: int = 0
@@ -193,6 +237,17 @@ func getTilePos(boardTile: TileContainer) -> Vector2i:
 	
 	return Vector2i(-1, -1)
 
+func getTiles_fromMessage(message: String) -> Array[TileContainer]:
+	var tiles: Array[TileContainer]
+	var tileCount: int = int(message.get_slice("::", 0))
+	var tempStringPos: String
+	
+	for i in range(tileCount):
+		tempStringPos = message.get_slice("::", i+1)
+		tiles.append(BoardRows[int(tempStringPos.get_slice(":", 0))][int(tempStringPos.get_slice(":", 1))])
+	
+	return tiles
+
 var endPosHighlight: SparkleContainer
 
 func SpreadHelper(selectedTiles: Array[TileContainer]) -> void:
@@ -204,36 +259,37 @@ func SpreadHelper(selectedTiles: Array[TileContainer]) -> void:
 	var Outcome:Spread_Info.SpreadCheck
 	
 	for Row in BoardRows:
-		for tile in Row:
+		for tile: TileContainer in Row:
 			if(tile == null):
 				continue
 			
-			tile.EN_DISablePeriodicHighlight(false, selectedTiles.has(tile))
+			tile.flash(false)
+			tile.show_count(-1)
 			
 			if(selectedTiles.has(tile)):
-				tile.showSpreadSelectionCount(selectedTiles.find(tile)+1)
+				tile.show_count(selectedTiles.find(tile)+1)
 				continue
 			
-			tile_info = tile.resource
+			tile_info = tile.tile
 			
 			if(selectedTiles.size() <= 0):
 				continue
 			
 			if(selectedTiles.size() == 1):
 				if(other_tile_info == null):
-					other_tile_info = selectedTiles[0].resource
+					other_tile_info = selectedTiles[0].tile
 				
-				if(other_tile_info.joker_id >= 0 || tile_info.joker_id >= 0):
-					tile.EN_DISablePeriodicHighlight(true)
+				if(other_tile_info.jokerID >= 0 || tile_info.jokerID >= 0):
+					tile.flash(true)
 					continue
 				
 				if(tile_info.number == other_tile_info.number+1):
 					if(tile_info.effects.has(rainbowEffect) || other_tile_info.effects.has(rainbowEffect) || tile_info.color == other_tile_info.color):
-						tile.EN_DISablePeriodicHighlight(true)
+						tile.flash(true)
 				
 				if(tile_info.number == other_tile_info.number):
 					if(tile_info.effects.has(rainbowEffect) || other_tile_info.effects.has(rainbowEffect) || tile_info.color != other_tile_info.color):
-						tile.EN_DISablePeriodicHighlight(true)
+						tile.flash(true)
 			
 			if(selectedTiles.size() >= 2):
 				tempArray.clear()
@@ -242,7 +298,7 @@ func SpreadHelper(selectedTiles: Array[TileContainer]) -> void:
 				Outcome = Spread_Info.getSpreadEligibility(tempArray)
 				
 				if(Outcome == Spread_Info.SpreadCheck.ELIGIBLE || Outcome == Spread_Info.SpreadCheck.VAGUE):
-					tile.EN_DISablePeriodicHighlight(true)
+					tile.flash(true)
 
 #func disableAllHighlights() -> void:
 	#for Row in BoardRows:
@@ -259,9 +315,9 @@ func showViableTiles() -> void:
 				continue
 			
 			if(GameScene.usingItem.resource.isTileValid(tile)):
-				tile.EN_DISablePeriodicHighlight(true)
+				tile.flash(true)
 			else:
-				tile.EN_DISablePeriodicHighlight(false)
+				tile.flash(false)
 
 func changeHighlightColor(newColor: Color) -> void:
 	for Row in BoardRows:
@@ -269,7 +325,7 @@ func changeHighlightColor(newColor: Color) -> void:
 			if(tile == null):
 				continue
 			
-			tile.EN_DISablePeriodicHighlight(false, false)
+			tile.flash(false)
 			tile.Highlight.self_modulate = newColor
 
 func HighlightMovingTileFinalPos(tile: TileContainer) -> void:
@@ -328,3 +384,31 @@ func endMovement(tile: TileContainer) -> void:
 	
 	tile.moveTile(endPos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
 	endPosHighlight.queue_free()
+	
+	MultiplayerHandler.send_data("tile_moved", (str(startCoord.x) + ":" + str(startCoord.y) + "::" + str(endCoord.x) + ":" + str(endCoord.y)).to_utf8_buffer())
+
+func otherPlayer_movedTile(coordinates: String) -> void:
+	var coord_str: String = coordinates.get_slice("::", 0)
+	var startCoord: Vector2i = Vector2i(int(coord_str.get_slice(":", 0)), int(coord_str.get_slice(":", 1)))
+	
+	coord_str = coordinates.get_slice("::", 1)
+	var endCoord: Vector2i = Vector2i(int(coord_str.get_slice(":", 0)), int(coord_str.get_slice(":", 1)))
+	
+	var tileAux: TileContainer = BoardRows[startCoord.x][startCoord.y]
+	BoardRows[startCoord.x][startCoord.y] = BoardRows[endCoord.x][endCoord.y]
+	BoardRows[endCoord.x][endCoord.y] = tileAux
+	
+	var newTilePos: Vector2
+	if(BoardRows[startCoord.x][startCoord.y] != null):
+		newTilePos = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + startCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
+		if(startCoord.x != endCoord.x):
+			BoardRows[startCoord.x][startCoord.y].reparent(get_child(startCoord.x))
+		
+		BoardRows[startCoord.x][startCoord.y].moveTile(newTilePos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
+	
+	if(BoardRows[endCoord.x][endCoord.y] != null):
+		newTilePos = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + endCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
+		if(startCoord.x != endCoord.x):
+			BoardRows[endCoord.x][endCoord.y].reparent(get_child(endCoord.x))
+		
+		BoardRows[endCoord.x][endCoord.y].moveTile(newTilePos, null, Tween.TRANS_QUINT, Tween.EASE_IN)

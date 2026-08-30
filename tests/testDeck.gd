@@ -1,7 +1,7 @@
 extends Node
 
 func _ready() -> void:
-	var newDeck: Deck = Deck.new()
+	var newDeck: LobbyButton = LobbyButton.new()
 	
 	add_child(newDeck)
 	#newDeck.enabled = false

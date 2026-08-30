@@ -24,7 +24,7 @@ var Callables: Dictionary[String, Dictionary] = {
 			var newSequenceImage: TileImage
 			for tile in Player.selectedTiles:
 				#(PlayerTurnButton.size.y - BaitButton.size.y)/2)
-				newSequenceImage = TileImage.new(tile.resource)
+				newSequenceImage = TileImage.new(tile.tile)
 				newSequenceImage.scale = Vector2(imageScale, imageScale)
 				newSequenceImage.position = Vector2(imagePos_X, _TipRef.Keyword_Text.position.y)
 				newSequenceImage.position.y += (UITip.KEYWORD_SIZE_Y - (ResourceContainer.BASE_RESOURCE_SIZE.y*imageScale))/2
@@ -37,7 +37,7 @@ var Callables: Dictionary[String, Dictionary] = {
 			
 			keywords += emptySpace + StringsManager.UIStrings["SPREAD"]["KEYWORDS"][3]
 			
-			if(GameScene.MainPlayer.SpreadButton.isEnabled):
+			if(GameScene.MainPlayer.SpreadButton.enabled):
 				keywords += StringsManager.UIStrings["SPREAD"]["KEYWORDS"][4]
 			else:
 				keywords += StringsManager.UIStrings["SPREAD"]["KEYWORDS"][5]

@@ -27,7 +27,7 @@ func _init() -> void:
 	text_wrap = true
 	
 	for i in range(13):
-		for tileColor in Tile.TileColors:
+		for tileColor in Tile.COLORS:
 			DeckTiles.append(Tile.new(i+1, tileColor))#, -1, Tile.Rarity.PORCELAIN, [Tile.Effect.WINGED]))
 	
 	text = StringsManager.UIStrings["DECK"]["MISCELLANEOUS"][0] + " " + str(DeckTiles.size())
@@ -110,7 +110,7 @@ func addTile(newTile: TileContainer, source: TileSource) -> void:
 			newTile.queue_free()
 		TileSource.SHOP, TileSource.SELECTION:
 			#var tileToAdd: Tile = newTile.resource
-			var animationTile: TileContainer = TileContainer.new(newTile.resource, ResourceContainer.ContainerType.PLAYER_TILE, -1, TileContainer.PlayerSpace.BOARD)
+			var animationTile: TileContainer = TileContainer.new(newTile.tile)
 			GameScene.MainPlayer.add_child(animationTile)
 			animationTile.global_position = newTile.global_position
 			animationTile.z_index = 1
