@@ -1,6 +1,8 @@
 {
 	"tile": "Tile",
 	"points": "points",
+	"upgrade": "Upgrade",
+	"deck": "Deck",
 	
 	"color":{
 		"black": "black",
@@ -16,7 +18,16 @@
 		"GOLD": "gold"
 	},
 	
-	"ACTIVATE": "[b]activate[/b] - Gain [b]Experience[/b] and [b]Currency[/b] equal to my [b]Points[/b][br]",
+	"DESCRIPTION": ["Standard Tile that can be [color=gold]Spread[/color] and [b]Activated[/b]. When [color=gold]Spread[/color], [b]Activate[/b]",
+					"Shop Upgrade. [b]Press[/b] and [b]Hold[/b] to select this [b]Upgrade[/b], then [b]Drag[/b] and [b]Release[/b] your [b]Mouse[/b] over a [b]Deck Tile[/b] bellow to [b]Upgrade[/b] it.",
+					"This [b]Upgrade[/b] will ",
+					"[b]Increase[/b] a [b]Tile's[/b] [color=gold]points[/color] by [color=gold]",
+					"[b]Rarify[/b] a [b]Tile[/b] up to ",
+					"The ",
+					" Tile in Your [b]Deck[/b]."],
+	
+	"ACTIVATE": ["[b]Activate[/b] - Gain [color=gold]",
+				 " [b]Points[/b][/color]."],
 	
 	"RAINBOW":{
 		"NAME": "rainbow",

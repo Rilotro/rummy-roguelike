@@ -1,4 +1,12 @@
 {
+	"ORDINAL_INDICATOR": ["st",
+						  "nd",
+						  "rd",
+						  "th",
+						  "top",
+						  "first",
+						  "second"],
+	
 	"NONE": {
 		"NAME": "Debug Name",
 		"KEYWORDS": ["Debug Keywords"],

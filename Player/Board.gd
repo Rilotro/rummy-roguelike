@@ -365,6 +365,8 @@ func endMovement(tile: TileContainer) -> void:
 	
 	var endPos: Vector2 = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + endCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)#-BOARD_HEIGHT*endCoord.x 
 	
+	var tileTween: Tween = create_tween()
+	tileTween.set_parallel().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
 	
 	if(BoardRows[endCoord.x][endCoord.y] == null):
 		BoardRows[startCoord.x][startCoord.y] = null
@@ -377,12 +379,12 @@ func endMovement(tile: TileContainer) -> void:
 		if(startCoord.x != endCoord.x):
 			BoardRows[startCoord.x][startCoord.y].reparent(get_child(startCoord.x))
 		
-		BoardRows[startCoord.x][startCoord.y].moveTile(otherTilePos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
+		tileTween.tween_property(BoardRows[startCoord.x][startCoord.y], "position", otherTilePos, 0.35)
 	
 	if(startCoord.x != endCoord.x):
 		tile.reparent(get_child(endCoord.x))
 	
-	tile.moveTile(endPos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
+	tileTween.tween_property(tile, "position", endPos, 0.35)
 	endPosHighlight.queue_free()
 	
 	MultiplayerHandler.send_data("tile_moved", (str(startCoord.x) + ":" + str(startCoord.y) + "::" + str(endCoord.x) + ":" + str(endCoord.y)).to_utf8_buffer())

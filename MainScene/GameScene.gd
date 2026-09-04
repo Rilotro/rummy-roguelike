@@ -98,10 +98,10 @@ func _init() -> void:
 	#DiscardButton.name = "DiscardButton"
 	#add_child(DiscardButton)
 	
-	#GameShop = Shop.new()
-	#GameShop.visible = false
-	#GameShop.name = "GameShop"
-	#add_child(GameShop)
+	GameShop = Shop.new()
+	GameShop.visible = false
+	GameShop.name = "GameShop"
+	add_child(GameShop)
 	
 	Transition_BackToBoard_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.BOARD))
 	Transition_toRiver_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.RIVER))
@@ -175,6 +175,12 @@ func _ready() -> void:
 	#var PlayerBarRadius: float = MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2 + (GameBar.SLOT_SIZE.y+5)/2
 	#PlayerBar.position = Vector2(0, PlayerBar_Y)
 	#PlayerBar.position = PlayerBarRadius*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
+	
+	GameShop.rotation = mainPlayerRot
+	#GameShop.position = MainPlayer.position
+	GameShop.global_position = MainPlayer.Camera.global_position
+	GameShop.position -= windowSize.x/2 * Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
+	GameShop.position -= windowSize.y/2 * Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	
 	#var button_y: float
 	#var buttonIndex: int = 0

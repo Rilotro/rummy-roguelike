@@ -25,32 +25,32 @@ func getIDName() -> String:
 
 func getDescription() -> String:
 	var strings: Array = StringsManager.ItemStrings[getIDName()]["DESCRIPTION"]
-	var description: String = strings[0] + str(Shop.MAX_HORIZONTAL_SELECTIONS) + strings[1]
-	
-	var tileSelectionsCount: int = Shop.TileSelections.size()
-	var jokerSelectionsCount: int = Shop.JokerSelections.size()
-	var itemSelectionsCount: int = Shop.ItemSelections.size()
-	
-	if(tileSelectionsCount >= Shop.MAX_HORIZONTAL_SELECTIONS):
-		description += FULL_SELECTION_COLOR
-	else:
-		description += NORMAL_SELECTION_COLOR
-	
-	description += strings[2] + "(" + str(tileSelectionsCount) + "/" + str(Shop.MAX_HORIZONTAL_SELECTIONS) + ")" + strings[3]
-	
-	if(itemSelectionsCount >= Shop.MAX_HORIZONTAL_SELECTIONS):
-		description += FULL_SELECTION_COLOR
-	else:
-		description += NORMAL_SELECTION_COLOR
-	
-	description += strings[4] + "(" + str(itemSelectionsCount) + "/" + str(Shop.MAX_HORIZONTAL_SELECTIONS) + ")"  + strings[5] + str(Shop.MAX_JOKER_SELECTIONS) + strings[1]
-	
-	if(jokerSelectionsCount >= Shop.MAX_JOKER_SELECTIONS):
-		description += FULL_SELECTION_COLOR
-	else:
-		description += NORMAL_SELECTION_COLOR
-	
-	description += strings[6] + "(" + str(jokerSelectionsCount) + "/" + str(Shop.MAX_JOKER_SELECTIONS) + ")"  + strings[7]
+	var description: String = strings[0]# + str(Shop.MAX_HORIZONTAL_SELECTIONS) + strings[1]
+	#
+	#var tileSelectionsCount: int = Shop.TileSelections.size()
+	#var jokerSelectionsCount: int = Shop.JokerSelections.size()
+	#var itemSelectionsCount: int = Shop.ItemSelections.size()
+	#
+	#if(tileSelectionsCount >= Shop.MAX_HORIZONTAL_SELECTIONS):
+		#description += FULL_SELECTION_COLOR
+	#else:
+		#description += NORMAL_SELECTION_COLOR
+	#
+	#description += strings[2] + "(" + str(tileSelectionsCount) + "/" + str(Shop.MAX_HORIZONTAL_SELECTIONS) + ")" + strings[3]
+	#
+	#if(itemSelectionsCount >= Shop.MAX_HORIZONTAL_SELECTIONS):
+		#description += FULL_SELECTION_COLOR
+	#else:
+		#description += NORMAL_SELECTION_COLOR
+	#
+	#description += strings[4] + "(" + str(itemSelectionsCount) + "/" + str(Shop.MAX_HORIZONTAL_SELECTIONS) + ")"  + strings[5] + str(Shop.MAX_JOKER_SELECTIONS) + strings[1]
+	#
+	#if(jokerSelectionsCount >= Shop.MAX_JOKER_SELECTIONS):
+		#description += FULL_SELECTION_COLOR
+	#else:
+		#description += NORMAL_SELECTION_COLOR
+	#
+	#description += strings[6] + "(" + str(jokerSelectionsCount) + "/" + str(Shop.MAX_JOKER_SELECTIONS) + ")"  + strings[7]
 	
 	return description
 

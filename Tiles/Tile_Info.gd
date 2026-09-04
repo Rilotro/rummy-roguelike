@@ -2,11 +2,16 @@ extends Resource
 
 class_name Tile
 
+const BASE_COLOR: Color = Color.BLACK
 const COLORS: Array[Color] = [Color.RED, Color.GREEN, Color.BLUE,Color.BLACK]
+const COLOR_NAMES: Array[String] = ["red", "green", "blue", "black"]
 
 var number: int
 var color: Color
-var rarity: Rarity
+var rarity: Rarity:
+	set(newR):
+		points = getRarityBasePoints(newR) + getBonusPoints()
+		rarity = newR
 var points: int = 0
 var effects: Array[Effect]
 
@@ -82,6 +87,16 @@ static func getEffectContainer(effect: Effect, containerColor: Color) -> Control
 	
 	return container
 
+#static func getColorName(c: Color) -> String:
+	#if(COLORS.has(c)):
+		#match c:
+			#Color.BLACK:
+				#
+	#
+	#return "error"
+
+func getBonusPoints() -> int:
+	return points - getRarityBasePoints(rarity)
 
 static func getRandomTile() -> Tile:
 	return Tile.new(randi_range(1, 14), Tile.COLORS[randi_range(0, Tile.COLORS.size()-1)], randi_range(0, Tile.Rarity.size()-1))
@@ -115,3 +130,6 @@ static func _from_str(string: String, hasBoardPos: bool = false) -> Array:
 
 static func _from_bytes(bytes: PackedByteArray, hasBoardPos: bool = false) -> Array:
 	return _from_str(bytes.get_string_from_utf8(), hasBoardPos)
+
+static func _from_Tile(orig: Tile) -> Tile:
+	return Tile.new(orig.number, orig.color, orig.rarity, orig.getBonusPoints(), orig.effects.duplicate())

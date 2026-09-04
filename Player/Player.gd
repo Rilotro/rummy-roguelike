@@ -257,7 +257,7 @@ func Draw(drawNumber: int = 1) -> void:
 	
 	var tileStrings: String = ""
 	var newTile: TileContainer
-	for i in range(drawNumber):
+	for tile in range(drawNumber):
 		#THE BACK IS NOT PlayerDeck.DeckTiles[0]!!!
 		lastTile = PlayerDeck.popTile(true)
 		drwanTiles.append(lastTile)

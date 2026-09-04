@@ -56,7 +56,7 @@ func getDescription(Tip: UITip) -> String:
 			else:
 				description += descriptionStrings[2]
 	
-	description += descriptionStrings[3] + str(Shop.currency) + descriptionStrings[4]
+	description += descriptionStrings[3]# + str(Shop.currency) + descriptionStrings[4]
 	
 	return description
 
@@ -91,6 +91,7 @@ func finalPress() -> void:
 				text_color = Color.WHITE
 				#changeVisuals(StringsManager.UIStrings["TURN"]["TEXT"][0], Color.BLACK)
 		ButtonAction.SHOP:
+			GameScene.MainPlayer.ExpBar.z_index = 1
 			GameScene.GameShop.visible = true
 	
 	super()

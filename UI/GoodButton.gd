@@ -22,7 +22,7 @@ func set_enable(enable: bool):
 				changeColor(color)
 				#ButtonIcon.self_modulate = color
 		else:
-			stillPressingInside = false
+			pressStillValid = false
 			changeColor(DisabledColor)
 			#ButtonIcon.self_modulate = DisabledColor
 	
@@ -266,7 +266,7 @@ var colorTransitionTween: Tween
 func REassignColor() -> void:
 	if(enabled):
 		if(mouse_inside):
-			if(stillPressingInside):
+			if(pressStillValid):
 				changeColor(PressedColor)
 			else:
 				changeColor(HighlighColor)
@@ -276,6 +276,9 @@ func REassignColor() -> void:
 		changeColor(DisabledColor)
 
 func changeColor(newColor: Color) -> void:
+	if(ButtonIcon == null):
+		return
+	
 	if(colorTransitionTime > 0):
 		if(colorTransitionTween != null && colorTransitionTween.is_running()):
 			#if(colorTransitionTween.fin)
@@ -321,7 +324,7 @@ var ButtonText: Label
 var ButtonIcon: Sprite2D
 
 var mouse_inside: bool = false
-var stillPressingInside: bool = false
+var pressStillValid: bool = false
 var hoverTimer: float = 0
 var pressingTimer: float = 0
 
@@ -500,7 +503,7 @@ func getSize() -> Vector2:
 	return size*scale
 
 func checkHovering(delta: float) -> void:
-	if(mouse_inside && !stillPressingInside):
+	if(mouse_inside && !pressStillValid):
 		hoverTimer += delta
 		
 		if(hasTip && hoverTimer >= Tip_TimerThreshold && Tip == null):
@@ -513,14 +516,16 @@ func checkHovering(delta: float) -> void:
 		Tip.visible = true
 
 func checkButtonAction(delta: float) -> void:
-	if(Input.is_action_just_released("Left_Click") && stillPressingInside):
-		stillPressingInside = false
+	if(!enabled):
+		return
+	
+	if(Input.is_action_just_released("Left_Click") && pressStillValid):
+		pressStillValid = false
 		
-		if(enabled):
-			if(mouse_inside):
-				ButtonIcon.self_modulate = HighlighColor
-			else:
-				ButtonIcon.self_modulate = color
+		if(mouse_inside):
+			ButtonIcon.self_modulate = HighlighColor
+		else:
+			ButtonIcon.self_modulate = color
 		
 		if(pressingTimer <= Press_TimerThreshold):
 			finalPress()
@@ -529,7 +534,7 @@ func checkButtonAction(delta: float) -> void:
 		
 		pressingTimer = 0
 	
-	if(Input.is_action_pressed("Left_Click") && stillPressingInside):
+	if(Input.is_action_pressed("Left_Click") && pressStillValid):
 		pressing(delta)
 	
 	if(Input.is_action_just_pressed("Left_Click") && mouse_inside):
@@ -539,7 +544,7 @@ func initialPress() -> void:
 	if(enabled):
 		ButtonIcon.self_modulate = PressedColor
 	
-	stillPressingInside = true
+	pressStillValid = true
 	
 	hoverTimer = 0
 	pressingTimer = 0
@@ -576,7 +581,7 @@ func _mouse_entered() -> void:
 
 func _mouse_exited() -> void:
 	mouse_inside = false
-	stillPressingInside = false
+	pressStillValid = false
 	
 	if(enabled):
 		ButtonIcon.self_modulate = color
