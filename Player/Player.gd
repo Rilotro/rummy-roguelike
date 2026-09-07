@@ -15,12 +15,13 @@ var BoardCameraTransition: Transition
 var PlayerButtons: Array[PlayerTransition]
 var PlayerSpread: Spread
 var GameRiver: River
-var PlayerDeck: Deck
+#var PlayerDeck: Deck
 var otherPlayerDeck: Sprite2D
 var Camera: Camera2D
 var SpreadButton: GoodButton
 var DiscardButton: GoodButton
 var ExpBar: ExperienceBar
+var PlayerAtuu: Atuu
 
 static var selectedTiles: Array[TileContainer]
 static var isDiscarding: bool = false
@@ -103,10 +104,10 @@ func _init(player: PlayerData = null) -> void:
 		GameRiver.name = "GameRiver"
 		add_child(GameRiver)
 		
-		PlayerDeck = Deck.new()
-		PlayerDeck.name = "PlayerDeck"
-		PlayerDeck.position = Vector2(-Board.BOARD_WIDTH/2 + Board.SPACE_BETWEEN_TILES, -(Board.BOARD_HEIGHT)*(Board.STARTING_BOARD_ROWS-0.5) - ResourceContainer.BASE_RESOURCE_SIZE.y - 10)
-		add_child(PlayerDeck)
+		#PlayerDeck = Deck.new()
+		#PlayerDeck.name = "PlayerDeck"
+		#PlayerDeck.position = Vector2(-Board.BOARD_WIDTH/2 + Board.SPACE_BETWEEN_TILES, -(Board.BOARD_HEIGHT)*(Board.STARTING_BOARD_ROWS-0.5) - ResourceContainer.BASE_RESOURCE_SIZE.y - 10)
+		#add_child(PlayerDeck)
 		
 		Camera = Camera2D.new()
 		Camera.ignore_rotation = false
@@ -128,6 +129,12 @@ func _init(player: PlayerData = null) -> void:
 		DiscardButton.visible = false
 		add_child(DiscardButton)
 		DiscardButton.press.connect(DiscardButtonPressed)
+		
+		PlayerAtuu = Atuu.new()
+		PlayerAtuu.position = Camera.position
+		PlayerAtuu.z_index = 3
+		PlayerAtuu.name = "PlayerAtuu"
+		add_child(PlayerAtuu)
 	else:
 		var newPlayerButton: PlayerTransition
 		newPlayerButton = PlayerTransition.new(MultiplayerHandler.currPlayer.ID)
@@ -192,7 +199,12 @@ func _ready() -> void:
 	SpreadAndBoard_Transition_ProximitySensor.position = Vector2(posX, Board.BOARD_HEIGHT/2 - windowSize.y)
 	SpreadAndBoard_Transition_ProximitySensor.size.x = 700
 	
-	#if(isMainPlayer):
+	if(isMainPlayer):
+		var AtuuScale: float = windowSize.y/(TileContainer.BASE_RESOURCE_SIZE.y + Atuu.FRAME_EXTRA_SIZE)
+		PlayerAtuu.scale = Vector2(AtuuScale, AtuuScale)
+		PlayerAtuu.position -= AtuuScale*TileContainer.BASE_RESOURCE_SIZE/2
+		handleStartGameAtuu(windowSize)
+		
 		#Draw(14)
 		#PlayerDeck.DIS_ENable(true)
 	
@@ -201,11 +213,11 @@ func _ready() -> void:
 		
 		var boardTween: Tween = create_tween()
 		boardTween.tween_property(GameBoard, "position:y", 0, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT).set_delay(0.1)
-		if(isMainPlayer):
-			boardTween.finished.connect(func() ->void:
+		#if(isMainPlayer):
+			#boardTween.finished.connect(func() ->void:
 				#Draw(14)
-				PlayerDeck.enabled = true
-				)
+				#PlayerDeck.enabled = true
+				#)
 	
 	#var bytes1: PackedByteArray = var_to_bytes(inst_to_dict(test1))
 	#test1 = dict_to_inst(bytes_to_var(bytes1))
@@ -219,6 +231,28 @@ func _ready() -> void:
 	#if(event is InputEventKey && event.is_pressed()):
 		#playerTypedLetters.append(event.as_text())
 		#print("HERE0 - " + str(playerTypedLetters))
+
+func handleStartGameAtuu(screenSize: Vector2) -> void:
+	await PlayerAtuu.startGameCycle()
+	
+	var atuuScale: float = GameScene.PlayerBar.Body.region_rect.size.y/(Atuu.BASE_RESOURCE_SIZE.y+Atuu.FRAME_EXTRA_SIZE)
+	var atuuPos: Vector2 = -atuuScale*Atuu.BASE_RESOURCE_SIZE/2
+	atuuPos.y += Board.BOARD_HEIGHT/2 - screenSize.y + GameScene.PlayerBar.Body.region_rect.size.y/2
+	
+	var startGame_endSequenceTween: Tween = create_tween().set_parallel()
+	startGame_endSequenceTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", 0, 1)
+	startGame_endSequenceTween.tween_property(PlayerAtuu, "scale", Vector2(atuuScale, atuuScale), 1)
+	startGame_endSequenceTween.tween_property(PlayerAtuu, "position", atuuPos, 1)
+	
+	await startGame_endSequenceTween.finished
+	
+	GameScene.bgObfuscator.visible = false
+	GameScene.bgObfuscator.self_modulate.a = 100.0/255.0
+	PlayerAtuu.z_index = 1
+	if(hasBoard):
+		PlayerAtuu.enabled = true
+	
+	GameScene.GameShop.reloadShop()
 
 func _process(delta: float) -> void:
 	#print("HERE0 - " + str(GameRiver.global_position))
@@ -249,28 +283,29 @@ func Draw(drawNumber: int = 1) -> void:
 	if(drawNumber <= 0):
 		return
 	
-	if(drawNumber > PlayerDeck.DeckTiles.size()):
-		drawNumber = PlayerDeck.DeckTiles.size()
+	#var tilesDrawn: Array[Tile] = PlayerAtuu.Draw(drawNumber)
+	PlayerAtuu.Draw(drawNumber)
+	#if(drawNumber > PlayerDeck.DeckTiles.size()):
+		#drawNumber = PlayerDeck.DeckTiles.size()
 	
-	var lastTile: Tile
-	var drwanTiles: Array[Tile]
+	#var lastTile: Tile
+	#var drwanTiles: Array[Tile]
+	#
+	#var tileStrings: String = ""
+	#var newTile: TileContainer
+	#for tile in tilesDrawn:
+		##THE BACK IS NOT PlayerDeck.DeckTiles[0]!!!
+		#lastTile = PlayerDeck.popTile(true)
+		#drwanTiles.append(lastTile)
+		#newTile = TileContainer.new(lastTile)
+		#
+		#var tilePos: Vector2i = GameBoard.addTile(newTile)
+		#
+		#if(!tileStrings.is_empty()):
+			#tileStrings += "::"
+		#
+		#tileStrings += str(lastTile) + ":" + str(tilePos.x) + ":" + str(tilePos.y)
 	
-	var tileStrings: String = ""
-	var newTile: TileContainer
-	for tile in range(drawNumber):
-		#THE BACK IS NOT PlayerDeck.DeckTiles[0]!!!
-		lastTile = PlayerDeck.popTile(true)
-		drwanTiles.append(lastTile)
-		newTile = TileContainer.new(lastTile)
-		
-		var tilePos: Vector2i = GameBoard.addTile(newTile)
-		
-		if(!tileStrings.is_empty()):
-			tileStrings += "::"
-		
-		tileStrings += str(lastTile) + ":" + str(tilePos.x) + ":" + str(tilePos.y)
-	
-	MultiplayerHandler.send_data("draw", (str(drawNumber) + "::" + tileStrings).to_utf8_buffer())
 
 func receive_otherPlayer_draw(drawnTiles_str: String) -> void:
 	var drawSize: int = int(drawnTiles_str.get_slice("::", 0))

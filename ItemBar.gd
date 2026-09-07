@@ -128,6 +128,9 @@ func _ready() -> void:
 	#var sensorPos_Y: float = ItemSlotsContainer.size.x - ItemSlots_Sensor.size.x + SPACE_BETWEEN_ITEM_SLOTS
 	#ItemSlots_Sensor.position = Vector2(ItemSlotsContainer.position.x+sensorPos_Y, ItemSlotsContainer.position.y - 2.5)
 	
+	#var AtuuScale: float = Body.region_rect.size.y/GameScene.MainPlayer.PlayerAtuu.Frame.region_rect.size.y
+	#GameScene.MainPlayer.PlayerAtuu.scale = Vector2(AtuuScale, AtuuScale)
+	
 	expandModifiersTab.position = Vector2(expandModifiersTab.size.y/2, (Body.region_rect.size.y)/2-expandModifiersTab.size.x)
 	#expandModifiersTab.position.y += (Body.region_rect.size.y)/2# - expandModifiersTab.size.x/2
 

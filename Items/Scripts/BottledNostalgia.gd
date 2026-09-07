@@ -46,7 +46,8 @@ func effectOnRoundEnd() -> void:
 		return
 	
 	for tile in GameScene.MainPlayer.selectedTiles:
-		GameScene.MainPlayer.PlayerDeck.addTile(tile, Deck.TileSource.BOARD)
+		pass
+		#GameScene.MainPlayer.PlayerDeck.addTile(tile, Deck.TileSource.BOARD)
 		#await GameScene.MainPlayer.add_tile_to_deck(tile.resource, -1, tile)
 	
 	NostalgiaUses -= 1

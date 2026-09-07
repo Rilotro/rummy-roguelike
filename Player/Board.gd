@@ -31,7 +31,7 @@ func _init() -> void:
 		add_child(newBoard)
 
 enum TileOrigin{
-	DECK, DECK_BURNING_SHOES, RIVER, SELECTION, SHOP, OTHER_PLAYER
+	DECK, DECK_BURNING_SHOES, RIVER, SELECTION, SHOP, OTHER_PLAYER, ATUU
 }
 
 var delayForAdditionalDraw: float = 0
@@ -187,6 +187,15 @@ func handleTileMovement(newTile: TileContainer, endPos: Vector2, tileOrigin: Til
 			tween.tween_property(newTile, "position", endPos, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 			
 			await tween.finished
+		TileOrigin.ATUU:
+			await get_tree().create_timer(delayForAdditionalDraw).timeout
+			var tween: Tween = create_tween()
+			tween.tween_property(newTile, "position", endPos, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+			
+			await tween.finished
+			
+			newTile.enabled = true
+			newTile.z_index = 0
 	
 	delayForAdditionalDraw -= 0.1
 

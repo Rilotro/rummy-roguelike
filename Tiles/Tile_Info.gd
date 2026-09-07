@@ -3,8 +3,20 @@ extends Resource
 class_name Tile
 
 const BASE_COLOR: Color = Color.BLACK
-const COLORS: Array[Color] = [Color.RED, Color.GREEN, Color.BLUE,Color.BLACK]
-const COLOR_NAMES: Array[String] = ["red", "green", "blue", "black"]
+const COLORS: Dictionary[String, Color] = {"RED": Color.RED,
+											"ORANGE": Color(1, 0.5, 0),
+											"YELLOW": Color.YELLOW,
+											"CHARTREUSE": Color(0.5, 1, 0),
+											"GREEN": Color.GREEN,
+											"TURQUOISE": Color(0, 1, 0.5),
+											"CYAN": Color.CYAN,
+											"AZURE": Color(0, 0.5, 1),
+											"BLUE": Color.BLUE,
+											"PURPLE": Color(0.5, 0, 1),
+											"MAGENTA": Color.MAGENTA,
+											"PINK": Color(1, 0, 0.5)}
+
+static var chosenColors: Array[int]
 
 var number: int
 var color: Color
@@ -26,7 +38,7 @@ enum Effect{
 }
 
 func _init(n: int, c: Color, r: Rarity = Rarity.PORCELAIN, bP: int = 0, e: Array[Effect] = []) -> void:
-	assert(COLORS.has(c), "Unsopported Color!")
+	assert(COLORS.values().has(c) || c == BASE_COLOR, "Unsopported Color!")
 	
 	number = n
 	color = c
@@ -99,10 +111,10 @@ func getBonusPoints() -> int:
 	return points - getRarityBasePoints(rarity)
 
 static func getRandomTile() -> Tile:
-	return Tile.new(randi_range(1, 14), Tile.COLORS[randi_range(0, Tile.COLORS.size()-1)], randi_range(0, Tile.Rarity.size()-1))
+	return Tile.new(randi_range(1, 14), Tile.COLORS.values()[randi_range(0, Tile.COLORS.size()-1)], randi_range(0, Tile.Rarity.size()-1))
 
 func _to_string() -> String:
-	var returnVal: String = str(number) + ":" + str(COLORS.find(color)) + ":" + str(rarity) + ":" + str(effects.size())
+	var returnVal: String = str(number) + ":" + str(COLORS.values().find(color)) + ":" + str(rarity) + ":" + str(effects.size())
 	for effect in effects:
 		returnVal += ":" + str(effect)
 	
@@ -111,7 +123,7 @@ func _to_string() -> String:
 static func _from_str(string: String, hasBoardPos: bool = false) -> Array:
 	var tileN: int = int(string.get_slice(":", 0))
 	
-	var tileC: Color = COLORS[int(string.get_slice(":", 1))]
+	var tileC: Color = COLORS.values()[int(string.get_slice(":", 1))]
 	
 	var tileR: Rarity = int(string.get_slice(":", 2)) as Rarity
 	

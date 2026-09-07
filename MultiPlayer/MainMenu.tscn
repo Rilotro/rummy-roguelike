@@ -15,6 +15,8 @@ modulate_color = Color(0.101960786, 0.101960786, 0.101960786, 1)
 texture = SubResource("CanvasTexture_sg2au")
 modulate_color = Color(0.101960786, 0.101960786, 0.101960786, 0.6)
 
+[sub_resource type="CanvasTexture" id="CanvasTexture_sjuec"]
+
 [node name="MainMenu" type="Node2D" unique_id=923719303]
 script = ExtResource("1_twder")
 
@@ -306,6 +308,12 @@ HighlighColor = Color(0.37137255, 0.37137255, 0.37137255, 0.72)
 DisabledColor = Color(0.08156863, 0.08156863, 0.08156863, 0.6)
 PressedColor = Color(0.08156863, 0.08156863, 0.08156863, 0.6)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
+
+[node name="FadeToBlack" type="Sprite2D" parent="." unique_id=1331852166]
+self_modulate = Color(0, 0, 0, 0)
+texture = SubResource("CanvasTexture_sjuec")
+region_enabled = true
+region_rect = Rect2(0, 0, 100, 100)
 
 [connection signal="press" from="MenuButtons/SinglePlayer" to="." method="singleplayer"]
 [connection signal="press" from="MenuButtons/MultiPlayer" to="." method="multi_player"]

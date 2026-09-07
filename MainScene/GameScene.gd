@@ -13,7 +13,7 @@ static var MainPlayer: Player
 static var PlayerBar: GameBar
 static var BaitButton: GoodButton
 static var PlayerTurnButton: TurnButton
-static var Transition_toRiver_Button: GoodButton
+#static var Transition_toRiver_Button: GoodButton
 static var Transition_BackToBoard_Button: GoodButton
 static var DiscardButton: GoodButton
 static var GameShop: Shop
@@ -29,6 +29,7 @@ signal StartOfRound
 signal EndOfRound
 
 func _init() -> void:
+	modulate = Color(0, 0, 0)
 	Game = self
 	
 	MainPlayer = Player.new(MultiplayerHandler.currPlayer)
@@ -60,8 +61,9 @@ func _init() -> void:
 	bgObfuscator.texture = CanvasTexture.new()
 	bgObfuscator.region_enabled = true
 	bgObfuscator.self_modulate = Color.BLACK
-	bgObfuscator.self_modulate.a = 0.5
-	bgObfuscator.visible = false
+	bgObfuscator.self_modulate.a = 1
+	bgObfuscator.z_index = 2
+	bgObfuscator.visible = true
 	bgObfuscator.name = "bgObfuscator"
 	add_child(bgObfuscator)
 	
@@ -80,11 +82,11 @@ func _init() -> void:
 	PlayerTurnButton.name = "TurnButton"
 	add_child(PlayerTurnButton)
 	
-	Transition_toRiver_Button = Transition.new(Transition.Target.RIVER, -PI/2, -1, false)#, GoodButton.ButtonType.TRANSITION_RIVER
+	#Transition_toRiver_Button = Transition.new(Transition.Target.RIVER, -PI/2, -1, false)#, GoodButton.ButtonType.TRANSITION_RIVER
 	#Transition_toRiver_Button.rotation = -PI/2
 	#Transition_toRiver_Button.scale = Vector2(0.5, 0.5)
-	Transition_toRiver_Button.name = "Transition_toRiver_Button"
-	add_child(Transition_toRiver_Button)
+	#Transition_toRiver_Button.name = "Transition_toRiver_Button"
+	#add_child(Transition_toRiver_Button)
 	
 	Transition_BackToBoard_Button = Transition.new(Transition.Target.BOARD, PI/2, -1, false)#, GoodButton.ButtonType.TRANSITION_BOARD
 	#Transition_BackToBoard_Button.rotation = PI/2
@@ -104,7 +106,7 @@ func _init() -> void:
 	add_child(GameShop)
 	
 	Transition_BackToBoard_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.BOARD))
-	Transition_toRiver_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.RIVER))
+	#Transition_toRiver_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.RIVER))
 	BaitButton.press.connect(func() -> void: 
 		if(BeaverTeeth.Beaver_Teeth_Activated):
 			Transition_BackToBoard_Button.visible = false
@@ -146,6 +148,7 @@ func _init() -> void:
 		BaitButton.position -= (PlayerTurnButton.size.y - BaitButton.size.y)*Vector2(-sin(BaitButton.rotation), cos(BaitButton.rotation))/2)
 
 func _ready() -> void:
+	create_tween().tween_property(self, "modulate", Color(1, 1, 1), 2)
 	var windowSize: Vector2 = get_viewport_rect().size
 	
 	bgObfuscator.region_rect = Rect2(Vector2(0, 0), windowSize)
@@ -176,6 +179,9 @@ func _ready() -> void:
 	#PlayerBar.position = Vector2(0, PlayerBar_Y)
 	#PlayerBar.position = PlayerBarRadius*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	
+	#MainPlayer.PlayerAtuu.global_position = PlayerBar.global_position
+	#MainPlayer.PlayerAtuu.position -= MainPlayer.PlayerAtuu.scale*TileContainer.BASE_RESOURCE_SIZE/2# (MainPlayer.PlayerAtuu.size - Vector2(MainPlayer.PlayerAtuu.FRAME_EXTRA_SIZE, MainPlayer.PlayerAtuu.FRAME_EXTRA_SIZE)/2)/2
+	
 	GameShop.rotation = mainPlayerRot
 	#GameShop.position = MainPlayer.position
 	GameShop.global_position = MainPlayer.Camera.global_position
@@ -189,14 +195,13 @@ func _ready() -> void:
 		#playerButton.position = PlayerBar.position - (windowSize.x/2 - 10)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot)) + ((GameBar.SLOT_SIZE.y+15)/2 + (15+playerButton.CameraTransition.size.y)*buttonIndex)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 		#buttonIndex += 1
 	
-	var buttonSize: Vector2 = Transition_toRiver_Button.size
-	Transition_toRiver_Button.rotation = mainPlayerRot - PI/2
-	Transition_toRiver_Button.position = PlayerBar.position
-	Transition_toRiver_Button.position -= buttonSize.y*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))/2 + buttonSize.x*Vector2(sin(mainPlayerRot), -cos(mainPlayerRot))/2
+	#Transition_toRiver_Button.rotation = mainPlayerRot - PI/2
+	#Transition_toRiver_Button.position = PlayerBar.position
+	#Transition_toRiver_Button.position -= buttonSize.y*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))/2 + buttonSize.x*Vector2(sin(mainPlayerRot), -cos(mainPlayerRot))/2
 	#Transition_toRiver_Button.position = Vector2(0, PlayerBar_Y) - Vector2(Transition_toRiver_Button.size.y, -Transition_toRiver_Button.size.x)/4
-	Transition_toRiver_Button.position -= ((GameBar.SLOT_SIZE.y+5) - buttonSize.x)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
+	#Transition_toRiver_Button.position -= ((GameBar.SLOT_SIZE.y+5) - buttonSize.x)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
 	
-	buttonSize = Transition_BackToBoard_Button.size
+	var buttonSize: Vector2 = Transition_BackToBoard_Button.size
 	Transition_BackToBoard_Button.position = Vector2(buttonSize.y/2, windowSize.y/2 - 2*buttonSize.x)#-Transition_BackToBoard_Button.size.y/2
 	
 	buttonSize = PlayerTurnButton.size

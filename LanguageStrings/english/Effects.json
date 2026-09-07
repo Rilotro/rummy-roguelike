@@ -7,8 +7,17 @@
 	"color":{
 		"black": "black",
 		"red": "red",
+		"orange": "orange",
+		"yellow": "yellow",
+		"chartreuse": "chartreuse",
 		"green": "green",
-		"blue": "blue"
+		"turquoise": "turquoise",
+		"cyan": "cyan",
+		"azure": "azure",
+		"blue": "blue",
+		"purple": "purple",
+		"magenta": "magenta",
+		"pink": "pink"
 	},
 	
 	"rarity":{

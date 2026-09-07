@@ -1,6 +1,6 @@
 extends GoodButton
 
-class_name Deck
+#class_name Deck
 
 var DeckTiles: Array[Tile]
 
@@ -27,7 +27,7 @@ func _init() -> void:
 	text_wrap = true
 	
 	for i in range(13):
-		for tileColor in Tile.COLORS:
+		for tileColor in Tile.COLORS.values():
 			DeckTiles.append(Tile.new(i+1, tileColor))#, -1, Tile.Rarity.PORCELAIN, [Tile.Effect.WINGED]))
 	
 	text = StringsManager.UIStrings["DECK"]["MISCELLANEOUS"][0] + " " + str(DeckTiles.size())

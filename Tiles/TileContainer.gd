@@ -322,7 +322,7 @@ func generateTitle(_TipRef: UITip) -> String:
 	
 	match type:
 		Type.BOARD:
-			var colorName: String = Tile.COLOR_NAMES[Tile.COLORS.find(tile.color)]
+			var colorName: String = (Tile.COLORS.find_key(tile.color) as String).to_lower()
 			title += "(" + str(tile.number) + ", [color=" + colorName + "]" + StringsManager.EffectStrings["color"][colorName] + "[/color])"
 		Type.SELECTION, Type.NEXT_DRAW:
 			title += "([color=" + Tile.getRarityColor(tile.rarity).to_html() + "]" + StringsManager.EffectStrings["rarity"][Tile.Rarity.keys()[tile.rarity]] + "[/color]"

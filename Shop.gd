@@ -120,9 +120,12 @@ func reloadShop() -> void:
 		tilePos.x = (NextDrawView.size.x - RowSize)/2
 		NextDrawBackground.region_rect.size.x = RowSize + NEXT_DRAW_SEPARATION.x * 2
 	
-	var deckCount: int = GameScene.MainPlayer.PlayerDeck.DeckTiles.size()-1
+	while(GameScene.MainPlayer.PlayerAtuu.Deck.size() < 13*4):
+		await get_tree().create_timer(0.001).timeout
+	
+	var deckCount: int = GameScene.MainPlayer.PlayerAtuu.Deck.size()-1
 	for i in range(13):
-		tempTile = TileContainer.new(GameScene.MainPlayer.PlayerDeck.DeckTiles[deckCount-i], TileContainer.Type.NEXT_DRAW)
+		tempTile = TileContainer.new(GameScene.MainPlayer.PlayerAtuu.Deck[deckCount-i], TileContainer.Type.NEXT_DRAW)
 		tempTile.scale /= TILE_IMAGE_SCALE_REDUCTOR
 		tempTile.position = tilePos
 		NextDrawView.add_child(tempTile)

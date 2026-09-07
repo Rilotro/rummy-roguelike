@@ -27,6 +27,8 @@ var origBackButton_pos: float = 0
 @onready var StartGame: GoodButton = $LobbyRoom/StartGame
 @onready var QuitLobby: GoodButton = $LobbyRoom/Back
 
+@onready var FadeToBlack: Sprite2D = $FadeToBlack
+
 var currThrobber: Throbber
 var chosenUserName: String
 var chosenLobbyName: String
@@ -51,6 +53,9 @@ func _ready() -> void:
 	
 	origBackButton_pos = SL_BackButton.position.y
 	
+	FadeToBlack.region_rect.size = screen_size
+	FadeToBlack.position = screen_size/2
+	
 	#var LobbyButtons: HBoxContainer = LobbyRoom.get_child(-1)
 	#var newLength: float = LobbyButtons.size.x - LobbyButtons.get_theme_constant("separation") - (LobbyButtons.get_child(0) as GoodButton).size.x - (LobbyButtons.get_child(2) as GoodButton).size.x
 	#(LobbyButtons.get_child(1) as Control).custom_minimum_size.x = newLength
@@ -66,8 +71,15 @@ func singleplayer() -> void:
 	#HighLevelNetworkHandler.is_singleplayer = true
 	#var newGameScene: GameScene = GameScene.new()
 	#get_tree().change_scene_to_file("res://scenes/game_scene.tscn")
-	get_tree().root.add_child(GameScene.new())
-	self.queue_free()
+	
+	SPButton.enabled = false
+	MPButton.enabled = false
+	var fade_toBlackTween: Tween = create_tween().set_parallel()
+	fade_toBlackTween.tween_property(FadeToBlack, "self_modulate:a", 1, 1)
+	fade_toBlackTween.tween_property(self, "modulate", Color(0, 0, 0), 1)
+	fade_toBlackTween.finished.connect(func() -> void:
+		get_tree().root.add_child(GameScene.new())
+		self.queue_free())
 
 func multi_player() -> void:
 	SPButton.visible = false
