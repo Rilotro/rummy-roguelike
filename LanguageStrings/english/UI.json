@@ -135,7 +135,9 @@
 			"Current Currency: ",
 			"SOLD",
 			"Open Shop",
-			"Close Shop"],
+			"Close Shop",
+			"The Top ",
+			" Tiles in the [b]Deck[/b]:"],
 	
 	"EXIT": {
 		"NAME": "Exit Button",
@@ -146,5 +148,8 @@
 	"SELECT": ["[b]Select[/b] ",
 				" of ",
 				"at least ",
-				"up to "]
+				"up to "],
+	
+	"TURN": ["Your Turn",
+			 "'s Turn"]
 }

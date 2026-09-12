@@ -7,7 +7,7 @@ var players: Array[PlayerData]
 var currPlayer: PlayerData
 var playersReady: int = 0
 var lobbyOwner: bool = false
-var player_currTurn: int = 0
+var player_currTurn: int = -1
 
 signal receivedData(source: String, command: String, params: PackedByteArray)
 
@@ -71,6 +71,29 @@ func getPlayer_byID(ID: int) -> PlayerData:
 func getPlayer_byPlayerSpace(playerSpace: Player) -> PlayerData:
 	for player in players:
 		if(player.playerSpace == playerSpace):
+			return player
+	
+	return null
+
+func getPlayer_byOrder(oreder: int) -> PlayerData:
+	for player in players:
+		if(player.order == oreder):
+			return player
+	
+	return null
+
+func getNextPlayerTurn() -> PlayerData:
+	if(currPlayer == null || players.is_empty()):
+		return null
+	
+	#var currPlayerTurn: PlayerData = getPlayer_byOrder(player_currTurn)
+	
+	var next_inOrder: int = player_currTurn+1
+	if(next_inOrder == players.size()):
+		next_inOrder = 0
+	
+	for player in players:
+		if(player.order == next_inOrder):
 			return player
 	
 	return null

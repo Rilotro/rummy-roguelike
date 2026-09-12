@@ -13,7 +13,11 @@ var SelectionBackground: Sprite2D
 var SelectionView: Control
 var NextDrawBackground: Sprite2D
 var NextDrawView: Control
+var nextDrawLabel: RichTextLabel
 var ExitShop: GoodButton
+
+static var DeckViewCount: int = 5
+static var opennedPos: Vector2
 
 func _init() -> void:
 	Background = Sprite2D.new()
@@ -55,14 +59,30 @@ func _init() -> void:
 	NextDrawView.name = "NextDrawView"
 	add_child(NextDrawView)
 	
+	nextDrawLabel = RichTextLabel.new()
+	nextDrawLabel.bbcode_enabled = true
+	nextDrawLabel.text = StringsManager.UIStrings["SHOP"][5] + str(DeckViewCount) + StringsManager.UIStrings["SHOP"][6]
+	nextDrawLabel.add_theme_font_size_override("normal_font_size", 24)
+	nextDrawLabel.add_theme_font_size_override("bold_font_size", 24)
+	nextDrawLabel.name = "nextDrawLabel"
+	add_child(nextDrawLabel)
+	
 	ExitShop = GoodButton.new("", Color.WHITE, Vector2(-1, -1), load("res://UI/Exit.png"))#, GoodButton.ButtonType.EXIT_SHOP
 	ExitShop.scale = Vector2(0.5, 0.5)
 	ExitShop.name = "ExitShop"
 	add_child(ExitShop)
 	
 	ExitShop.press.connect(func() -> void:
-		visible = false
-		GameScene.MainPlayer.ExpBar.z_index = 0)
+		var atuuScale: float = GameScene.PlayerBar.Body.region_rect.size.y/(Atuu.BASE_RESOURCE_SIZE.y+Atuu.FRAME_EXTRA_SIZE)
+		var finalAtuuPos: Vector2 = -atuuScale*Atuu.BASE_RESOURCE_SIZE/2
+		finalAtuuPos.y += Board.BOARD_HEIGHT/2 - get_viewport_rect().size.y + GameScene.PlayerBar.Body.region_rect.size.y/2
+		
+		var closeTween: Tween = create_tween().set_parallel()
+		closeTween.tween_property(self, "scale", Vector2(0, 0), 1)
+		closeTween.tween_property(self, "global_position", GameScene.MainPlayer.Camera.global_position, 1)
+		closeTween.tween_property(GameScene.MainPlayer.PlayerAtuu, "position", finalAtuuPos, 2)
+		closeTween.tween_property(GameScene.MainPlayer.PlayerAtuu, "scale", Vector2(atuuScale, atuuScale), 2)
+		closeTween.finished.connect(func() -> void: GameScene.MainPlayer.PlayerAtuu.enabled = true))
 
 func _ready() -> void:
 	var windowSize: Vector2 = get_viewport_rect().size
@@ -120,8 +140,13 @@ func reloadShop() -> void:
 		tilePos.x = (NextDrawView.size.x - RowSize)/2
 		NextDrawBackground.region_rect.size.x = RowSize + NEXT_DRAW_SEPARATION.x * 2
 	
-	while(GameScene.MainPlayer.PlayerAtuu.Deck.size() < 13*4):
-		await get_tree().create_timer(0.001).timeout
+	nextDrawLabel.text = StringsManager.UIStrings["SHOP"][5] + str(DeckViewCount) + StringsManager.UIStrings["SHOP"][6]
+	nextDrawLabel.size = nextDrawLabel.get_theme_font("normal_font").get_string_size(nextDrawLabel.text, nextDrawLabel.horizontal_alignment, -1, nextDrawLabel.get_theme_font_size("normal_font_size"), nextDrawLabel.justification_flags, TextServer.DIRECTION_AUTO, TextServer.ORIENTATION_HORIZONTAL)
+	nextDrawLabel.position = NextDrawBackground.position - NextDrawBackground.region_rect.size/2
+	nextDrawLabel.position.y -= nextDrawLabel.size.y
+	
+	if(GameScene.MainPlayer.PlayerAtuu.Deck.size() <= 0):
+		return
 	
 	var deckCount: int = GameScene.MainPlayer.PlayerAtuu.Deck.size()-1
 	for i in range(13):

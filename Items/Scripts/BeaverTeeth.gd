@@ -61,9 +61,9 @@ func onGetAnimation():
 	BeaverTeethUp.global_position = ItemSlot.global_position + Vector2(19.5, 30.0)
 	BeaverTeethDown.global_position = ItemSlot.global_position + Vector2(19.5, 30.0)
 	
-	tween.tween_property(BeaverTeethUp, "global_position", GameScene.BaitButton.global_position + GameScene.BaitButton.size/2 + Vector2(0, -25), 0.95)
+	#tween.tween_property(BeaverTeethUp, "global_position", GameScene.BaitButton.global_position + GameScene.BaitButton.size/2 + Vector2(0, -25), 0.95)
 	tween.tween_property(BeaverTeethUp, "scale", Vector2(1, 1), 0.6)
-	tween.tween_property(BeaverTeethDown, "global_position", GameScene.BaitButton.global_position + GameScene.BaitButton.size/2 + Vector2(0, 25), 0.95)#--------------------------------------------------------------------------
+	#tween.tween_property(BeaverTeethDown, "global_position", GameScene.BaitButton.global_position + GameScene.BaitButton.size/2 + Vector2(0, 25), 0.95)#--------------------------------------------------------------------------
 	tween.tween_property(BeaverTeethDown, "scale", Vector2(1, 1), 0.6)
 	
 	await tween.finished
@@ -71,8 +71,8 @@ func onGetAnimation():
 	
 	tween.set_parallel()
 	
-	tween.tween_property(BeaverTeethUp, "global_position", GameScene.BaitButton.global_position + GameScene.BaitButton.size/2, 0.01)
-	tween.tween_property(BeaverTeethDown, "global_position", GameScene.BaitButton.global_position + GameScene.BaitButton.size/2, 0.01)
+	#tween.tween_property(BeaverTeethUp, "global_position", GameScene.BaitButton.global_position + GameScene.BaitButton.size/2, 0.01)
+	#tween.tween_property(BeaverTeethDown, "global_position", GameScene.BaitButton.global_position + GameScene.BaitButton.size/2, 0.01)
 	
 	await tween.finished
 	

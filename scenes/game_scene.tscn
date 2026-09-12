@@ -26,6 +26,17 @@ properties/2/replication_mode = 1
 [node name="GameScene" type="Node2D" unique_id=727826555]
 script = ExtResource("1_w5aja")
 
+[node name="Label" type="Label" parent="." unique_id=1924299983]
+offset_left = -576.0
+offset_top = 486.0
+offset_right = 576.0
+offset_bottom = 1134.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 100
+text = "Name's Turn"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="BackGround_Obfuscator" type="Sprite2D" parent="." unique_id=597094308]
 visible = false
 self_modulate = Color(0, 0, 0, 0.39215687)

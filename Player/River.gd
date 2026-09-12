@@ -19,7 +19,7 @@ static var bait: int = 0
 func DiscardTiles(newTiles: Array[TileContainer]) -> void:
 	bait += newTiles.size()
 	
-	GameScene.BaitButton.text = StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(bait)
+	#GameScene.BaitButton.text = StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(bait)
 	
 	#GameScene.BaitButton.changeVisuals()
 	

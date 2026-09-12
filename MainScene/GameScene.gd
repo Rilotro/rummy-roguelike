@@ -5,14 +5,15 @@ class_name GameScene
 static var Game: GameScene
 
 const CAMERA_WIDE_SHOT_RATIO: float = 3.5
+const BACKGROUND_OBFUSCATOR_ALPHA: float = 0.5
 
 static var myTurn: bool = false
 
 static var bgObfuscator: Sprite2D
 static var MainPlayer: Player
 static var PlayerBar: GameBar
-static var BaitButton: GoodButton
-static var PlayerTurnButton: TurnButton
+#static var BaitButton: GoodButton
+static var PlayerTurnButton: GoodButton#TurnButton
 #static var Transition_toRiver_Button: GoodButton
 static var Transition_BackToBoard_Button: GoodButton
 static var DiscardButton: GoodButton
@@ -24,6 +25,7 @@ static var interPlayer_rotationStep: float
 static var BoardRadius: float
 
 static var inProximity_ofTransButton: bool = false
+static var window_size: Vector2
 
 signal StartOfRound
 signal EndOfRound
@@ -41,6 +43,7 @@ func _init() -> void:
 		MultiplayerHandler.currPlayer.playerSpace = MainPlayer
 		interPlayer_rotationStep = 2*PI/MultiplayerHandler.players.size()
 		
+		
 		var otherPlayer: Player
 		
 		for player in MultiplayerHandler.players:
@@ -52,7 +55,7 @@ func _init() -> void:
 			add_child(otherPlayer)
 			
 			player.playerSpace = otherPlayer
-			
+	
 	
 	if(MultiplayerHandler.players.size() > 1):
 		pass
@@ -74,11 +77,15 @@ func _init() -> void:
 	PlayerBar.name = "PlayerBar"
 	add_child(PlayerBar)
 	
-	BaitButton = GoodButton.new(StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(0), Color.TRANSPARENT, Vector2(-1, -1), null, true, ButtonCallables.Callables["BAIT"]["NAME"], ButtonCallables.Callables["BAIT"]["KEYWORDS"], ButtonCallables.Callables["BAIT"]["DESCRIPTION"])#, GoodButton.ButtonType.BAIT
-	BaitButton.name = "BaitButton"
-	add_child(BaitButton)
+	#BaitButton = GoodButton.new(StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(0), Color.TRANSPARENT, Vector2(-1, -1), null, true, ButtonCallables.Callables["BAIT"]["NAME"], ButtonCallables.Callables["BAIT"]["KEYWORDS"], ButtonCallables.Callables["BAIT"]["DESCRIPTION"])#, GoodButton.ButtonType.BAIT
+	#BaitButton.name = "BaitButton"
+	#add_child(BaitButton)
 	
-	PlayerTurnButton = TurnButton.new(TurnButton.ButtonAction.SHOP) #GoodButton.new(StringsManager.UIStrings["SHOP"][0], Color.GOLD)
+	PlayerTurnButton = GoodButton.new("End Turn", Color.BLACK) #GoodButton.new(StringsManager.UIStrings["SHOP"][0], Color.GOLD)
+	PlayerTurnButton.HighlighColor = Color.BLACK + Color(0.1, 0.1, 0.1)
+	PlayerTurnButton.PressedColor = Color.BLACK + Color(0.2, 0.2, 0.2)
+	PlayerTurnButton.text_color = Color.WHITE
+	PlayerTurnButton.enabled = false
 	PlayerTurnButton.name = "TurnButton"
 	add_child(PlayerTurnButton)
 	
@@ -107,27 +114,27 @@ func _init() -> void:
 	
 	Transition_BackToBoard_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.BOARD))
 	#Transition_toRiver_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.RIVER))
-	BaitButton.press.connect(func() -> void: 
-		if(BeaverTeeth.Beaver_Teeth_Activated):
-			Transition_BackToBoard_Button.visible = false
-			for tile in River.river:
-				tile.enabled = true
-			
-			MainPlayer.moveCamera(Player.CameraPosition.RIVER)
-			
-			while(BeaverTeeth.chosenRiverTile == null):
-				await get_tree().create_timer(0.001).timeout
-			
-			for tile in River.river:
-				tile.enabled = false
-			
-			MainPlayer.Draw_fromRiver(River.bait, BeaverTeeth.chosenRiverTile)
-			BeaverTeeth.chosenRiverTile = null
-			MainPlayer.moveCamera(Player.CameraPosition.BOARD)
-			Transition_BackToBoard_Button.visible = true
-			return
-		
-		MainPlayer.Draw_fromRiver(River.bait))
+	#BaitButton.press.connect(func() -> void: 
+		#if(BeaverTeeth.Beaver_Teeth_Activated):
+			#Transition_BackToBoard_Button.visible = false
+			#for tile in River.river:
+				#tile.enabled = true
+			#
+			#MainPlayer.moveCamera(Player.CameraPosition.RIVER)
+			#
+			#while(BeaverTeeth.chosenRiverTile == null):
+				#await get_tree().create_timer(0.001).timeout
+			#
+			#for tile in River.river:
+				#tile.enabled = false
+			#
+			#MainPlayer.Draw_fromRiver(River.bait, BeaverTeeth.chosenRiverTile)
+			#BeaverTeeth.chosenRiverTile = null
+			#MainPlayer.moveCamera(Player.CameraPosition.BOARD)
+			#Transition_BackToBoard_Button.visible = true
+			#return
+		#
+		#MainPlayer.Draw_fromRiver(River.bait))
 	
 		#inProximity_ofTransButton = true
 		#
@@ -142,19 +149,39 @@ func _init() -> void:
 		#proxmityTween.tween_property(SpreadCameraTransition, "modulate:a", 1, 1-SpreadCameraTransition.modulate.a))
 	#SpreadTransition_ProximitySensor.mouse_exited.connect(_mouse_outsideProximity)
 	
-	PlayerTurnButton.resized.connect(func() -> void:
-		BaitButton.position = PlayerTurnButton.position
-		BaitButton.position += (PlayerTurnButton.size.x+10)*Vector2(cos(BaitButton.rotation), sin(BaitButton.rotation))
-		BaitButton.position -= (PlayerTurnButton.size.y - BaitButton.size.y)*Vector2(-sin(BaitButton.rotation), cos(BaitButton.rotation))/2)
+	PlayerTurnButton.press.connect(EndRound)
+	
+	Game.StartOfRound.connect(MultiplayerHandler.send_data.bind("started_turn", "start".to_utf8_buffer()))
+	Game.EndOfRound.connect(MultiplayerHandler.send_data.bind("ended_turn", "end".to_utf8_buffer()))
+	
+	#PlayerTurnButton.resized.connect(func() -> void:
+		#BaitButton.position = PlayerTurnButton.position
+		#BaitButton.position += (PlayerTurnButton.size.x+10)*Vector2(cos(BaitButton.rotation), sin(BaitButton.rotation))
+		#BaitButton.position -= (PlayerTurnButton.size.y - BaitButton.size.y)*Vector2(-sin(BaitButton.rotation), cos(BaitButton.rotation))/2)
 
 func _ready() -> void:
+	get_tree().root.size_changed.connect(window_size_changed.bind(get_tree().root.size))
 	create_tween().tween_property(self, "modulate", Color(1, 1, 1), 2)
-	var windowSize: Vector2 = get_viewport_rect().size
 	
-	bgObfuscator.region_rect = Rect2(Vector2(0, 0), windowSize)
-	bgObfuscator.get_child(0).size = windowSize
+	window_size_changed(get_tree().root.size)
 	
-	BoardRadius = CAMERA_WIDE_SHOT_RATIO*windowSize.y/2 - Board.BOARD_HEIGHT/2
+
+func _process(delta: float) -> void:
+	if(Input.is_action_just_pressed("Debug_Draw")):
+		var newRiches: Riches = Riches.new()
+		newRiches.rounds = 1
+		PlayerBar.addModifier(newRiches)
+	
+	if(usingItem != null):
+		usingItem.resource.updateWhileUsing(delta)
+
+func window_size_changed(newSize: Vector2) -> void:
+	window_size = newSize
+	
+	bgObfuscator.region_rect = Rect2(Vector2(0, 0), window_size)
+	bgObfuscator.get_child(0).size = window_size
+	
+	BoardRadius = CAMERA_WIDE_SHOT_RATIO*window_size.y/2 - Board.BOARD_HEIGHT/2
 	
 	var mainPlayerRot: float
 	for player in MultiplayerHandler.players:
@@ -170,11 +197,11 @@ func _ready() -> void:
 	MainPlayer.GameRiver.position = Vector2(-River.ROW_WIDTH/2, -MainPlayer.position.y)
 	
 	bgObfuscator.global_position = MainPlayer.Camera.global_position
-	bgObfuscator.get_child(0).global_position = bgObfuscator.global_position - windowSize/2
+	bgObfuscator.get_child(0).global_position = bgObfuscator.global_position - window_size/2
 	
 	PlayerBar.rotation = mainPlayerRot
 	PlayerBar.position = MainPlayer.position
-	PlayerBar.position -= (windowSize.y - (Board.BOARD_HEIGHT + GameBar.SLOT_SIZE.y + 5)/2)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
+	PlayerBar.position -= (window_size.y - (Board.BOARD_HEIGHT + GameBar.SLOT_SIZE.y + 5)/2)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	#var PlayerBarRadius: float = MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2 + (GameBar.SLOT_SIZE.y+5)/2
 	#PlayerBar.position = Vector2(0, PlayerBar_Y)
 	#PlayerBar.position = PlayerBarRadius*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
@@ -185,8 +212,9 @@ func _ready() -> void:
 	GameShop.rotation = mainPlayerRot
 	#GameShop.position = MainPlayer.position
 	GameShop.global_position = MainPlayer.Camera.global_position
-	GameShop.position -= windowSize.x/2 * Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
-	GameShop.position -= windowSize.y/2 * Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
+	Shop.opennedPos = GameShop.global_position
+	Shop.opennedPos -= window_size.x/2 * Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
+	Shop.opennedPos -= window_size.y/2 * Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	
 	#var button_y: float
 	#var buttonIndex: int = 0
@@ -202,37 +230,44 @@ func _ready() -> void:
 	#Transition_toRiver_Button.position -= ((GameBar.SLOT_SIZE.y+5) - buttonSize.x)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
 	
 	var buttonSize: Vector2 = Transition_BackToBoard_Button.size
-	Transition_BackToBoard_Button.position = Vector2(buttonSize.y/2, windowSize.y/2 - 2*buttonSize.x)#-Transition_BackToBoard_Button.size.y/2
+	Transition_BackToBoard_Button.position = Vector2(buttonSize.y/2, window_size.y/2 - 2*buttonSize.x)#-Transition_BackToBoard_Button.size.y/2
 	
 	buttonSize = PlayerTurnButton.size
 	PlayerTurnButton.rotation = mainPlayerRot
 	PlayerTurnButton.position = PlayerBar.position - 5*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
 	#PlayerTurnButton.position = (PlayerBarRadius-5)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot)) + (-windowSize.x/2 + buttonSize.x/2 + 5)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
 	#PlayerTurnButton.position = Vector2(-windowSize.x/2 + PlayerTurnButton.size.x/2 + 5, PlayerBar_Y-5)
-	PlayerTurnButton.position += ((buttonSize.x - windowSize.x)/2 + 5)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
+	PlayerTurnButton.position += ((buttonSize.x - window_size.x)/2 + 5)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
 	
-	BaitButton.rotation = mainPlayerRot
-	BaitButton.position = PlayerTurnButton.position
-	BaitButton.position += (buttonSize.x+10)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
-	BaitButton.position -= (buttonSize.y - BaitButton.size.y)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
+	
+	#PlayerTurnAnnouncer.position = PlayerBar.position
+	#PlayerTurnAnnouncer.position -= 3*window_size.x/2 * Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
+	#PlayerTurnAnnouncer.position -= PlayerBar.Body.region_rect.size.y/2 * Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))
+	
+	#BaitButton.rotation = mainPlayerRot
+	#BaitButton.position = PlayerTurnButton.position
+	#BaitButton.position += (buttonSize.x+10)*Vector2(cos(mainPlayerRot), sin(mainPlayerRot))
+	#BaitButton.position -= (buttonSize.y - BaitButton.size.y)*Vector2(-sin(mainPlayerRot), cos(mainPlayerRot))/2
 	
 	#GameShop.position = Vector2(-windowSize.x/2, MainPlayer.position.y - windowSize.y + Board.BOARD_HEIGHT/2)
 	
 	#PlayerBar.addModifier(ArchitectsForge.new())
-
-func _process(delta: float) -> void:
-	if(Input.is_action_just_pressed("Debug_Draw")):
-		var newRiches: Riches = Riches.new()
-		newRiches.rounds = 1
-		PlayerBar.addModifier(newRiches)
 	
-	if(usingItem != null):
-		usingItem.resource.updateWhileUsing(delta)
+	if(MultiplayerHandler.players.is_empty()):
+		MainPlayer.window_size_changed()
+	else:
+		for player in MultiplayerHandler.players:
+			player.playerSpace.window_size_changed()
 
-func StartRound() -> void:
-	myTurn = true
-	PlayerTurnButton.changeButtonAction(TurnButton.ButtonAction.END_TURN)#changeVisuals(StringsManager.UIStrings["TURN"][0], Color.BLACK)
-	StartOfRound.emit()
+static func StartRound() -> void:
+	bgObfuscator.visible = false
+	bgObfuscator.self_modulate.a = BACKGROUND_OBFUSCATOR_ALPHA
+	MainPlayer.PlayerAtuu.ColorHighlight.visible = false
+	MainPlayer.hasStartedTurn = true
+	MainPlayer.PlayerAtuu.enabled = true
+	PlayerTurnButton.enabled = true
+	
+	Game.StartOfRound.emit()
 
 static func startItemUse(item: ItemContainer):
 	usingItem = item
@@ -270,31 +305,67 @@ func createSelectionScreen(option: SelectScreen.SelectOption, selectionOptions: 
 	currSelectScreen.position.y += Board.BOARD_HEIGHT/2 - windowSize.y/2 
 	add_child(currSelectScreen)
 
-func EndRound() -> void:
+static func EndRound() -> void:
 	#if()
-	if(myTurn):
-		myTurn = false
-		PlayerTurnButton.changeButtonAction(TurnButton.ButtonAction.SHOP)
-		EndOfRound.emit()
-		
-		MultiplayerHandler.send_data("round_end", "round_end".to_utf8_buffer())
+	#if(myTurn):
+		##var nextPlayer: PlayerData = MultiplayerHandler.getNextPlayerTurn(MultiplayerHandler.getPlayer_byPlayerSpace(MainPlayer))
+		#myTurn = false
+		#MainPlayer.hasStartedTurn = false
+		##PlayerTurnButton.changeButtonAction(TurnButton.ButtonAction.SHOP)
+		#EndOfRound.emit()
+		#
+		##MultiplayerHandler.send_data("round_end", str(nextPlayer.ID).to_utf8_buffer())
+		#
+	#
+	MainPlayer.hasStartedTurn = false
+	myTurn = false
+	PlayerTurnButton.enabled = false
 	
-	if(MultiplayerHandler.players.size() > 0):
-		#var rotStep: float = 2*PI/MultiplayerHandler.players.size()
-		
-		MultiplayerHandler.player_currTurn += 1
-		
-		var tween: Tween = create_tween()
-		tween.tween_method(func(newRot: float) -> void:
-			MainPlayer.GameBoard.rotation = newRot
-			MainPlayer.GameBoard.global_position =  Vector2(BoardRadius*sin(-newRot), BoardRadius*cos(-newRot))
-		, MainPlayer.GameBoard.rotation, MainPlayer.GameBoard.rotation-interPlayer_rotationStep, 1)
+	Game.EndOfRound.emit()
 	
 	NextPlayer()
 
+static var firstTurn: bool = true
+
 ##Will have greater multiplayer functionality in the future
-func NextPlayer() -> void:
-	MainPlayer.PlayerDeck.enabled = true
+static func NextPlayer() -> void:
+	var nextPlayer: PlayerData = MultiplayerHandler.getNextPlayerTurn()
+	
+	if(nextPlayer == null):
+		myTurn = true
+		
+		PlayerTurnAnnouncement("null")
+	else:
+		MultiplayerHandler.player_currTurn = nextPlayer.order
+		
+		PlayerTurnAnnouncement(nextPlayer.name)
+		
+		#if(MultiplayerHandler.players.size() > 0):
+		##var rotStep: float = 2*PI/MultiplayerHandler.players.size()
+		#
+		
+		if(!firstTurn):
+			var tween: Tween = Game.create_tween()
+			tween.tween_method(func(newRot: float) -> void:
+				MainPlayer.GameBoard.rotation = newRot
+				MainPlayer.GameBoard.global_position =  Vector2(BoardRadius*sin(-newRot), BoardRadius*cos(-newRot))
+			, MainPlayer.GameBoard.rotation, MainPlayer.GameBoard.rotation-interPlayer_rotationStep, 1)
+		else:
+			firstTurn = false
+		
+		if(nextPlayer.playerSpace == MainPlayer):
+			myTurn = true
+			MainPlayer.PlayerAtuu.enabled = true
+
+static func PlayerTurnAnnouncement(playerName: String) -> void:
+	if(playerName == "null" || playerName == MultiplayerHandler.currPlayer.name):
+		MainPlayer.PlayerTurnAnnouncer.text = StringsManager.UIStrings["TURN"][0]
+	else:
+		MainPlayer.PlayerTurnAnnouncer.text = playerName + StringsManager.UIStrings["TURN"][1]
+	
+	var announcementTween: Tween = Game.create_tween()
+	announcementTween.tween_property(MainPlayer.PlayerTurnAnnouncer, "position:x", MainPlayer.PlayerTurnAnnouncer.position.x + 2*window_size.x, 2).set_trans(Tween.TRANS_CIRC).set_ease(Tween.EASE_OUT_IN)
+	announcementTween.finished.connect(func() -> void: MainPlayer.PlayerTurnAnnouncer.position.x -= 2*window_size.x)
 
 #func onTurnButtonPressed() -> void:
 	#if(!myTurn):
@@ -309,8 +380,10 @@ func NextPlayer() -> void:
 
 func handlePlayerCommands(source: String, command: String, params: PackedByteArray) -> void:
 	match command:
-		"round_end":
-			EndRound()
+		"started_turn":
+			pass
+		"ended_turn":
+			NextPlayer()
 		"draw":
 			MultiplayerHandler.getPlayer_byID(int(source)).playerSpace.receive_otherPlayer_draw(params.get_string_from_utf8())
 		"tile_moved":

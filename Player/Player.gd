@@ -22,6 +22,7 @@ var SpreadButton: GoodButton
 var DiscardButton: GoodButton
 var ExpBar: ExperienceBar
 var PlayerAtuu: Atuu
+var PlayerTurnAnnouncer: Label
 
 static var selectedTiles: Array[TileContainer]
 static var isDiscarding: bool = false
@@ -32,6 +33,8 @@ var currentCameraPos: CameraPosition = CameraPosition.BOARD
 
 var isMainPlayer: bool = true
 var hasBoard: bool = false
+
+var hasStartedTurn: bool = false
 
 signal PlayerDraw(fromDeck: bool)
 
@@ -135,6 +138,13 @@ func _init(player: PlayerData = null) -> void:
 		PlayerAtuu.z_index = 3
 		PlayerAtuu.name = "PlayerAtuu"
 		add_child(PlayerAtuu)
+		
+		PlayerTurnAnnouncer = Label.new()
+		PlayerTurnAnnouncer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		PlayerTurnAnnouncer.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		PlayerTurnAnnouncer.add_theme_font_size_override("font_size", 100)
+		PlayerTurnAnnouncer.name = "PlayerTurnAnnouncer"
+		Camera.add_child(PlayerTurnAnnouncer)
 	else:
 		var newPlayerButton: PlayerTransition
 		newPlayerButton = PlayerTransition.new(MultiplayerHandler.currPlayer.ID)
@@ -175,41 +185,54 @@ func _init(player: PlayerData = null) -> void:
 #var SpreadCameraTransition_positionBoard: Vector2
 #var SpreadCameraTransition_positionSpread: Vector2
 
-func _ready() -> void:
-	var windowSize: Vector2 = get_viewport_rect().size
+#func _ready() -> void:
+	#var windowSize: Vector2 = get_viewport_rect().size
 	
-	var ExpBar_Y: float = -windowSize.y + Board.BOARD_HEIGHT/2 + ExperienceBar.BAR_SIZE.y/2 + GameBar.SLOT_BAR_SIZE.y+5
+
+#var playerTypedLetters: Array[String]
+#
+#func _input(event: InputEvent) -> void:
+	#if(event is InputEventKey && event.is_pressed()):
+		#playerTypedLetters.append(event.as_text())
+		#print("HERE0 - " + str(playerTypedLetters))
+
+func window_size_changed() -> void:
+	var ExpBar_Y: float = -GameScene.window_size.y + Board.BOARD_HEIGHT/2 + ExperienceBar.BAR_SIZE.y/2 + GameBar.SLOT_BAR_SIZE.y+5
 	ExpBar.position = Vector2(0, ExpBar_Y)
 	
-	var PlayerSpread_posX: float = windowSize.x + Spread.ROW_WIDTH/2# + 420
+	var PlayerSpread_posX: float = GameScene.window_size.x + Spread.ROW_WIDTH/2# + 420
 	PlayerSpread.position = Vector2(PlayerSpread_posX, 0)
 	
-	var start_y: float = -windowSize.y + Board.BOARD_HEIGHT/2 + GameBar.SLOT_SIZE.y+5 + 10
+	var start_y: float = -GameScene.window_size.y + Board.BOARD_HEIGHT/2 + GameBar.SLOT_SIZE.y+5 + 10
 	for button in PlayerButtons:
-		button.position = Vector2(10-windowSize.x/2, start_y)
+		button.position = Vector2(10-GameScene.window_size.x/2, start_y)
 		
 		start_y += button.CameraTransition.size.y + 10
 	
-	SpreadCameraTransition.position = Vector2(windowSize.x/2 - SpreadCameraTransition.size.x-10, -(windowSize.y - Board.BOARD_HEIGHT + SpreadCameraTransition.size.y)/2)
-	BoardCameraTransition.position = SpreadCameraTransition.position + Vector2(PlayerSpread.position.x - windowSize.x + SpreadCameraTransition.size.x + 20, 0)
+	SpreadCameraTransition.position = Vector2(GameScene.window_size.x/2 - SpreadCameraTransition.size.x-10, -(GameScene.window_size.y - Board.BOARD_HEIGHT + SpreadCameraTransition.size.y)/2)
+	BoardCameraTransition.position = SpreadCameraTransition.position + Vector2(PlayerSpread.position.x - GameScene.window_size.x + SpreadCameraTransition.size.x + 20, 0)
 	BoardCameraTransition.position += BoardCameraTransition.size
 	
-	SpreadAndBoard_Transition_ProximitySensor.size = Vector2(515, windowSize.y)
+	SpreadAndBoard_Transition_ProximitySensor.size = Vector2(515, GameScene.window_size.y)
 	var posX: float = SpreadCameraTransition.position.x - (SpreadAndBoard_Transition_ProximitySensor.size.x - SpreadCameraTransition.size.x - 10)/2
-	SpreadAndBoard_Transition_ProximitySensor.position = Vector2(posX, Board.BOARD_HEIGHT/2 - windowSize.y)
+	SpreadAndBoard_Transition_ProximitySensor.position = Vector2(posX, Board.BOARD_HEIGHT/2 - GameScene.window_size.y)
 	SpreadAndBoard_Transition_ProximitySensor.size.x = 700
 	
 	if(isMainPlayer):
-		var AtuuScale: float = windowSize.y/(TileContainer.BASE_RESOURCE_SIZE.y + Atuu.FRAME_EXTRA_SIZE)
+		PlayerTurnAnnouncer.size = GameScene.window_size
+		PlayerTurnAnnouncer.position -= PlayerTurnAnnouncer.size/2
+		PlayerTurnAnnouncer.position.x -= GameScene.window_size.x
+		
+		var AtuuScale: float = GameScene.window_size.y/(TileContainer.BASE_RESOURCE_SIZE.y + Atuu.FRAME_EXTRA_SIZE)
 		PlayerAtuu.scale = Vector2(AtuuScale, AtuuScale)
 		PlayerAtuu.position -= AtuuScale*TileContainer.BASE_RESOURCE_SIZE/2
-		handleStartGameAtuu(windowSize)
+		handleStartGameAtuu(GameScene.window_size)
 		
 		#Draw(14)
 		#PlayerDeck.DIS_ENable(true)
 	
 	if(hasBoard):
-		GameBoard.position.y = -windowSize.y
+		GameBoard.position.y = -GameScene.window_size.y
 		
 		var boardTween: Tween = create_tween()
 		boardTween.tween_property(GameBoard, "position:y", 0, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT).set_delay(0.1)
@@ -224,13 +247,6 @@ func _ready() -> void:
 	#var sentTile: Tile = PlayerDeck.DeckTiles[0]
 	#print("Info on sent Tile: " + str(sentTile.number) + ", " + str(sentTile.color))
 	#LlmpTest.send_data("tile", var_to_bytes(inst_to_dict(sentTile)))
-
-#var playerTypedLetters: Array[String]
-#
-#func _input(event: InputEvent) -> void:
-	#if(event is InputEventKey && event.is_pressed()):
-		#playerTypedLetters.append(event.as_text())
-		#print("HERE0 - " + str(playerTypedLetters))
 
 func handleStartGameAtuu(screenSize: Vector2) -> void:
 	await PlayerAtuu.startGameCycle()
@@ -251,6 +267,8 @@ func handleStartGameAtuu(screenSize: Vector2) -> void:
 	PlayerAtuu.z_index = 1
 	if(hasBoard):
 		PlayerAtuu.enabled = true
+	
+	GameScene.NextPlayer()
 	
 	GameScene.GameShop.reloadShop()
 
@@ -327,7 +345,7 @@ func Draw_fromRiver(baitAmmount: int = 0, startingTile: TileContainer = null) ->
 	PlayerDraw.emit(false)
 	River.bait = 0
 	
-	GameScene.BaitButton.changeVisuals(StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(0))
+	#GameScene.BaitButton.changeVisuals(StringsManager.UIStrings["BAIT"]["TEXT"][0]+str(0))
 	
 	var startingIndex: int = River.river.find(startingTile)
 	if(startingIndex < 0):

@@ -94,25 +94,47 @@ func finalPress() -> void:
 	super()
 	
 	enabled = false
-	cycleColors()
-	var finalA: float = GameScene.bgObfuscator.self_modulate.a
-	GameScene.bgObfuscator.self_modulate.a = 0
-	GameScene.bgObfuscator.visible = true
+	var newScale: float
 	
-	var growTween: Tween = create_tween()
-	growTween.set_parallel()
-	var newScale: float = (get_viewport_rect().size.y - Board.BOARD_HEIGHT*Player.GameBoard.BoardRows.size())/(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)
-	growTween.tween_property(self, "scale", Vector2(newScale, newScale), 1)
-	growTween.tween_property(self, "position", Vector2(0, -Board.BOARD_HEIGHT*(Player.GameBoard.BoardRows.size()-0.5) - newScale*(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)/2) - newScale*BASE_RESOURCE_SIZE/2, 1)
-	growTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", finalA, 1)
+	print("HERE0 - " + str(GameScene.myTurn) + " - " + str(GameScene.MainPlayer.hasStartedTurn))
 	
-	growTween.finished.connect(func() -> void:
-		await cycleTween.finished
-		colorEndCycle = Tile.chosenColors.pick_random()
-		await cycleTween.finished
-		await get_tree().create_timer(0.5).timeout
-		isRoundStartDraw = true
-		Draw(13))
+	if(GameScene.myTurn && !GameScene.MainPlayer.hasStartedTurn):
+		cycleColors()
+		var finalA: float = GameScene.bgObfuscator.self_modulate.a
+		GameScene.bgObfuscator.self_modulate.a = 0
+		GameScene.bgObfuscator.visible = true
+		
+		var growTween: Tween = create_tween()
+		growTween.set_parallel()
+		newScale = (GameScene.window_size.y - Board.BOARD_HEIGHT*Player.GameBoard.BoardRows.size())/(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)
+		growTween.tween_property(self, "scale", Vector2(newScale, newScale), 1)
+		growTween.tween_property(self, "position", Vector2(0, -Board.BOARD_HEIGHT*(Player.GameBoard.BoardRows.size()-0.5) - newScale*(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)/2) - newScale*BASE_RESOURCE_SIZE/2, 1)
+		growTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", finalA, 1)
+		
+		growTween.finished.connect(func() -> void:
+			await cycleTween.finished
+			colorEndCycle = Tile.chosenColors.pick_random()
+			await cycleTween.finished
+			await get_tree().create_timer(0.5).timeout
+			isRoundStartDraw = true
+			Draw(13))
+		
+		GameScene.MainPlayer.hasStartedTurn = true
+	else:
+		var screenSize: Vector2 = GameScene.window_size
+		newScale = (screenSize.x + 100)/BASE_RESOURCE_SIZE.x
+		
+		GameScene.GameShop.scale = Vector2(0, 0)
+		GameScene.GameShop.global_position = GameScene.MainPlayer.Camera.global_position
+		GameScene.GameShop.z_index = 2
+		GameScene.GameShop.visible = true
+		
+		var transition_toShopTween: Tween = create_tween()
+		transition_toShopTween.tween_property(self, "position", GameScene.MainPlayer.Camera.position - scale*BASE_RESOURCE_SIZE/2, 0.3)
+		transition_toShopTween.tween_property(self, "scale", Vector2(newScale, newScale), 2)
+		transition_toShopTween.parallel().tween_property(self, "position", GameScene.MainPlayer.Camera.position - newScale*BASE_RESOURCE_SIZE/2, 2)
+		transition_toShopTween.parallel().tween_property(GameScene.GameShop, "position", Shop.opennedPos, 1).set_delay(1.5)
+		transition_toShopTween.parallel().tween_property(GameScene.GameShop, "scale", Vector2(1, 1), 1).set_delay(1.5)
 
 var cycleTween: Tween
 var cycleSpeed: float = 6
@@ -123,7 +145,7 @@ func startGameCycle() -> void:
 	
 	cycleColors()
 	
-	while(cycleCount < 3):
+	while(cycleCount < 2):
 		await cycleTween.finished
 		cycleCount += 1
 	
@@ -137,6 +159,7 @@ func startGameCycle() -> void:
 		while(startGame_chosenColor >= 0):
 			await get_tree().create_timer(0.001).timeout
 		
+		await cycleTween.finished
 		await cycleTween.finished
 	
 	startGame_chosenColor = randi_range(0, Tile.COLORS.size()-1)
@@ -252,11 +275,11 @@ func Draw(count: int = 1) -> void:
 		
 		match randi_range(0, 1):
 			0:
-				randX = randf_range(-get_viewport_rect().size.x/2 + 25, -scale.x*(BASE_RESOURCE_SIZE.x+FRAME_EXTRA_SIZE) - BASE_RESOURCE_SIZE.x - 5)
+				randX = randf_range(-GameScene.window_size.x/2 + 25, -scale.x*(BASE_RESOURCE_SIZE.x+FRAME_EXTRA_SIZE) - BASE_RESOURCE_SIZE.x - 5)
 			1:
-				randX = randf_range(scale.x*(BASE_RESOURCE_SIZE.x+FRAME_EXTRA_SIZE) + 5, get_viewport_rect().size.x/2 - 25)
+				randX = randf_range(scale.x*(BASE_RESOURCE_SIZE.x+FRAME_EXTRA_SIZE) + 5, GameScene.window_size.x/2 - 25)
 		
-		randY = randf_range(-get_viewport_rect().size.y/2 + 15, -Board.BOARD_HEIGHT*(Player.GameBoard.BoardRows.size()-0.5) - 15)
+		randY = randf_range(-GameScene.window_size.y/2 + 15, -Board.BOARD_HEIGHT*(Player.GameBoard.BoardRows.size()-0.5) - 15)
 		
 		tileTween.tween_property(tempCont, "position", Vector2(randX, randY), 0.5).set_delay(0.1*i)
 	
@@ -270,16 +293,13 @@ func Draw(count: int = 1) -> void:
 			var finalA: float = GameScene.bgObfuscator.self_modulate.a
 			var atuuScale: float = GameScene.PlayerBar.Body.region_rect.size.y/(Atuu.BASE_RESOURCE_SIZE.y+Atuu.FRAME_EXTRA_SIZE)
 			var atuuPos: Vector2 = -atuuScale*Atuu.BASE_RESOURCE_SIZE/2
-			atuuPos.y += Board.BOARD_HEIGHT/2 - get_viewport_rect().size.y + GameScene.PlayerBar.Body.region_rect.size.y/2
+			atuuPos.y += Board.BOARD_HEIGHT/2 - GameScene.window_size.y + GameScene.PlayerBar.Body.region_rect.size.y/2
 			
 			var returnTween: Tween = create_tween().set_parallel()
 			returnTween.tween_property(self, "position", atuuPos, 0.5)
 			returnTween.tween_property(self, "scale", Vector2(atuuScale, atuuScale), 0.5)
 			returnTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", 0, 0.5)
-			returnTween.finished.connect(func() -> void:
-				GameScene.bgObfuscator.visible = false
-				GameScene.bgObfuscator.self_modulate.a = finalA
-				ColorHighlight.visible = false)
+			returnTween.finished.connect(GameScene.StartRound)
 		
 		isRoundStartDraw = false
 		

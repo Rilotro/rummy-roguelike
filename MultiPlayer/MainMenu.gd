@@ -406,8 +406,12 @@ func otherPlayer_lobbyActions(source: String, command: String, params: PackedByt
 			if(MultiplayerHandler.lobbyOwner):
 				StartGame.enabled = false
 	elif(command == "start_game"):
-		get_tree().root.add_child(GameScene.new())
-		self.queue_free()
+		var fade_toBlackTween: Tween = create_tween().set_parallel()
+		fade_toBlackTween.tween_property(FadeToBlack, "self_modulate:a", 1, 1)
+		fade_toBlackTween.tween_property(self, "modulate", Color(0, 0, 0), 1)
+		fade_toBlackTween.finished.connect(func() -> void:
+			get_tree().root.add_child(GameScene.new())
+			self.queue_free())
 
 func toggleReady() -> void:
 	isReady = !isReady
@@ -430,5 +434,9 @@ func toggleReady() -> void:
 func startGame() -> void:
 	MultiplayerHandler.send_data("start_game", "settings_cammel".to_utf8_buffer())
 	
-	get_tree().root.add_child(GameScene.new())
-	self.queue_free()
+	var fade_toBlackTween: Tween = create_tween().set_parallel()
+	fade_toBlackTween.tween_property(FadeToBlack, "self_modulate:a", 1, 1)
+	fade_toBlackTween.tween_property(self, "modulate", Color(0, 0, 0), 1)
+	fade_toBlackTween.finished.connect(func() -> void:
+		get_tree().root.add_child(GameScene.new())
+		self.queue_free())
