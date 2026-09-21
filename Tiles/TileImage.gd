@@ -88,7 +88,7 @@ func getPointsBubble(points: int = -1) -> SparkleContainer:
 		points = tile.points
 	
 	var SparkleContainerSize: Vector2 = Vector2(10+points, 10+points) * 2*scale
-	var spreadSparkles: SparkleContainer = SparkleContainer.new(SparkleContainerSize, Vector2(points, 2*points), SparkleContainer.HoleShape.NULL, Vector2(-1, -1), true)
+	var spreadSparkles: SparkleContainer = SparkleContainer.new(SparkleContainerSize, Vector2(points, 2*points), null, true)
 	spreadSparkles.position = size/2
 	add_child(spreadSparkles)
 	

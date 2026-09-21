@@ -29,7 +29,7 @@ func use() -> bool:
 	if(!GameScene.myTurn):
 		return false
 	
-	MidasSparkle = SparkleContainer.new(Vector2(10, 10), Vector2i(20, 20), SparkleContainer.HoleShape.NULL, Vector2(-1, -1), true)# = load("res://scenes/sparkle_road.tscn").instantiate()#---------------------------
+	MidasSparkle = SparkleContainer.new(Vector2(10, 10), Vector2i(20, 20), null, true)# = load("res://scenes/sparkle_road.tscn").instantiate()#---------------------------
 	GameScene.Game.add_child(MidasSparkle)
 	#MidasSparkle.change_road(Game.get_global_mouse_position(), Vector2(20, 20), 0.0)
 	#MidasSparkle.is_TopLevel = true

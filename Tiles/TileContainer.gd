@@ -18,7 +18,7 @@ var tile: Tile
 var type: Type
 
 enum Type{
-	BOARD, NEXT_DRAW, SELECTION
+	BOARD, FORESIGHT, UPGRADE
 }
 
 func set_enable(enable: bool):
@@ -27,7 +27,7 @@ func set_enable(enable: bool):
 	if(!enable):
 		Highlight.visible = false
 	
-	if(type == Type.SELECTION):
+	if(type == Type.UPGRADE):
 		if(enable):
 			modulate = Color(1, 1, 1)
 		else:
@@ -66,7 +66,7 @@ func _init(t: Tile, ty: Type = Type.BOARD) -> void:
 	var containerColor: Color = Tile.getRarityColor(tile.rarity)
 	var containerText: String = "\n"
 	
-	if(type == Type.SELECTION):
+	if(type != Type.BOARD):
 		if(tile.points - Tile.getRarityBasePoints(tile.rarity) > 0):
 			containerText = "+" + str(tile.points - Tile.getRarityBasePoints(tile.rarity)) + "\n"
 	else:
@@ -79,9 +79,12 @@ func _init(t: Tile, ty: Type = Type.BOARD) -> void:
 	DisabledColor = containerColor
 	PressedColor = containerColor
 	
-	if(type == Type.NEXT_DRAW):
+	if(type == Type.FORESIGHT):
 		enabled = false
-		ButtonText.visible = false
+		#ButtonText.visible = false
+	
+	if(type != Type.BOARD):
+		text_color = Tile.BASE_COLOR
 	
 	SpreadSelectionCount = Label.new()
 	SpreadSelectionCount.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -113,6 +116,7 @@ func _init(t: Tile, ty: Type = Type.BOARD) -> void:
 const ARROW_SCALE: float = 25
 
 var isMoving: bool = false
+static var MovingTile: TileContainer = null
 static var selectionArrow: Sprite2D
 static var hoveredByArrow: TileContainer = null
 
@@ -121,14 +125,26 @@ func pressing(delta: float) -> void:
 	
 	if(pressingTimer >= PRESSING_TIMER_THRESHOLD):
 		match type:
-			Type.NEXT_DRAW:
+			Type.FORESIGHT:
 				return
 			Type.BOARD:
-				global_position = get_global_mouse_position() - BASE_RESOURCE_SIZE/2
+				if(!isMoving):
+					isMoving = true
+					reparent(Player.GameBoard)
+				
 				isMoving = true
+				MovingTile = self
+				var playerRot: float = Player.camera_player_pos.playerSpace.rotation
+				if(get_parent() == Player.Camera):
+					playerRot = -Player.Camera.rotation
+				
+				global_position = get_global_mouse_position() - (BASE_RESOURCE_SIZE.x*Vector2(cos(playerRot), sin(playerRot)) + BASE_RESOURCE_SIZE.y*Vector2(-sin(playerRot), cos(playerRot)))/2
 				z_index = 1
-				GameScene.MainPlayer.GameBoard.HighlightMovingTileFinalPos(self)
-			Type.SELECTION:
+				Player.handleMovingTile(self)
+				#GameScene.MainPlayer.GameBoard.HighlightMovingTileFinalPos(self)
+				
+				mouse_filter = Control.MOUSE_FILTER_IGNORE
+			Type.UPGRADE:
 				isMoving = true
 				if(selectionArrow == null):
 					selectionArrow = Sprite2D.new()
@@ -141,7 +157,7 @@ func pressing(delta: float) -> void:
 					selectionArrow.name = "selectionArrow"
 					GameScene.GameShop.add_child(selectionArrow)
 					
-					for child in GameScene.GameShop.NextDrawView.get_children():
+					for child in GameScene.GameShop.ForesightControl.get_children():
 						(child as TileContainer).enabled = true
 				
 				var mousePos: Vector2 = get_global_mouse_position()
@@ -153,14 +169,31 @@ func lateFinalPress() -> void:
 	
 	if(isMoving):
 		isMoving = false
-		z_index = 0
+		#z_index = 0
 		match type:
 			Type.BOARD:
-				GameScene.MainPlayer.GameBoard.endMovement(self)
-			Type.SELECTION:
+				MovingTile = null
+				
+				mouse_filter = Control.MOUSE_FILTER_STOP
+				
+				if(!GameScene.MainPlayer.PlayerAtuu.Discard(self)):
+					GameScene.MainPlayer.GameBoard.endMovement(self)
+				else:
+					Player.GameBoard.endPosHighlight.queue_free()
+				
+				var playerID: int = -1
+				if(Player.camera_player_pos != null):
+					playerID = Player.camera_player_pos.ID
+				
+				if(Player.camera_spread_pos):
+					Transition.screenTransition(Transition.Target.BOARD, playerID)
+				
+				if(playerID != -1 && playerID != MultiplayerHandler.currPlayer.ID):
+					Transition.queue_screenTransition(Transition.Target.P2P, MultiplayerHandler.currPlayer.ID)
+			Type.UPGRADE:
 				if(selectionArrow != null):
 					selectionArrow.queue_free()
-					for child in GameScene.GameShop.NextDrawView.get_children():
+					for child in GameScene.GameShop.ForesightControl.get_children():
 						(child as TileContainer).enabled = false
 					
 					if(hoveredByArrow != null):
@@ -208,7 +241,7 @@ func shopUpgrade(tileUpgrade: Tile) -> void:
 	
 	tile.points += tileUpgrade.getBonusPoints()
 	
-	if(type == Type.NEXT_DRAW && tile.getBonusPoints() > 0):
+	if(type == Type.FORESIGHT && tile.getBonusPoints() > 0):
 		text_color = Color.BLACK
 		ButtonText.visible = true
 		ButtonText.text = "+" + str(tile.getBonusPoints()) + "\n"
@@ -218,7 +251,7 @@ func getPointsBubble(points: int = -1) -> SparkleContainer:
 		points = tile.points
 	
 	var SparkleContainerSize: Vector2 = Vector2(10+points, 10+points)
-	var spreadSparkles: SparkleContainer = SparkleContainer.new(SparkleContainerSize, Vector2(points, 2*points), SparkleContainer.HoleShape.NULL, Vector2(-1, -1), true)
+	var spreadSparkles: SparkleContainer = SparkleContainer.new(SparkleContainerSize, Vector2(points, 2*points), null, true)
 	spreadSparkles.position = size/2
 	add_child(spreadSparkles)
 	
@@ -324,7 +357,7 @@ func generateTitle(_TipRef: UITip) -> String:
 		Type.BOARD:
 			var colorName: String = (Tile.COLORS.find_key(tile.color) as String).to_lower()
 			title += "(" + str(tile.number) + ", [color=" + colorName + "]" + StringsManager.EffectStrings["color"][colorName] + "[/color])"
-		Type.SELECTION, Type.NEXT_DRAW:
+		Type.UPGRADE, Type.FORESIGHT:
 			title += "([color=" + Tile.getRarityColor(tile.rarity).to_html() + "]" + StringsManager.EffectStrings["rarity"][Tile.Rarity.keys()[tile.rarity]] + "[/color]"
 			if(tile.getBonusPoints() > 0):
 				title += ", [color=gold]+" + str(tile.getBonusPoints()) + " " + StringsManager.EffectStrings["points"] + "[/color])"
@@ -339,9 +372,9 @@ func generateTag(_TipRef: UITip) -> String:
 	match type:
 		Type.BOARD:
 			tag += " - [color=" + Tile.getRarityColor(tile.rarity).to_html() + "]" + StringsManager.EffectStrings["rarity"][Tile.Rarity.keys()[tile.rarity]] + "[/color]" + " - [color=gold]" + str(tile.points) + " " + StringsManager.EffectStrings["points"] + "[/color]"
-		Type.SELECTION:
+		Type.UPGRADE:
 			tag += " " + StringsManager.EffectStrings["upgrade"]
-		Type.NEXT_DRAW:
+		Type.FORESIGHT:
 			tag = StringsManager.EffectStrings["deck"] + " " + tag
 	
 	return tag
@@ -352,7 +385,7 @@ func generateDescription(_TipRef: UITip) -> String:
 	match type:
 		Type.BOARD:
 			description += StringsManager.EffectStrings["DESCRIPTION"][0] + "\n\n" + StringsManager.EffectStrings["ACTIVATE"][0] + str(tile.points) + StringsManager.EffectStrings["ACTIVATE"][1]
-		Type.SELECTION:
+		Type.UPGRADE:
 			description += StringsManager.EffectStrings["DESCRIPTION"][1] + "\n\n" + StringsManager.EffectStrings["DESCRIPTION"][2]
 			var upgradeCount: int = 0
 			var upgradeIndex: int = 0
@@ -382,10 +415,10 @@ func generateDescription(_TipRef: UITip) -> String:
 				upgradeIndex += 1
 			
 			description += "."
-		Type.NEXT_DRAW:
+		Type.FORESIGHT:
 			description += StringsManager.EffectStrings["DESCRIPTION"][5]
 			
-			var deckIndex: int = GameScene.MainPlayer.PlayerDeck.DeckTiles.size() - GameScene.MainPlayer.PlayerDeck.DeckTiles.find(tile)
+			var deckIndex: int = GameScene.MainPlayer.PlayerAtuu.Deck.size() - GameScene.MainPlayer.PlayerAtuu.Deck.find(tile)
 			if(deckIndex == 1):
 				description += StringsManager.UIStrings["ORDINAL_INDICATOR"][4]
 			elif(deckIndex == 2):
@@ -407,7 +440,7 @@ func _mouse_entered() -> void:
 	if(!enabled):
 		return
 	
-	if(type == Type.NEXT_DRAW):
+	if(type == Type.FORESIGHT):
 		if(Input.is_action_pressed("Left_Click") && selectionArrow != null):
 			hoveredByArrow = self
 	

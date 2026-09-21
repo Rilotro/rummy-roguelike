@@ -117,6 +117,11 @@ offset_right = 290.0
 offset_bottom = 474.0
 mouse_filter = 2
 
+[node name="Area2D" type="Area2D" parent="SpreadTransition" unique_id=1160885556]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="SpreadTransition/Area2D" unique_id=1617008409]
+polygon = PackedVector2Array(0, 0, 300, 0, 300, 400, 0, 400)
+
 [node name="BarStandIn" type="Sprite2D" parent="." unique_id=504851890]
 visible = false
 self_modulate = Color(0, 0, 1, 1)

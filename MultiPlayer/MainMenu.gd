@@ -35,6 +35,8 @@ var chosenLobbyName: String
 var isReady: bool = false
 
 func _ready() -> void:
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	
 	var screen_size: Vector2 = get_viewport_rect().size
 	var separation: int = ServerList.get_theme_constant("separation")
 	var space: float = -separation

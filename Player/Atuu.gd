@@ -9,6 +9,8 @@ const COLORS_EDGE_COUNT: int = 4
 var Frame: Sprite2D
 var ColorSquares: Array[Sprite2D]
 var ColorHighlight: Sprite2D
+var DrawOption: GoodButton
+var ShopOption: GoodButton
 
 var Deck: Array[Tile]
 var colorEndCycle: int = -1
@@ -73,6 +75,33 @@ func _init() -> void:
 	ColorHighlight.name = "ColorHighlight"
 	add_child(ColorHighlight)
 	
+	DrawOption = GoodButton.new(StringsManager.UIStrings["TURN"][2])
+	DrawOption.position.y = 0.25*GoodButton.BASE_RESOURCE_SIZE.y
+	DrawOption.text_size = 10
+	DrawOption.position.x = (GoodButton.BASE_RESOURCE_SIZE.x - DrawOption.size.x)/2
+	DrawOption.visible = false
+	DrawOption.name = "DrawOption"
+	add_child(DrawOption)
+	
+	if(DrawOption.size.x > GoodButton.BASE_RESOURCE_SIZE.x):
+		DrawOption.size = Vector2(GoodButton.BASE_RESOURCE_SIZE.x, DrawOption.size.y)
+		DrawOption.text_wrap = true
+		DrawOption.position.x = 0
+	
+	ShopOption = GoodButton.new(StringsManager.UIStrings["TURN"][3])
+	ShopOption.name = "ShopOption"
+	ShopOption.position.y = 0.7*GoodButton.BASE_RESOURCE_SIZE.y
+	ShopOption.text_size = 10
+	ShopOption.position.x = (GoodButton.BASE_RESOURCE_SIZE.x - ShopOption.size.x)/2
+	ShopOption.visible = false
+	
+	add_child(ShopOption)
+	
+	if(ShopOption.size.x > GoodButton.BASE_RESOURCE_SIZE.x):
+		ShopOption.size = Vector2(GoodButton.BASE_RESOURCE_SIZE.x, ShopOption.size.y)
+		ShopOption.text_wrap = true
+		ShopOption.position.x = 0
+	
 	#var pickedColors: Array[Color]
 	#var tileColor: Color
 	#for i in range(4):
@@ -87,6 +116,59 @@ func _init() -> void:
 	#Deck.shuffle()
 	
 	#cycleColors()
+	
+	DrawOption.press.connect(func() -> void:
+		DrawOption.enabled = false
+		ShopOption.enabled = false
+		
+		var retractTween: Tween = create_tween().set_parallel()
+		
+		retractTween.tween_property(DrawOption, "modulate:a", 0, 1)
+		retractTween.tween_property(ShopOption, "modulate:a", 0, 1)
+		
+		retractTween.finished.connect(func() -> void:
+			DrawOption.visible = false
+			DrawOption.enabled = true
+			
+			ShopOption.visible = false
+			ShopOption.enabled = true)
+		
+		RoundStartDraw(true))
+	
+	ShopOption.press.connect(func() -> void:
+		var atuuScale: float = GameScene.PlayerBar.Body.region_rect.size.y/(Atuu.BASE_RESOURCE_SIZE.y+Atuu.FRAME_EXTRA_SIZE)
+		
+		DrawOption.enabled = false
+		ShopOption.enabled = false
+		
+		var retractTween: Tween = create_tween().set_parallel()
+		
+		retractTween.tween_property(DrawOption, "modulate:a", 0, 0.3)
+		retractTween.tween_property(ShopOption, "modulate:a", 0, 0.3)
+		retractTween.tween_property(self, "scale", Vector2(atuuScale, atuuScale), 0.3)
+		retractTween.tween_property(self, "position", GameScene.MainPlayer.Camera.position - atuuScale*BASE_RESOURCE_SIZE/2, 0.3)
+		retractTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", 0, 0.3)
+		
+		await retractTween.finished
+		
+		GameScene.bgObfuscator.visible = false
+		GameScene.bgObfuscator.self_modulate.a = GameScene.BACKGROUND_OBFUSCATOR_ALPHA
+		
+		DrawOption.visible = false
+		DrawOption.enabled = true
+		
+		ShopOption.visible = false
+		ShopOption.enabled = true
+		
+		OpenShop(true))
+
+func Discard(discardedTile: TileContainer) -> bool:
+	if(mouse_inside):
+		GameScene.GameShop.addUpgrade(discardedTile.tile)
+		discardedTile.queue_free()
+		return true
+	
+	return false
 
 var isRoundStartDraw: bool = false
 
@@ -94,47 +176,88 @@ func finalPress() -> void:
 	super()
 	
 	enabled = false
-	var newScale: float
-	
-	print("HERE0 - " + str(GameScene.myTurn) + " - " + str(GameScene.MainPlayer.hasStartedTurn))
 	
 	if(GameScene.myTurn && !GameScene.MainPlayer.hasStartedTurn):
-		cycleColors()
-		var finalA: float = GameScene.bgObfuscator.self_modulate.a
+		ShowOptions()
+	else:
+		OpenShop()
+
+func ShowOptions() -> void:
+	#var finalA: float = GameScene.bgObfuscator.self_modulate.a
+	GameScene.bgObfuscator.self_modulate.a = 0
+	GameScene.bgObfuscator.visible = true
+	
+	DrawOption.modulate.a = 0
+	DrawOption.enabled = false
+	DrawOption.visible = true
+	DrawOption.z_index = 4
+	
+	ShopOption.modulate.a = 0
+	ShopOption.enabled = false
+	ShopOption.visible = true
+	ShopOption.z_index = 4
+	
+	var growTween: Tween = create_tween()
+	growTween.set_parallel()
+	var newScale: float = GameScene.window_size.y/(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)
+	growTween.tween_property(self, "scale", Vector2(newScale, newScale), 1)
+	growTween.tween_property(self, "position", GameScene.MainPlayer.Camera.position - newScale*BASE_RESOURCE_SIZE/2, 1)
+	growTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", GameScene.BACKGROUND_OBFUSCATOR_ALPHA, 1)
+	growTween.tween_property(ShopOption, "modulate:a", 1, 1)
+	growTween.tween_property(DrawOption, "modulate:a", 1, 1)
+	
+	growTween.finished.connect(func() -> void:
+		rotation = GameScene.MainPlayer.rotation
+		reparent(GameScene.Game)
+		DrawOption.enabled = true
+		ShopOption.enabled = true)
+
+func RoundStartDraw(transition_fromOptions: bool = false) -> void:
+	cycleColors()
+	if(transition_fromOptions):
+		rotation = 0
+		reparent(GameScene.MainPlayer)
+	else:
 		GameScene.bgObfuscator.self_modulate.a = 0
 		GameScene.bgObfuscator.visible = true
-		
-		var growTween: Tween = create_tween()
-		growTween.set_parallel()
-		newScale = (GameScene.window_size.y - Board.BOARD_HEIGHT*Player.GameBoard.BoardRows.size())/(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)
-		growTween.tween_property(self, "scale", Vector2(newScale, newScale), 1)
-		growTween.tween_property(self, "position", Vector2(0, -Board.BOARD_HEIGHT*(Player.GameBoard.BoardRows.size()-0.5) - newScale*(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)/2) - newScale*BASE_RESOURCE_SIZE/2, 1)
-		growTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", finalA, 1)
-		
-		growTween.finished.connect(func() -> void:
-			await cycleTween.finished
-			colorEndCycle = Tile.chosenColors.pick_random()
-			await cycleTween.finished
-			await get_tree().create_timer(0.5).timeout
-			isRoundStartDraw = true
-			Draw(13))
-		
-		GameScene.MainPlayer.hasStartedTurn = true
+	
+	var growTween: Tween = create_tween()
+	growTween.set_parallel()
+	var newScale: float = (GameScene.window_size.y - Board.BOARD_HEIGHT*Player.GameBoard.BoardRows.size())/(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)
+	growTween.tween_property(self, "scale", Vector2(newScale, newScale), 1)
+	growTween.tween_property(self, "position", Vector2(0, -Board.BOARD_HEIGHT*(Player.GameBoard.BoardRows.size()-0.5) - newScale*(BASE_RESOURCE_SIZE.y + FRAME_EXTRA_SIZE)/2) - newScale*BASE_RESOURCE_SIZE/2, 1)
+	if(!transition_fromOptions):
+		growTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", GameScene.BACKGROUND_OBFUSCATOR_ALPHA, 1)
+	
+	growTween.finished.connect(func() -> void:
+		await cycleTween.finished
+		colorEndCycle = Tile.chosenColors.pick_random()
+		await cycleTween.finished
+		await get_tree().create_timer(0.5).timeout
+		isRoundStartDraw = true
+		Draw(13))
+	
+	GameScene.MainPlayer.hasStartedTurn = true
+
+func OpenShop(transition_fromOptions: bool = false) -> void:
+	var screenSize: Vector2 = GameScene.window_size
+	var newScale: float = (screenSize.x + 100)/BASE_RESOURCE_SIZE.x
+	
+	GameScene.GameShop.scale = Vector2(0, 0)
+	GameScene.GameShop.global_position = GameScene.MainPlayer.Camera.global_position
+	GameScene.GameShop.z_index = 2
+	GameScene.GameShop.visible = true
+	
+	var transition_toShopTween: Tween = create_tween()
+	if(transition_fromOptions):
+		reparent(GameScene.MainPlayer)
 	else:
-		var screenSize: Vector2 = GameScene.window_size
-		newScale = (screenSize.x + 100)/BASE_RESOURCE_SIZE.x
-		
-		GameScene.GameShop.scale = Vector2(0, 0)
-		GameScene.GameShop.global_position = GameScene.MainPlayer.Camera.global_position
-		GameScene.GameShop.z_index = 2
-		GameScene.GameShop.visible = true
-		
-		var transition_toShopTween: Tween = create_tween()
 		transition_toShopTween.tween_property(self, "position", GameScene.MainPlayer.Camera.position - scale*BASE_RESOURCE_SIZE/2, 0.3)
-		transition_toShopTween.tween_property(self, "scale", Vector2(newScale, newScale), 2)
-		transition_toShopTween.parallel().tween_property(self, "position", GameScene.MainPlayer.Camera.position - newScale*BASE_RESOURCE_SIZE/2, 2)
-		transition_toShopTween.parallel().tween_property(GameScene.GameShop, "position", Shop.opennedPos, 1).set_delay(1.5)
-		transition_toShopTween.parallel().tween_property(GameScene.GameShop, "scale", Vector2(1, 1), 1).set_delay(1.5)
+	
+	transition_toShopTween.tween_property(self, "scale", Vector2(newScale, newScale), 2)
+	transition_toShopTween.parallel().tween_property(self, "position", GameScene.MainPlayer.Camera.position - newScale*BASE_RESOURCE_SIZE/2, 2)
+	transition_toShopTween.parallel().tween_property(GameScene.GameShop, "position", Shop.opennedPos, 1).set_delay(1.5)
+	transition_toShopTween.parallel().tween_property(GameScene.GameShop, "scale", Vector2(1, 1), 1).set_delay(1.5)
 
 var cycleTween: Tween
 var cycleSpeed: float = 6
@@ -174,7 +297,6 @@ func startGameCycle() -> void:
 	
 	ColorHighlight.visible = false
 	
-	#print("HERE0 - " + str(Deck.size()))
 	#Deck.shuffle()
 	
 	await get_tree().create_timer(2).timeout
@@ -211,13 +333,15 @@ func cycleColors(overrideStartingColor: int = 0) -> void:
 			cycleColors(newVal)
 		
 		if(newVal == colorEndCycle):
+			colorEndCycle = -1
 			cycleTween.finished.emit()
 			cycleTween.kill(), overrideStartingColor, ColorSquares.size(), cycleSpeed * ((ColorSquares.size()-1 - overrideStartingColor)/float(ColorSquares.size()-1)))
 	
 	if(colorEndCycle < 0):
 		cycleTween.finished.connect(cycleColors)
-	else:
-		cycleTween.finished.connect(func() -> void: colorEndCycle = -1)
+	#else:
+		#cycleTween.finished.connect(func() -> void:
+			#colorEndCycle = -1)
 
 func addCrads_intoDeck(colorIndex: int) -> void:
 	if(colorIndex < 0):
@@ -251,7 +375,7 @@ func addCrads_intoDeck(colorIndex: int) -> void:
 		deckAddingTween.tween_property(tempCont, "position", BASE_RESOURCE_SIZE/2, 0.5).set_delay(0.4 + 0.1*i)
 		deckAddingTween.finished.connect(func() -> void: tempCont.queue_free())
 	
-	GameScene.GameShop.reloadShop()
+	GameScene.GameShop.reloadForesight()
 
 const STANDARD_DRAW_INTERRUPT_TIME: float = 0.2
 var DrawInterruptTime: float = STANDARD_DRAW_INTERRUPT_TIME
@@ -283,14 +407,13 @@ func Draw(count: int = 1) -> void:
 		
 		tileTween.tween_property(tempCont, "position", Vector2(randX, randY), 0.5).set_delay(0.1*i)
 	
-	GameScene.GameShop.reloadShop()
+	GameScene.GameShop.reloadForesight()
 	
 	tileTween.finished.connect(func() -> void:
 		await get_tree().create_timer(DrawInterruptTime).timeout
 		DrawInterruptTime = STANDARD_DRAW_INTERRUPT_TIME
 		
 		if(isRoundStartDraw):
-			var finalA: float = GameScene.bgObfuscator.self_modulate.a
 			var atuuScale: float = GameScene.PlayerBar.Body.region_rect.size.y/(Atuu.BASE_RESOURCE_SIZE.y+Atuu.FRAME_EXTRA_SIZE)
 			var atuuPos: Vector2 = -atuuScale*Atuu.BASE_RESOURCE_SIZE/2
 			atuuPos.y += Board.BOARD_HEIGHT/2 - GameScene.window_size.y + GameScene.PlayerBar.Body.region_rect.size.y/2

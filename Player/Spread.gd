@@ -4,95 +4,41 @@ class_name Spread
 
 const MAX_VISIBLE_ROW_SIZE: int = 5
 const TILE_SPACING: Vector2 = Vector2(20, 15)
-const ROW_WIDTH: float = ResourceContainer.BASE_RESOURCE_SIZE.x*MAX_VISIBLE_ROW_SIZE + TILE_SPACING.x*(MAX_VISIBLE_ROW_SIZE-1)
-const ROW_HEIGHT: float = ResourceContainer.BASE_RESOURCE_SIZE.y + TILE_SPACING.y
+const ROW_WIDTH: float = GoodButton.BASE_RESOURCE_SIZE.x*MAX_VISIBLE_ROW_SIZE + TILE_SPACING.x*(MAX_VISIBLE_ROW_SIZE-1)
+const ROW_HEIGHT: float = GoodButton.BASE_RESOURCE_SIZE.y + TILE_SPACING.y
 
 var SpreadRows: Array[Spread_Info]
 var SpreadingFirstTile: bool = false
 #var SpreadingCurrTiles: Array[TileContainer]
 var currSpreadingRow: Control
 
-func _init() -> void:
-	pass
-
-func _process(_delta: float) -> void:
-	if(SpreadingFirstTile):
-		SpreadingFirstTile = false
-		var windowSize: Vector2 = get_viewport_rect().size
-		var tween: Tween = create_tween()
-		tween.tween_property(GameScene.MainPlayer.Camera, "position", Vector2(GameScene.MainPlayer.PlayerSpread.position.x, Board.BOARD_HEIGHT/2 - windowSize.y/2), 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
-	#handleMovingSpreadTiles()
-	#if(SpreadingLastTile != null)
+#func _init() -> void:
+	#pass
 
 #var spreadTween: Array[Tween]
 
+func handleMovingTile(tile: TileContainer) -> void:
+	if(!SpreadRows.is_empty()):
+		#var tileRelPos: Vector2 = tile.global_position - (get_parent() as Player).position - position
+		var minDis: float
+		var closestRow: Control = null
+		#print("HERE0 - " + str(tile.position))
+		
+		for index in range(SpreadRows.size()):
+			#if(index == get_child_count()-1):
+				#continue
+			
+			if(closestRow == null || abs(tile.position.y - GoodButton.BASE_RESOURCE_SIZE.y/2 - get_children()[index].position.y + ROW_HEIGHT/2) < minDis):
+				closestRow = get_children()[index]
+				minDis = abs(tile.position.y - closestRow.position.y + ROW_HEIGHT/2)
+		
+		var finalPos: Vector2 = closestRow.position + Vector2(closestRow.size.x, GoodButton.BASE_RESOURCE_SIZE.y)/2
+		if(Player.GameBoard.endPosHighlight.position != finalPos):
+			create_tween().tween_property(Player.GameBoard.endPosHighlight, "position", finalPos, 0.1)
+	else:
+		Player.GameBoard.endPosHighlight.visible = false
+
 func SpreadTiles(newRow: Array[TileContainer]) -> void:
-	#var parent: Player = get_parent()
-	#currSpreadingRow = Control.new()
-	#currSpreadingRow.custom_minimum_size = Vector2(ROW_WIDTH, ROW_HEIGHT)
-	#currSpreadingRow.position = -Vector2(ROW_WIDTH/2, ROW_HEIGHT*(SpreadRows.size()+0.5))
-	#currSpreadingRow.clip_contents = true
-	#currSpreadingRow.name = "currSpreadingRow" + str(SpreadRows.size()+1)
-	#add_child(currSpreadingRow)
-	#
-	##var newSpreadRow: Spread_Info = Spread_Info.new(newRow.duplicate())
-	#SpreadRows.append(Spread_Info.new(newRow.duplicate()))
-	#
-	#var rowWidth: float = ROW_WIDTH
-	#if(newRow.size() < MAX_VISIBLE_ROW_SIZE):
-		#rowWidth = ResourceContainer.BASE_RESOURCE_SIZE.x*newRow.size() + SPACE_BETWEEN_TILES*(newRow.size()-1)
-	#
-	#var endPos: Vector2 = Vector2(-rowWidth/2, -ROW_HEIGHT*(SpreadRows.size()-0.5))#-----------------------------------------------------------
-	#var tileIndex: int = 0
-	#var tileStep: float = ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES
-	#
-	#SpreadingFirstTile = true
-	#var waitTime: float = 0
-	#var tileTween: Tween
-	#
-	#for tile in newRow:
-		#tileIndex += 1
-		#
-		#tile.Highlight.visible = false
-		#tile.reparent(self)
-		##tile.playerSpace = Player.SPREAD_SPACE
-		#
-		#var reposDelay: float = 0
-		#
-		#if(tileIndex > MAX_VISIBLE_ROW_SIZE):
-			#await get_tree().create_timer(0.5).timeout
-			#var reposTween: Tween = create_tween()
-			#reposTween.set_parallel().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)#.set_delay(0.2)
-			#for tile_toBeMoved in currSpreadingRow.get_children():
-				#if(tile_toBeMoved != tile):
-					#reposTween.tween_property(tile_toBeMoved, "position", tile_toBeMoved.position - Vector2(tileStep, 0), 0.4)
-			#
-			#reposDelay = 0.3
-		#
-		#tileTween = create_tween()
-		#tileTween.finished.connect(func() -> void: 
-			#tile.reparent(currSpreadingRow)
-			#tile.z_index = 0
-			#tile.handleQueuedSpread())
-		#
-		#
-		#tile.z_index = 1
-		#
-		#tileTween.tween_property(tile, "position", endPos, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN).set_delay(reposDelay)
-		#
-		##tile.moveTile(endPos, tileTween, Tween.TRANS_BACK, Tween.EASE_IN, 0.45)
-		#
-		#waitTime = 0.4
-		#if(tileIndex < MAX_VISIBLE_ROW_SIZE):
-			#endPos.x += tileStep
-			#tile.onSpreadQueueEffects()
-		#else:
-			#waitTime += tile.onSpreadQueueEffects()
-		#
-		#await get_tree().create_timer(waitTime).timeout
-	
-	#SpreadingLastTile = newRow[newRow.size()-1]
-	
 	currSpreadingRow = Control.new()
 	currSpreadingRow.custom_minimum_size = Vector2(ROW_WIDTH, ROW_HEIGHT)
 	currSpreadingRow.position = -Vector2(ROW_WIDTH/2, ROW_HEIGHT*(SpreadRows.size()+0.5))
@@ -122,6 +68,7 @@ func SpreadTiles(newRow: Array[TileContainer]) -> void:
 		tile.reparent(currSpreadingRow)
 		tile.z_index = 0
 		tile.name = "SpreadTile" + str(SpreadRows.size()) + "_" + str(colCount)
+
 
 #var currTween: Tween = null
 #

@@ -11,6 +11,8 @@ const BOARD_WIDTH: float = ROW_TILE_SIZE*ResourceContainer.BASE_RESOURCE_SIZE.x 
 const MAX_BOARD_ROWS: int = 5
 const MOVE_TILE_DURATION: float = 0.35
 
+static var player_pos: PlayerData = null
+
 var BoardRows: Array[Array]
 
 func _init() -> void:
@@ -257,8 +259,6 @@ func getTiles_fromMessage(message: String) -> Array[TileContainer]:
 	
 	return tiles
 
-var endPosHighlight: SparkleContainer
-
 func SpreadHelper(selectedTiles: Array[TileContainer]) -> void:
 	var rainbowEffect: Tile.Effect = Tile.Effect.RAINBOW
 	
@@ -337,9 +337,13 @@ func changeHighlightColor(newColor: Color) -> void:
 			tile.flash(false)
 			tile.Highlight.self_modulate = newColor
 
-func HighlightMovingTileFinalPos(tile: TileContainer) -> void:
+var endPosHighlight: SparkleContainer
+
+func handleMovingTile(tile: TileContainer) -> void:
 	#Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
-	var endPos: Vector2 = (tile.position + Vector2(ResourceContainer.BASE_RESOURCE_SIZE.x, ResourceContainer.BASE_RESOURCE_SIZE.y/2 - BOARD_HEIGHT*getTilePos(tile).x)).snapped(Vector2(95, 120)) - Vector2((ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES)/2, 0)
+	#print("HERE0 - " + str(tile.position) + " - " + str(tile.global_position - GameScene.MainPlayer.position + Vector2(0, BOARD_HEIGHT*getTilePos(tile).x)))
+	var tileRelPos: Vector2 = tile.position - Vector2(0, get_child(getTilePos(tile).x).position.y)
+	var endPos: Vector2 = (tileRelPos + Vector2(ResourceContainer.BASE_RESOURCE_SIZE.x, ResourceContainer.BASE_RESOURCE_SIZE.y/2 - BOARD_HEIGHT*getTilePos(tile).x)).snapped(Vector2(95, 120)) - Vector2((ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES)/2, 0)
 	var Y_BOUNDS: Vector2 = Vector2(-(BoardRows.size()-1)*BOARD_HEIGHT, 0)
 	var X_BOUNDS: Vector2 = Vector2(-((BOARD_WIDTH-ResourceContainer.BASE_RESOURCE_SIZE.x)/2 - SPACE_BETWEEN_TILES), (BOARD_WIDTH-ResourceContainer.BASE_RESOURCE_SIZE.x)/2 - SPACE_BETWEEN_TILES)
 	
@@ -356,7 +360,7 @@ func HighlightMovingTileFinalPos(tile: TileContainer) -> void:
 		endPos.y = Y_BOUNDS.x
 	
 	if(endPosHighlight == null):
-		endPosHighlight = SparkleContainer.new(Vector2(85, 115), Vector2(10, 11), SparkleContainer.HoleShape.RECTANGLE, Vector2(75, 105))
+		endPosHighlight = SparkleContainer.new(Vector2(85, 115), Vector2(10, 11), SparkleContainer.Hole.new(Vector2(75, 105), Vector2(0, 0), SparkleContainer.Shape.RECTANGLE))
 		add_child(endPosHighlight)
 		endPosHighlight.position = endPos
 	elif(endPosHighlight.position != endPos):
@@ -372,28 +376,38 @@ func endMovement(tile: TileContainer) -> void:
 	var startCoord: Vector2i = getTilePos(tile)
 	var endCoord: Vector2i = Vector2i(rowIndex, colIndex)
 	
+	if(endPosHighlight.get_parent() != self):
+		endCoord = startCoord
+	
 	var endPos: Vector2 = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + endCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)#-BOARD_HEIGHT*endCoord.x 
 	
 	var tileTween: Tween = create_tween()
 	tileTween.set_parallel().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
 	
-	if(BoardRows[endCoord.x][endCoord.y] == null):
-		BoardRows[startCoord.x][startCoord.y] = null
-		BoardRows[endCoord.x][endCoord.y] = tile
-	else:
-		var otherTilePos: Vector2 = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + startCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)#-BOARD_HEIGHT*startCoord.x 
-		BoardRows[startCoord.x][startCoord.y] = BoardRows[endCoord.x][endCoord.y]
-		BoardRows[endCoord.x][endCoord.y] = tile
-		
-		if(startCoord.x != endCoord.x):
-			BoardRows[startCoord.x][startCoord.y].reparent(get_child(startCoord.x))
-		
-		tileTween.tween_property(BoardRows[startCoord.x][startCoord.y], "position", otherTilePos, 0.35)
+	if(endCoord != startCoord):
+		if(BoardRows[endCoord.x][endCoord.y] == null):
+			BoardRows[startCoord.x][startCoord.y] = null
+			BoardRows[endCoord.x][endCoord.y] = tile
+		else:
+			var otherTilePos: Vector2 = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + startCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)#-BOARD_HEIGHT*startCoord.x 
+			BoardRows[startCoord.x][startCoord.y] = BoardRows[endCoord.x][endCoord.y]
+			BoardRows[endCoord.x][endCoord.y] = tile
+			
+			if(startCoord.x != endCoord.x):
+				BoardRows[startCoord.x][startCoord.y].reparent(get_child(startCoord.x))
+			
+			BoardRows[startCoord.x][startCoord.y].z_index = 1
+			tileTween.tween_property(BoardRows[startCoord.x][startCoord.y], "position", otherTilePos, 0.35)
 	
-	if(startCoord.x != endCoord.x):
-		tile.reparent(get_child(endCoord.x))
+	#if(startCoord.x != endCoord.x):
+	tile.reparent(get_child(endCoord.x))
 	
 	tileTween.tween_property(tile, "position", endPos, 0.35)
+	tileTween.finished.connect(func() -> void:
+		tile.z_index = 0
+		if(BoardRows[startCoord.x][startCoord.y] != null):
+			BoardRows[startCoord.x][startCoord.y].z_index = 0)
+	
 	endPosHighlight.queue_free()
 	
 	MultiplayerHandler.send_data("tile_moved", (str(startCoord.x) + ":" + str(startCoord.y) + "::" + str(endCoord.x) + ":" + str(endCoord.y)).to_utf8_buffer())
@@ -409,17 +423,24 @@ func otherPlayer_movedTile(coordinates: String) -> void:
 	BoardRows[startCoord.x][startCoord.y] = BoardRows[endCoord.x][endCoord.y]
 	BoardRows[endCoord.x][endCoord.y] = tileAux
 	
+	var tileTween: Tween = create_tween()
+	tileTween.set_parallel().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
+	
 	var newTilePos: Vector2
-	if(BoardRows[startCoord.x][startCoord.y] != null):
+	tileAux = BoardRows[startCoord.x][startCoord.y]
+	if(tileAux != null):
 		newTilePos = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + startCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
 		if(startCoord.x != endCoord.x):
-			BoardRows[startCoord.x][startCoord.y].reparent(get_child(startCoord.x))
+			tileAux.reparent(get_child(startCoord.x))
 		
-		BoardRows[startCoord.x][startCoord.y].moveTile(newTilePos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
+		tileTween.tween_property(tileAux, "position", newTilePos, 0.35)
+		#BoardRows[startCoord.x][startCoord.y].moveTile(newTilePos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
 	
-	if(BoardRows[endCoord.x][endCoord.y] != null):
+	tileAux = BoardRows[endCoord.x][endCoord.y]
+	if(tileAux != null):
 		newTilePos = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + endCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
 		if(startCoord.x != endCoord.x):
-			BoardRows[endCoord.x][endCoord.y].reparent(get_child(endCoord.x))
+			tileAux.reparent(get_child(endCoord.x))
 		
-		BoardRows[endCoord.x][endCoord.y].moveTile(newTilePos, null, Tween.TRANS_QUINT, Tween.EASE_IN)
+		tileTween.tween_property(tileAux, "position", newTilePos, 0.35)
+		#BoardRows[endCoord.x][endCoord.y].moveTile(newTilePos, null, Tween.TRANS_QUINT, Tween.EASE_IN)

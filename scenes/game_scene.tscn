@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://dwq2yhspy7q4a" path="res://TileSelect_Screen.tscn" id="4_rurhu"]
 [ext_resource type="PackedScene" uid="uid://bqo6ci6u6f6fo" path="res://Shop.tscn" id="5_kk2rg"]
 [ext_resource type="Script" uid="uid://bwx4f5nipcceq" path="res://scripts/Multiplayer_Synchronizer.gd" id="6_rurhu"]
-[ext_resource type="PackedScene" uid="uid://chet0dxnbb2qs" path="res://Player/Player.tscn" id="7_kk2rg"]
+[ext_resource type="PackedScene" uid="uid://chet0dxnbb2qs" path="res://scenes/Player.tscn" id="7_kk2rg"]
 [ext_resource type="Script" uid="uid://btk2q6bqte15i" path="res://UI/GoodButton.gd" id="9_utbpp"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_b5spy"]
@@ -161,5 +161,9 @@ HighlighColor = Color(1, 0.3, 0.3, 1)
 DisabledColor = Color(0.8, 0, 0, 1)
 PressedColor = Color(0.8, 0, 0, 1)
 metadata/_custom_type_script = "uid://btk2q6bqte15i"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=9823400]
+offset_right = 40.0
+offset_bottom = 40.0
 
 [connection signal="pressed" from="Turn_Button" to="." method="_on_Turn_Button_pressed"]

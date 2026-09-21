@@ -3,20 +3,23 @@ extends  Control
 class_name Shop
 
 const MAIN_BACKGROUND_COLOR: Color = Color(0, 0.31, 0.53, 1)
-const TILE_IMAGE_SCALE_REDUCTOR: float = 1.5
-const SELECTION_SEPARATION: Vector2 = Vector2(20, 0)
-const NEXT_DRAW_SEPARATION: Vector2 = Vector2(10, 0)
+const SHOP_TILE_SCALE_REDUCTOR: float = 1.5
+const UPGRADE_SEPARATION: float = 20
+const FORESIGHT_SEPARATION: float = 10
 
 var Background: Sprite2D
 var MainShopBackground: Sprite2D
-var SelectionBackground: Sprite2D
-var SelectionView: Control
-var NextDrawBackground: Sprite2D
-var NextDrawView: Control
-var nextDrawLabel: RichTextLabel
+var UpgradeControl: Control
+var ForesightControl: Control
+#var ForesightBackground: Sprite2D
+var ForesightLabel: RichTextLabel
 var ExitShop: GoodButton
 
-static var DeckViewCount: int = 5
+static var ForesightCount: int = 5:
+	set(newVal):
+		ForesightCount = newVal
+		
+		GameScene.GameShop.reloadForesight()
 static var opennedPos: Vector2
 
 func _init() -> void:
@@ -35,37 +38,47 @@ func _init() -> void:
 	MainShopBackground.name = "MainShopBackground"
 	add_child(MainShopBackground)
 	
-	SelectionBackground = Sprite2D.new()
-	SelectionBackground.texture = CanvasTexture.new()
-	SelectionBackground.region_enabled = true
-	SelectionBackground.self_modulate = MAIN_BACKGROUND_COLOR - 0.1*Color.WHITE
-	SelectionBackground.self_modulate.a = 1
-	SelectionBackground.name = "SelectionBackground"
-	add_child(SelectionBackground)
+	#UpgradesBackground = Sprite2D.new()
+	#UpgradesBackground.texture = CanvasTexture.new()
+	#UpgradesBackground.region_enabled = true
+	#UpgradesBackground.self_modulate = MAIN_BACKGROUND_COLOR - 0.1*Color.WHITE
+	#UpgradesBackground.self_modulate.a = 1
+	#UpgradesBackground.name = "UpgradesBackground"
+	#add_child(UpgradesBackground)
+	#
+	#UpgradesBox = HBoxContainer.new()
+	#UpgradesBox.size.y = 1.2*TileContainer.BASE_RESOURCE_SIZE.y/TILE_IMAGE_SCALE_REDUCTOR
+	#UpgradesBox.add_theme_constant_override("separation", SELECTION_SEPARATION.x)
+	#UpgradesBox.alignment = BoxContainer.ALIGNMENT_CENTER
+	#UpgradesBox.name = "UpgradesBox"
+	#add_child(UpgradesBox)
 	
-	SelectionView = Control.new()
-	SelectionView.name = "SelectionView"
-	add_child(SelectionView)
+	UpgradeControl = Control.new()
+	UpgradeControl.size.y = TileContainer.BASE_RESOURCE_SIZE.y/SHOP_TILE_SCALE_REDUCTOR
+	UpgradeControl.name = "UpgradeControl"
+	add_child(UpgradeControl)
 	
-	NextDrawBackground = Sprite2D.new()
-	NextDrawBackground.texture = CanvasTexture.new()
-	NextDrawBackground.region_enabled = true
-	NextDrawBackground.self_modulate = MAIN_BACKGROUND_COLOR - 0.1*Color.WHITE
-	NextDrawBackground.self_modulate.a = 1
-	NextDrawBackground.name = "NextDrawBackground"
-	add_child(NextDrawBackground)
+	ForesightControl = Control.new()
+	ForesightControl.size.y = TileContainer.BASE_RESOURCE_SIZE.y/SHOP_TILE_SCALE_REDUCTOR#1.2*
+	ForesightControl.name = "ForesightControl"
+	add_child(ForesightControl)
 	
-	NextDrawView = Control.new()
-	NextDrawView.name = "NextDrawView"
-	add_child(NextDrawView)
+	#ForesightBackground = Sprite2D.new()
+	#ForesightBackground.texture = CanvasTexture.new()
+	#ForesightBackground.region_enabled = true
+	#ForesightBackground.region_rect.size.y = ForesightControl.size.y
+	#ForesightBackground.self_modulate = MAIN_BACKGROUND_COLOR - 0.1*Color.WHITE
+	#ForesightBackground.self_modulate.a = 1
+	#ForesightBackground.name = "ForesightBackground"
+	#add_child(ForesightBackground)
 	
-	nextDrawLabel = RichTextLabel.new()
-	nextDrawLabel.bbcode_enabled = true
-	nextDrawLabel.text = StringsManager.UIStrings["SHOP"][5] + str(DeckViewCount) + StringsManager.UIStrings["SHOP"][6]
-	nextDrawLabel.add_theme_font_size_override("normal_font_size", 24)
-	nextDrawLabel.add_theme_font_size_override("bold_font_size", 24)
-	nextDrawLabel.name = "nextDrawLabel"
-	add_child(nextDrawLabel)
+	ForesightLabel = RichTextLabel.new()
+	ForesightLabel.bbcode_enabled = true
+	ForesightLabel.text = StringsManager.UIStrings["SHOP"][5] + str(ForesightCount) + StringsManager.UIStrings["SHOP"][6]
+	ForesightLabel.add_theme_font_size_override("normal_font_size", 24)
+	ForesightLabel.add_theme_font_size_override("bold_font_size", 24)
+	ForesightLabel.name = "ForesightLabel"
+	add_child(ForesightLabel)
 	
 	ExitShop = GoodButton.new("", Color.WHITE, Vector2(-1, -1), load("res://UI/Exit.png"))#, GoodButton.ButtonType.EXIT_SHOP
 	ExitShop.scale = Vector2(0.5, 0.5)
@@ -84,75 +97,119 @@ func _init() -> void:
 		closeTween.tween_property(GameScene.MainPlayer.PlayerAtuu, "scale", Vector2(atuuScale, atuuScale), 2)
 		closeTween.finished.connect(func() -> void: GameScene.MainPlayer.PlayerAtuu.enabled = true))
 
-func _ready() -> void:
-	var windowSize: Vector2 = get_viewport_rect().size
-	
-	size = windowSize
-	
-	Background.region_rect = Rect2(Vector2(0, 0), windowSize)
-	Background.position = windowSize/2
-	
-	MainShopBackground.region_rect = Rect2(Vector2(0, 0), windowSize*0.9)
-	MainShopBackground.position = windowSize/2
-	
-	SelectionView.size.x = 3*TileContainer.BASE_RESOURCE_SIZE.x/TILE_IMAGE_SCALE_REDUCTOR + 4*SELECTION_SEPARATION.x
-	SelectionView.size.y = 1.2*TileContainer.BASE_RESOURCE_SIZE.y/TILE_IMAGE_SCALE_REDUCTOR
-	SelectionView.position.x = windowSize.x/2 - SelectionView.size.x/2
-	SelectionView.position.y = windowSize.y*0.3
-	
-	NextDrawView.size.x = windowSize.x*0.8
-	NextDrawView.size.y = SelectionView.size.y
-	NextDrawView.position.x = windowSize.x*0.1
-	NextDrawView.position.y = windowSize.y*0.6
-	
-	reloadShop()
-	
-	ExitShop.position = Vector2(windowSize.x*0.95 - ExitShop.size.x/2, windowSize.y*0.05)
+#func _ready() -> void:
+	#GameScene.MainPlayer.PlayerAtuu.Deck
 
-func reloadShop() -> void:
-	for child in SelectionView.get_children():
+func window_size_changed() -> void:
+	size = GameScene.window_size
+	
+	Background.region_rect = Rect2(Vector2(0, 0), GameScene.window_size)
+	Background.position = GameScene.window_size/2
+	
+	MainShopBackground.region_rect = Rect2(Vector2(0, 0), GameScene.window_size*0.9)
+	MainShopBackground.position = GameScene.window_size/2
+	
+	UpgradeControl.size.x = MainShopBackground.region_rect.size.x
+	UpgradeControl.position.x = GameScene.window_size.x*0.05
+	UpgradeControl.position.y = GameScene.window_size.y*0.3
+	
+	ForesightControl.size.x = GameScene.window_size.x*0.8
+	ForesightControl.position.x = GameScene.window_size.x*0.1
+	ForesightControl.position.y = GameScene.window_size.y*0.6
+	
+	ExitShop.position = Vector2(GameScene.window_size.x*0.95 - ExitShop.size.x/2, GameScene.window_size.y*0.05)
+
+#static var upgrades = Array[Tile]
+
+#func reloadShop() -> void:
+	#for child in UpgradesBox.get_children():
+		#child.queue_free()
+	#
+	#for child in NextDrawView.get_children():
+		#child.queue_free()
+	#
+	#UpgradesBackground.region_rect.size.x = 0
+	#UpgradesBackground.position = UpgradesBox.position + UpgradesBackground.region_rect.size/2
+	#
+	#NextDrawBackground.region_rect.size = NextDrawView.size
+	#NextDrawBackground.position = NextDrawView.position + NextDrawBackground.region_rect.size/2
+	#
+	#var tilePos: Vector2 = Vector2(SELECTION_SEPARATION.x, 0.1*TileContainer.BASE_RESOURCE_SIZE.y/TILE_IMAGE_SCALE_REDUCTOR)
+	#var tempTile: TileContainer
+	#
+	#tilePos = Vector2(NEXT_DRAW_SEPARATION.x, 0.1*TileContainer.BASE_RESOURCE_SIZE.y/TILE_IMAGE_SCALE_REDUCTOR)
+	#
+	#var RowSize: float = DeckViewCount*TileContainer.BASE_RESOURCE_SIZE.x/TILE_IMAGE_SCALE_REDUCTOR + (DeckViewCount-1)*NEXT_DRAW_SEPARATION.x
+	#if(RowSize < NextDrawView.size.x):
+		#tilePos.x = (NextDrawView.size.x - RowSize)/2
+		#NextDrawBackground.region_rect.size.x = RowSize + NEXT_DRAW_SEPARATION.x * 2
+	#
+	#nextDrawLabel.text = StringsManager.UIStrings["SHOP"][5] + str(DeckViewCount) + StringsManager.UIStrings["SHOP"][6]
+	#nextDrawLabel.size = nextDrawLabel.get_theme_font("normal_font").get_string_size(nextDrawLabel.text, nextDrawLabel.horizontal_alignment, -1, nextDrawLabel.get_theme_font_size("normal_font_size"), nextDrawLabel.justification_flags, TextServer.DIRECTION_AUTO, TextServer.ORIENTATION_HORIZONTAL)
+	#nextDrawLabel.position = NextDrawBackground.position - NextDrawBackground.region_rect.size/2
+	#nextDrawLabel.position.y -= nextDrawLabel.size.y
+	#
+	#if(GameScene.MainPlayer.PlayerAtuu.Deck.size() <= 0):
+		#return
+	#
+	#var deckCount: int = GameScene.MainPlayer.PlayerAtuu.Deck.size()-1
+	#for i in range(DeckViewCount):
+		#tempTile = TileContainer.new(GameScene.MainPlayer.PlayerAtuu.Deck[deckCount-i], TileContainer.Type.NEXT_DRAW)
+		#tempTile.scale /= TILE_IMAGE_SCALE_REDUCTOR
+		#tempTile.position = tilePos
+		#NextDrawView.add_child(tempTile)
+		#
+		#tilePos.x += TileContainer.BASE_RESOURCE_SIZE.x/TILE_IMAGE_SCALE_REDUCTOR + NEXT_DRAW_SEPARATION.x
+
+func reloadForesight() -> void:
+	ForesightLabel.visible = true
+	ForesightLabel.text = StringsManager.UIStrings["SHOP"][5] + str(ForesightCount) + StringsManager.UIStrings["SHOP"][6]
+	
+	ForesightLabel.size = ForesightLabel.get_theme_font("normal_font").get_string_size(ForesightLabel.text, ForesightLabel.horizontal_alignment, -1, ForesightLabel.get_theme_font_size("normal_font_size"), ForesightLabel.justification_flags, TextServer.DIRECTION_AUTO, TextServer.ORIENTATION_HORIZONTAL)
+	ForesightLabel.position = ForesightControl.position
+	ForesightLabel.position.y -= ForesightLabel.size.y
+	
+	for child in ForesightControl.get_children():
 		child.queue_free()
 	
-	for child in NextDrawView.get_children():
-		child.queue_free()
-	
-	SelectionBackground.region_rect.size = SelectionView.size
-	SelectionBackground.position = SelectionView.position + SelectionBackground.region_rect.size/2
-	
-	NextDrawBackground.region_rect.size = NextDrawView.size
-	NextDrawBackground.position = NextDrawView.position + NextDrawBackground.region_rect.size/2
-	
-	var tilePos: Vector2 = Vector2(SELECTION_SEPARATION.x, 0.1*TileContainer.BASE_RESOURCE_SIZE.y/TILE_IMAGE_SCALE_REDUCTOR)
-	var tempTile: TileContainer
-	
-	for i in range(3):
-		tempTile = TileContainer.new(Tile.new(1, Tile.BASE_COLOR, randi_range(0, Tile.Rarity.size()-1), randi_range(0, 20)), TileContainer.Type.SELECTION)
-		tempTile.scale /= TILE_IMAGE_SCALE_REDUCTOR
-		tempTile.position = tilePos
-		SelectionView.add_child(tempTile)
+	var deck_size: int = GameScene.MainPlayer.PlayerAtuu.Deck.size()-1
+	var tempCont: TileContainer
+	var contPos: Vector2
+	contPos.x = ForesightControl.size.x/2
+	contPos.x += (ForesightCount-1)*(GoodButton.BASE_RESOURCE_SIZE.x/SHOP_TILE_SCALE_REDUCTOR + FORESIGHT_SEPARATION)/2
+	for i in range(ForesightCount):
+		tempCont = TileContainer.new(GameScene.MainPlayer.PlayerAtuu.Deck[deck_size-i], TileContainer.Type.FORESIGHT)
+		tempCont.scale /= SHOP_TILE_SCALE_REDUCTOR
+		tempCont.position = contPos
+		tempCont.name = "tempCont" + str(i+1)
+		ForesightControl.add_child(tempCont)
 		
-		tilePos.x += TileContainer.BASE_RESOURCE_SIZE.x/TILE_IMAGE_SCALE_REDUCTOR + SELECTION_SEPARATION.x
+		contPos.x -= GoodButton.BASE_RESOURCE_SIZE.x/SHOP_TILE_SCALE_REDUCTOR + FORESIGHT_SEPARATION
+
+func toggleForesight(showF: bool = true) -> void:
+	ForesightLabel.visible = showF
 	
-	tilePos = Vector2(NEXT_DRAW_SEPARATION.x, 0.1*TileContainer.BASE_RESOURCE_SIZE.y/TILE_IMAGE_SCALE_REDUCTOR)
+	ForesightControl.visible = showF
 	
-	var RowSize: float = 13*TileContainer.BASE_RESOURCE_SIZE.x/TILE_IMAGE_SCALE_REDUCTOR + 12*NEXT_DRAW_SEPARATION.x
-	if(RowSize < NextDrawView.size.x):
-		tilePos.x = (NextDrawView.size.x - RowSize)/2
-		NextDrawBackground.region_rect.size.x = RowSize + NEXT_DRAW_SEPARATION.x * 2
+	for child: TileContainer in UpgradeControl.get_children():
+		child.enabled = showF
+
+func addUpgrade(newUpgrade: Tile) -> void:
+	#newUpgrade.color = Tile.BASE_COLOR
+	newUpgrade.points += Tile.getRarityBasePoints(newUpgrade.rarity)
 	
-	nextDrawLabel.text = StringsManager.UIStrings["SHOP"][5] + str(DeckViewCount) + StringsManager.UIStrings["SHOP"][6]
-	nextDrawLabel.size = nextDrawLabel.get_theme_font("normal_font").get_string_size(nextDrawLabel.text, nextDrawLabel.horizontal_alignment, -1, nextDrawLabel.get_theme_font_size("normal_font_size"), nextDrawLabel.justification_flags, TextServer.DIRECTION_AUTO, TextServer.ORIENTATION_HORIZONTAL)
-	nextDrawLabel.position = NextDrawBackground.position - NextDrawBackground.region_rect.size/2
-	nextDrawLabel.position.y -= nextDrawLabel.size.y
+	var upgradeCount: int = UpgradeControl.get_child_count()
+	var contPos: Vector2
+	contPos.x = UpgradeControl.size.x/2
+	contPos.x -= upgradeCount*(GoodButton.BASE_RESOURCE_SIZE.x/SHOP_TILE_SCALE_REDUCTOR + UPGRADE_SEPARATION)/2
 	
-	if(GameScene.MainPlayer.PlayerAtuu.Deck.size() <= 0):
-		return
+	for child: TileContainer in UpgradeControl.get_children():
+		child.position = contPos
+		contPos.x += GoodButton.BASE_RESOURCE_SIZE.x/SHOP_TILE_SCALE_REDUCTOR + UPGRADE_SEPARATION
 	
-	var deckCount: int = GameScene.MainPlayer.PlayerAtuu.Deck.size()-1
-	for i in range(13):
-		tempTile = TileContainer.new(GameScene.MainPlayer.PlayerAtuu.Deck[deckCount-i], TileContainer.Type.NEXT_DRAW)
-		tempTile.scale /= TILE_IMAGE_SCALE_REDUCTOR
-		tempTile.position = tilePos
-		NextDrawView.add_child(tempTile)
-		
-		tilePos.x += TileContainer.BASE_RESOURCE_SIZE.x/TILE_IMAGE_SCALE_REDUCTOR + NEXT_DRAW_SEPARATION.x
+	var newUpgradeCont: TileContainer = TileContainer.new(newUpgrade, TileContainer.Type.UPGRADE)
+	newUpgradeCont.custom_minimum_size = TileContainer.BASE_RESOURCE_SIZE
+	newUpgradeCont.scale /= SHOP_TILE_SCALE_REDUCTOR
+	newUpgradeCont.position = contPos
+	newUpgradeCont.name = "newUpgradeCont" + str(upgradeCount+1)
+	UpgradeControl.add_child(newUpgradeCont)

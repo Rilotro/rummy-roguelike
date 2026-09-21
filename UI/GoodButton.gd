@@ -200,6 +200,64 @@ func getTextRealSize(newText: String, override_maxWidth: float = -1) -> Vector2:
 		text_color = newColor
 		ButtonText.self_modulate = newColor
 
+@export var text_size: int = 16:
+	set(newVal):
+		var isShrinking: bool = text_size > newVal
+		
+		text_size = newVal
+		ButtonText.add_theme_font_size_override("font_size", text_size)
+		
+		var textSize: Vector2 = getTextRealSize(text)
+		
+		if(Icon_isImage):
+			return
+		
+		var newSize: Vector2 = textSize
+		if(!wasWrapped):
+			newSize.x *= 1.1
+			
+			if(newSize.y < custom_minimum_size.y):
+				TextBoundSize.y = false
+				newSize.y = custom_minimum_size.y
+			if(size.y < newSize.y):
+				TextBoundSize.y = true
+			elif(!TextBoundSize.y):
+				newSize.y = size.y
+			
+			if(newSize.x < custom_minimum_size.x):
+				newSize.x = custom_minimum_size.x
+			
+			if(isShrinking):
+				if(newSize.x < size.x && !TextBoundSize.x):
+					newSize.x = size.x
+			else:
+				if(newSize.x >= size.x):
+					TextBoundSize.x = true
+				else:
+					newSize.x = size.x
+		else:
+			newSize.x = size.x
+			
+			if(newSize.y < custom_minimum_size.y):
+				newSize.y = custom_minimum_size.y
+			
+			if(isShrinking):
+				if(newSize.y < size.y && !TextBoundSize.y):
+					newSize.y = size.y
+			else:
+				if(newSize.y >= size.y):
+					TextBoundSize.y = true
+				else:
+					newSize.y = size.y
+		
+		size = newSize
+		
+		ButtonIcon.position = newSize/2
+		ButtonIcon.region_rect = Rect2(Vector2(0, 0), newSize)
+		
+		ButtonText.position = Vector2()
+		ButtonText.size = newSize
+
 #@export_storage var wasWrapped: bool = false
 
 @export_enum("Top:0", "Center:1", "Bottom:2") var vertical_alignment = 1:
@@ -498,6 +556,34 @@ func _process(delta: float) -> void:
 	if !Engine.is_editor_hint():
 		checkHovering(delta)
 		checkButtonAction(delta)
+	
+	if(ButtonIcon.region_rect.size != size):
+		ButtonIcon.region_rect.size = size
+		ButtonIcon.position = size/2
+	
+	if(ButtonText.size != size):
+		var textSize: Vector2 = getTextRealSize(ButtonText.text)
+		var finalSize: Vector2
+		
+		if(textSize.x > size.x):
+			finalSize.x = textSize.x
+			TextBoundSize.x = true
+		else:
+			finalSize.x = size.x
+			TextBoundSize.x = size.x == textSize.x
+		
+		if(textSize.y > size.y):
+			finalSize.y = textSize.y
+			TextBoundSize.y = true
+		else:
+			finalSize.y = size.y
+			TextBoundSize.y = size.y == textSize.y
+		
+		size = finalSize
+		ButtonText.size = size
+		
+		ButtonIcon.region_rect.size = size
+		ButtonIcon.position = size/2
 
 func getSize() -> Vector2:
 	return size*scale

@@ -60,19 +60,6 @@ func _init() -> void:
 	if(MultiplayerHandler.players.size() > 1):
 		pass
 	
-	bgObfuscator = Sprite2D.new()
-	bgObfuscator.texture = CanvasTexture.new()
-	bgObfuscator.region_enabled = true
-	bgObfuscator.self_modulate = Color.BLACK
-	bgObfuscator.self_modulate.a = 1
-	bgObfuscator.z_index = 2
-	bgObfuscator.visible = true
-	bgObfuscator.name = "bgObfuscator"
-	add_child(bgObfuscator)
-	
-	var bgMouseObfuscator: Control = Control.new()
-	bgObfuscator.add_child(bgMouseObfuscator)
-	
 	PlayerBar = GameBar.new()
 	PlayerBar.name = "PlayerBar"
 	add_child(PlayerBar)
@@ -112,7 +99,20 @@ func _init() -> void:
 	GameShop.name = "GameShop"
 	add_child(GameShop)
 	
-	Transition_BackToBoard_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.BOARD))
+	bgObfuscator = Sprite2D.new()
+	bgObfuscator.texture = CanvasTexture.new()
+	bgObfuscator.region_enabled = true
+	bgObfuscator.self_modulate = Color.BLACK
+	bgObfuscator.self_modulate.a = 1
+	bgObfuscator.z_index = 2
+	bgObfuscator.visible = true
+	bgObfuscator.name = "bgObfuscator"
+	add_child(bgObfuscator)
+	
+	var bgMouseObfuscator: Control = Control.new()
+	bgObfuscator.add_child(bgMouseObfuscator)
+	
+	#Transition_BackToBoard_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.BOARD))
 	#Transition_toRiver_Button.press.connect(MainPlayer.moveCamera.bind(Player.CameraPosition.RIVER))
 	#BaitButton.press.connect(func() -> void: 
 		#if(BeaverTeeth.Beaver_Teeth_Activated):
@@ -253,6 +253,8 @@ func window_size_changed(newSize: Vector2) -> void:
 	
 	#PlayerBar.addModifier(ArchitectsForge.new())
 	
+	GameShop.window_size_changed()
+	
 	if(MultiplayerHandler.players.is_empty()):
 		MainPlayer.window_size_changed()
 	else:
@@ -266,6 +268,8 @@ static func StartRound() -> void:
 	MainPlayer.hasStartedTurn = true
 	MainPlayer.PlayerAtuu.enabled = true
 	PlayerTurnButton.enabled = true
+	
+	GameShop.toggleForesight(false)
 	
 	Game.StartOfRound.emit()
 
@@ -323,6 +327,8 @@ static func EndRound() -> void:
 	
 	Game.EndOfRound.emit()
 	
+	GameShop.toggleForesight(true)
+	
 	NextPlayer()
 
 static var firstTurn: bool = true
@@ -345,6 +351,7 @@ static func NextPlayer() -> void:
 		#
 		
 		if(!firstTurn):
+			Board.player_pos = nextPlayer
 			var tween: Tween = Game.create_tween()
 			tween.tween_method(func(newRot: float) -> void:
 				MainPlayer.GameBoard.rotation = newRot

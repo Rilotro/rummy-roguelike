@@ -151,5 +151,7 @@
 				"up to "],
 	
 	"TURN": ["Your Turn",
-			 "'s Turn"]
+			 "'s Turn",
+			 "Start Turn\n(Draw 14)",
+			 "Open Shop"]
 }

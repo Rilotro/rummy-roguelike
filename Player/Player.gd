@@ -10,6 +10,7 @@ const PLAYER_CONTAINER: ResourceContainer.ContainerType = ResourceContainer.Cont
 
 static var GameBoard: Board
 var SpreadAndBoard_Transition_ProximitySensor: Control
+var BoardControl: Control
 var SpreadCameraTransition: Transition
 var BoardCameraTransition: Transition
 var PlayerButtons: Array[PlayerTransition]
@@ -17,7 +18,7 @@ var PlayerSpread: Spread
 var GameRiver: River
 #var PlayerDeck: Deck
 var otherPlayerDeck: Sprite2D
-var Camera: Camera2D
+static var Camera: Camera2D
 var SpreadButton: GoodButton
 var DiscardButton: GoodButton
 var ExpBar: ExperienceBar
@@ -29,7 +30,9 @@ static var isDiscarding: bool = false
 static var minMAXTilesToDiscard: Vector2i = Vector2i(1, 2)
 
 var inProximity: bool = false
-var currentCameraPos: CameraPosition = CameraPosition.BOARD
+#var currentCameraPos: CameraPosition = CameraPosition.BOARD
+static var camera_player_pos: PlayerData
+static var camera_spread_pos: bool = false
 
 var isMainPlayer: bool = true
 var hasBoard: bool = false
@@ -37,13 +40,18 @@ var hasBoard: bool = false
 var hasStartedTurn: bool = false
 
 signal PlayerDraw(fromDeck: bool)
-
-enum CameraPosition{
-	BOARD, SPREAD, ALL_PLAYERS, RIVER
-}
+#
+#enum CameraPosition{
+	#BOARD, SPREAD, ALL_PLAYERS, RIVER
+#}
 
 func _init(player: PlayerData = null) -> void:
 	isMainPlayer = player == MultiplayerHandler.currPlayer
+	
+	if(isMainPlayer):
+		camera_player_pos = player
+		if(player != null):
+			Board.player_pos = player
 	#var testArray1: Array[Tile] = [Tile.new(1, Color.BLACK), Tile.new(2, Color.BLUE), Tile.new(3, Color.RED), Tile.new(4, Color.GREEN)]
 	#var testArray2: Array[Tile]
 	#testArray2.append_array(testArray1)
@@ -59,6 +67,14 @@ func _init(player: PlayerData = null) -> void:
 	SpreadAndBoard_Transition_ProximitySensor = Control.new()
 	SpreadAndBoard_Transition_ProximitySensor.name = "SpreadAndBoard_Transition_ProximitySensor"
 	add_child(SpreadAndBoard_Transition_ProximitySensor)
+	
+	BoardControl = Control.new()
+	BoardControl.size.x = Board.BOARD_WIDTH
+	BoardControl.size.y = Board.BOARD_HEIGHT*2
+	BoardControl.position.x = -Board.BOARD_WIDTH/2
+	BoardControl.position.y = -1.5*Board.BOARD_HEIGHT
+	BoardControl.name = "BoardControl"
+	add_child(BoardControl)
 	
 	ExpBar = ExperienceBar.new()
 	ExpBar.name = "ExperienceBar"
@@ -171,16 +187,19 @@ func _init(player: PlayerData = null) -> void:
 		#SpreadTransition_ProximitySensor.mouse_exited.connect(_mouse_outsideProximity)
 	
 	SpreadAndBoard_Transition_ProximitySensor.mouse_entered.connect(func() -> void:
+		#if(TileContainer.MovingTile != null):
 		SpreadCameraTransition.enabled = true
 		BoardCameraTransition.enabled = true)
 	
-	SpreadAndBoard_Transition_ProximitySensor.mouse_exited.connect(func() -> void:
-		await get_tree().create_timer(0.0001).timeout
-		if(!SpreadCameraTransition.mouse_inside):
-			SpreadCameraTransition.enabled = false
-		
-		if(!BoardCameraTransition.mouse_inside):
-			BoardCameraTransition.enabled = false)
+	SpreadAndBoard_Transition_ProximitySensor.mouse_exited.connect(hideTransitions)
+
+func hideTransitions() -> void:
+	await get_tree().create_timer(0.0001).timeout
+	if(!SpreadCameraTransition.mouse_inside):# || TileContainer.MovingTile == null
+		SpreadCameraTransition.enabled = false
+	
+	if(!BoardCameraTransition.mouse_inside):# || TileContainer.MovingTile == null
+		BoardCameraTransition.enabled = false
 
 #var SpreadCameraTransition_positionBoard: Vector2
 #var SpreadCameraTransition_positionSpread: Vector2
@@ -269,8 +288,13 @@ func handleStartGameAtuu(screenSize: Vector2) -> void:
 		PlayerAtuu.enabled = true
 	
 	GameScene.NextPlayer()
+
+func getPlayerButton(playerID: int) -> PlayerTransition:
+	for PB in PlayerButtons:
+		if(PB.playerID == playerID):
+			return PB
 	
-	GameScene.GameShop.reloadShop()
+	return null
 
 func _process(delta: float) -> void:
 	#print("HERE0 - " + str(GameRiver.global_position))
@@ -289,12 +313,14 @@ func _process(delta: float) -> void:
 			#falsePositive = false
 			#_mouse_outsideProximity()
 
-func getPlayerButton(playerID: int) -> PlayerTransition:
-	for PB in PlayerButtons:
-		if(PB.playerID == playerID):
-			return PB
-	
-	return null
+static func handleMovingTile(tile: TileContainer) -> void:
+	if(camera_spread_pos):
+		if(camera_player_pos != null):
+			camera_player_pos.playerSpace.PlayerSpread.handleMovingTile(tile)
+		else:
+			GameScene.MainPlayer.PlayerSpread.handleMovingTile(tile)
+	else:
+		GameBoard.handleMovingTile(tile)
 
 func Draw(drawNumber: int = 1) -> void:
 	PlayerDraw.emit(true)
@@ -574,11 +600,11 @@ func DiscardButtonPressed() -> void:
 	#selectedTiles.clear()
 	DiscardButton.visible = false
 
-func moveCamera(newPos: CameraPosition) -> void:
-	if(currentCameraPos == newPos):
-		return
-	
-	currentCameraPos = newPos
+#func moveCamera(newPos: CameraPosition) -> void:
+	#if(currentCameraPos == newPos):
+		#return
+	#
+	#currentCameraPos = newPos
 	
 	#match newPos:
 		#CameraPosition.BOARD:
