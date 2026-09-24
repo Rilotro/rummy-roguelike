@@ -390,7 +390,7 @@ func Draw(count: int = 1) -> void:
 	var randX: float
 	var randY: float
 	for i in range(count):
-		tempCont = TileContainer.new(Deck.pop_back())
+		tempCont = TileContainer.new(Deck.pop_back(), MultiplayerHandler.currPlayer)
 		contArray.append(tempCont)
 		tempCont.enabled = false
 		tempCont.position = position

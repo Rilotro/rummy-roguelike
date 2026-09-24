@@ -8,6 +8,7 @@ const PLAYER_TAG_BUTTON_SPACING: float = 5
 const BUTTON_SPREAD_VIEW_SPACING: float = 5
 const IMAGE_SCALE_SUBTRACTOR: float = 10
 const IMAGE_SPACING_X: float = 2
+const IMAGE_APPEND_SPACING_X: float = 17
 
 var Body: Sprite2D
 var PlayerName: Label
@@ -83,7 +84,7 @@ func miniSpreadView(spreadRow: Array[TileContainer]) -> void:
 	var rowLength: float = interImageSpace*imageCount - IMAGE_SPACING_X
 	
 	for image in spreadImages:
-		await image.activate(rowLength/2)
+		await image.activate(true, rowLength/2)
 	
 	while(TileImage.activateFinished < spreadImages.size()):
 		await get_tree().create_timer(0.001).timeout
@@ -104,6 +105,86 @@ func miniSpreadView(spreadRow: Array[TileContainer]) -> void:
 			newMiniSpreadTween.tween_property(tile, "modulate:a", 0, (tile.position.x-Body.region_rect.size.x)/tweenSpeed).set_delay(0.1*newImageCount)
 			newImageCount += 1
 		
-		newMiniSpreadTween.finished.connect(func() -> void:
-			for tile in spreadImages:
-				tile.queue_free()))
+		newMiniSpreadTween.finished.connect(func() -> void: miniSpreadControl.queue_free()))
+			#for tile in spreadImages:
+				#tile.queue_free()))
+
+func SpreadAppend_View(origRow: Array[TileContainer], tile: TileContainer, isFirst: bool) -> void:
+	if(isFirst): origRow.insert(0, tile)
+	else: origRow.append(tile)
+	
+	miniSpreadControl = Control.new()
+	miniSpreadControl.position.x = Body.region_rect.size.x + CameraTransition.size.x + PLAYER_TAG_BUTTON_SPACING + BUTTON_SPREAD_VIEW_SPACING
+	miniSpreadControl.position.y = IMAGE_SCALE_SUBTRACTOR/2
+	miniSpreadControl.name = "miniSpreadControl"
+	add_child(miniSpreadControl)
+	
+	var spreadImages: Array[TileImage]
+	var tempImage: TileImage
+	var appendImage: TileImage
+	var imageScale: float = (CameraTransition.size.y-IMAGE_SCALE_SUBTRACTOR)/TileContainer.BASE_RESOURCE_SIZE.y
+	var interImageSpace: float = TileContainer.BASE_RESOURCE_SIZE.x*imageScale + IMAGE_SPACING_X
+	var imageCount: int = 0
+	var miniSpreadTween: Tween = create_tween()
+	miniSpreadTween.set_parallel().set_trans(Tween.TRANS_QUINT)
+	
+	#if(isFirst):
+		#appendImage = TileImage.new(tile.tile)
+		#appendImage.scale = Vector2(imageScale, imageScale)
+		#appendImage.position = Vector2(-CameraTransition.size.x, 0)
+		#miniSpreadControl.add_child(appendImage)
+		#appendImage.name = "appendImage"
+		#spreadImages.append(appendImage)
+		#
+		#miniSpreadTween.tween_property(appendImage, "position:x", currPos, 0.3).set_delay(0.1*imageCount)
+		#currPos += interImageSpace + IMAGE_APPEND_SPACING_X
+	
+	for tilee in origRow:
+		tempImage = TileImage.new(tilee.tile)
+		tempImage.scale = Vector2(imageScale, imageScale)
+		tempImage.position = Vector2(-CameraTransition.size.x, 0)
+		miniSpreadControl.add_child(tempImage)
+		tempImage.name = "tempImage" + str(imageCount+1)
+		spreadImages.append(tempImage)
+		
+		if(tilee == tile):
+			appendImage = tempImage
+			miniSpreadTween.tween_property(tempImage, "position", Vector2(interImageSpace*imageCount, -TileContainer.BASE_RESOURCE_SIZE.y*imageScale), 0.3).set_delay(0.1*imageCount)
+		else:
+			miniSpreadTween.tween_property(tempImage, "position:x", interImageSpace*imageCount, 0.3).set_delay(0.1*imageCount)
+		
+		imageCount += 1
+	
+	#if(!isFirst):
+		#currPos += IMAGE_APPEND_SPACING_X
+		#
+		#appendImage = TileImage.new(tile.tile)
+		#appendImage.scale = Vector2(imageScale, imageScale)
+		#appendImage.position = Vector2(-CameraTransition.size.x, 0)
+		#miniSpreadControl.add_child(appendImage)
+		#appendImage.name = "appendImage"
+		#spreadImages.append(appendImage)
+		#
+		#miniSpreadTween.tween_property(appendImage, "position:x", currPos, 0.3).set_delay(0.1*imageCount)
+	
+	await miniSpreadTween.finished
+	
+	miniSpreadTween = create_tween()
+	
+	miniSpreadTween.tween_property(appendImage, "position:y", 0, 0.3)
+	
+	await miniSpreadTween.finished
+	
+	await appendImage.activate(false)
+	
+	var newMiniSpreadTween = create_tween()
+	var newImageCount: int = 0
+	var tweenSpeed: float = -Body.region_rect.size.x/0.4
+	newMiniSpreadTween.set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	
+	for tilee in spreadImages:
+		newMiniSpreadTween.tween_property(tilee, "position:x", -Body.region_rect.size.x, (tile.position.x-Body.region_rect.size.x)/tweenSpeed).set_delay(0.1*newImageCount)
+		newMiniSpreadTween.tween_property(tilee, "modulate:a", 0, (tile.position.x-Body.region_rect.size.x)/tweenSpeed).set_delay(0.1*newImageCount)
+		newImageCount += 1
+	
+	newMiniSpreadTween.finished.connect(func() -> void: miniSpreadControl.queue_free())

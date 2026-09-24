@@ -222,11 +222,13 @@ func window_size_changed() -> void:
 	var PlayerSpread_posX: float = GameScene.window_size.x + Spread.ROW_WIDTH/2# + 420
 	PlayerSpread.position = Vector2(PlayerSpread_posX, 0)
 	
-	var start_y: float = -GameScene.window_size.y + Board.BOARD_HEIGHT/2 + GameBar.SLOT_SIZE.y+5 + 10
-	for button in PlayerButtons:
-		button.position = Vector2(10-GameScene.window_size.x/2, start_y)
-		
-		start_y += button.CameraTransition.size.y + 10
+	if(!PlayerButtons.is_empty()):
+		var imageScale: float = (PlayerButtons[0].CameraTransition.size.y-PlayerTransition.IMAGE_SCALE_SUBTRACTOR)/GoodButton.BASE_RESOURCE_SIZE.y
+		var start_y: float = -GameScene.window_size.y + Board.BOARD_HEIGHT/2 + GameBar.SLOT_SIZE.y+5 + imageScale*GoodButton.BASE_RESOURCE_SIZE.y + 5
+		for button in PlayerButtons:
+			button.position = Vector2(10-GameScene.window_size.x/2, start_y)
+			
+			start_y += button.CameraTransition.size.y + 10
 	
 	SpreadCameraTransition.position = Vector2(GameScene.window_size.x/2 - SpreadCameraTransition.size.x-10, -(GameScene.window_size.y - Board.BOARD_HEIGHT + SpreadCameraTransition.size.y)/2)
 	BoardCameraTransition.position = SpreadCameraTransition.position + Vector2(PlayerSpread.position.x - GameScene.window_size.x + SpreadCameraTransition.size.x + 20, 0)
@@ -313,6 +315,8 @@ func _process(delta: float) -> void:
 			#falsePositive = false
 			#_mouse_outsideProximity()
 
+static var SparkleHighlight: SparkleContainer
+
 static func handleMovingTile(tile: TileContainer) -> void:
 	if(camera_spread_pos):
 		if(camera_player_pos != null):
@@ -321,6 +325,15 @@ static func handleMovingTile(tile: TileContainer) -> void:
 			GameScene.MainPlayer.PlayerSpread.handleMovingTile(tile)
 	else:
 		GameBoard.handleMovingTile(tile)
+
+static func endMovement(tile: TileContainer) -> void:
+	if(camera_spread_pos):
+		if(camera_player_pos != null):
+			camera_player_pos.playerSpace.PlayerSpread.endMovement(tile)
+		else:
+			GameScene.MainPlayer.PlayerSpread.endMovement(tile)
+	else:
+		GameBoard.endMovement(tile)
 
 func Draw(drawNumber: int = 1) -> void:
 	PlayerDraw.emit(true)
@@ -351,7 +364,7 @@ func Draw(drawNumber: int = 1) -> void:
 		#tileStrings += str(lastTile) + ":" + str(tilePos.x) + ":" + str(tilePos.y)
 	
 
-func receive_otherPlayer_draw(drawnTiles_str: String) -> void:
+func receive_otherPlayer_draw(drawnTiles_str: String, player: PlayerData) -> void:
 	var drawSize: int = int(drawnTiles_str.get_slice("::", 0))
 	
 	var newTile: Tile
@@ -362,7 +375,7 @@ func receive_otherPlayer_draw(drawnTiles_str: String) -> void:
 		newTile = argv[0]
 		tilePos = argv[1]
 		
-		Player.GameBoard.addTile(TileContainer.new(newTile), Board.TileOrigin.OTHER_PLAYER, tilePos, self)
+		Player.GameBoard.addTile(TileContainer.new(newTile, player), Board.TileOrigin.OTHER_PLAYER, tilePos, self)
 
 func Draw_fromRiver(baitAmmount: int = 0, startingTile: TileContainer = null) -> void:
 	if(baitAmmount <= 0):

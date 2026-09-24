@@ -10,6 +10,7 @@ const BOARD_HEIGHT: float = 120
 const BOARD_WIDTH: float = ROW_TILE_SIZE*ResourceContainer.BASE_RESOURCE_SIZE.x + (ROW_TILE_SIZE+1)*SPACE_BETWEEN_TILES
 const MAX_BOARD_ROWS: int = 5
 const MOVE_TILE_DURATION: float = 0.35
+const HIGHLIGHT_THICKNESS: Vector2 = Vector2(10, 10)
 
 static var player_pos: PlayerData = null
 
@@ -31,6 +32,21 @@ func _init() -> void:
 		RowArray.fill(null)
 		BoardRows.append(RowArray)
 		add_child(newBoard)
+
+func moveBoard(nextPlayer: PlayerData) -> void:
+	Board.player_pos = nextPlayer
+	for Row: Array[TileContainer] in BoardRows:
+		for tile in Row:
+			if(tile == null):
+				continue
+			
+			tile.player_owner = nextPlayer
+	
+	var tween: Tween = create_tween()
+	tween.tween_method(func(newRot: float) -> void:
+		rotation = newRot
+		global_position =  Vector2(GameScene.BoardRadius*sin(-newRot), GameScene.BoardRadius*cos(-newRot))
+	, rotation, rotation-GameScene.interPlayer_rotationStep, 1)
 
 enum TileOrigin{
 	DECK, DECK_BURNING_SHOES, RIVER, SELECTION, SHOP, OTHER_PLAYER, ATUU
@@ -226,7 +242,7 @@ func removeTiles(tiles: Array[TileContainer]) -> void:
 	for Row in BoardRows:
 		for i in range(Row.size()):
 			if(Row[i] != null && tiles.has(Row[i])):
-				Row[i].tile.onRemovedFromBoard()
+				#Row[i].tile.onRemovedFromBoard()
 				Row[i] = null
 	
 	#GameScene.MainPlayer.Draw(Tile.accumulatedWingedDraw)
@@ -337,7 +353,7 @@ func changeHighlightColor(newColor: Color) -> void:
 			tile.flash(false)
 			tile.Highlight.self_modulate = newColor
 
-var endPosHighlight: SparkleContainer
+#var endPosHighlight: SparkleContainer
 
 func handleMovingTile(tile: TileContainer) -> void:
 	#Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
@@ -359,24 +375,29 @@ func handleMovingTile(tile: TileContainer) -> void:
 	if(endPos.y < Y_BOUNDS.x):
 		endPos.y = Y_BOUNDS.x
 	
-	if(endPosHighlight == null):
-		endPosHighlight = SparkleContainer.new(Vector2(85, 115), Vector2(10, 11), SparkleContainer.Hole.new(Vector2(75, 105), Vector2(0, 0), SparkleContainer.Shape.RECTANGLE))
-		add_child(endPosHighlight)
-		endPosHighlight.position = endPos
-	elif(endPosHighlight.position != endPos):
+	if(Player.SparkleHighlight == null):
+		Player.SparkleHighlight = SparkleContainer.new(GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(Vector2(75, 105), Vector2(0, 0), SparkleContainer.Shape.RECTANGLE))
+		add_child(Player.SparkleHighlight)
+		Player.SparkleHighlight.position = endPos
+	elif(Player.SparkleHighlight.position != endPos):
 		var tween: Tween = create_tween()
-		tween.tween_property(endPosHighlight, "position", endPos, 0.1)
+		tween.tween_property(Player.SparkleHighlight, "position", endPos, 0.1)
+		if(Player.SparkleHighlight.size != GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS):
+			tween.tween_property(Player.SparkleHighlight.hole, "size", GoodButton.BASE_RESOURCE_SIZE, 0.1)
+			tween.tween_property(Player.SparkleHighlight, "size", GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS, 0.1)
+			tween.tween_property(Player.SparkleHighlight, "LowerBound_density", 10, 0.1)
+			tween.tween_property(Player.SparkleHighlight, "UpperBound_density", 11, 0.1)
 
 func endMovement(tile: TileContainer) -> void:
-	assert(endPosHighlight != null)
+	assert(Player.SparkleHighlight != null)
 	
-	var rowIndex: int = round(abs(endPosHighlight.position.y/BOARD_HEIGHT))
-	var colIndex: int = round(endPosHighlight.position.x + ((BOARD_WIDTH -ResourceContainer.BASE_RESOURCE_SIZE.x)/2 - SPACE_BETWEEN_TILES))/95
+	var rowIndex: int = round(abs(Player.SparkleHighlight.position.y/BOARD_HEIGHT))
+	var colIndex: int = round(Player.SparkleHighlight.position.x + ((BOARD_WIDTH -ResourceContainer.BASE_RESOURCE_SIZE.x)/2 - SPACE_BETWEEN_TILES))/95
 	
 	var startCoord: Vector2i = getTilePos(tile)
 	var endCoord: Vector2i = Vector2i(rowIndex, colIndex)
 	
-	if(endPosHighlight.get_parent() != self):
+	if(Player.SparkleHighlight.get_parent() != self):
 		endCoord = startCoord
 	
 	var endPos: Vector2 = Vector2(-BOARD_WIDTH/2 + SPACE_BETWEEN_TILES + endCoord.y*(ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES), -ResourceContainer.BASE_RESOURCE_SIZE.y/2)#-BOARD_HEIGHT*endCoord.x 
@@ -408,7 +429,7 @@ func endMovement(tile: TileContainer) -> void:
 		if(BoardRows[startCoord.x][startCoord.y] != null):
 			BoardRows[startCoord.x][startCoord.y].z_index = 0)
 	
-	endPosHighlight.queue_free()
+	Player.SparkleHighlight.queue_free()
 	
 	MultiplayerHandler.send_data("tile_moved", (str(startCoord.x) + ":" + str(startCoord.y) + "::" + str(endCoord.x) + ":" + str(endCoord.y)).to_utf8_buffer())
 

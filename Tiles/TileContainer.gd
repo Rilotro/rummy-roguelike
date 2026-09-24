@@ -16,6 +16,7 @@ var flashTween: Tween = null
 
 var tile: Tile
 var type: Type
+var player_owner: PlayerData
 
 enum Type{
 	BOARD, FORESIGHT, UPGRADE
@@ -33,12 +34,13 @@ func set_enable(enable: bool):
 		else:
 			modulate = Color(0.7, 0.7, 0.7)
 
-func _init(t: Tile, ty: Type = Type.BOARD) -> void:
+func _init(t: Tile, p_o: PlayerData = null, ty: Type = Type.BOARD) -> void:
 	if(t == null):
 		t = Tile.getRandomTile()
 	
 	tile = t
 	type = ty
+	player_owner = p_o
 	
 	#if(type != Type.BOARD):
 		#tile.color = Tile.BASE_COLOR
@@ -134,9 +136,11 @@ func pressing(delta: float) -> void:
 				
 				isMoving = true
 				MovingTile = self
-				var playerRot: float = Player.camera_player_pos.playerSpace.rotation
-				if(get_parent() == Player.Camera):
-					playerRot = -Player.Camera.rotation
+				var playerRot: float = 0
+				if(Player.camera_player_pos != null):
+					playerRot = Player.camera_player_pos.playerSpace.rotation
+					if(get_parent() == Player.Camera):
+						playerRot = Player.Camera.rotation
 				
 				global_position = get_global_mouse_position() - (BASE_RESOURCE_SIZE.x*Vector2(cos(playerRot), sin(playerRot)) + BASE_RESOURCE_SIZE.y*Vector2(-sin(playerRot), cos(playerRot)))/2
 				z_index = 1
@@ -177,19 +181,19 @@ func lateFinalPress() -> void:
 				mouse_filter = Control.MOUSE_FILTER_STOP
 				
 				if(!GameScene.MainPlayer.PlayerAtuu.Discard(self)):
-					GameScene.MainPlayer.GameBoard.endMovement(self)
+					Player.endMovement(self)
 				else:
 					Player.GameBoard.endPosHighlight.queue_free()
 				
-				var playerID: int = -1
-				if(Player.camera_player_pos != null):
-					playerID = Player.camera_player_pos.ID
-				
-				if(Player.camera_spread_pos):
-					Transition.screenTransition(Transition.Target.BOARD, playerID)
-				
-				if(playerID != -1 && playerID != MultiplayerHandler.currPlayer.ID):
-					Transition.queue_screenTransition(Transition.Target.P2P, MultiplayerHandler.currPlayer.ID)
+				#var playerID: int = -1
+				#if(Player.camera_player_pos != null):
+					#playerID = Player.camera_player_pos.ID
+				#
+				#if(Player.camera_spread_pos):
+					#Transition.screenTransition(Transition.Target.BOARD, playerID)
+				#
+				#if(playerID != -1 && playerID != MultiplayerHandler.currPlayer.ID):
+					#Transition.queue_screenTransition(Transition.Target.P2P, MultiplayerHandler.currPlayer.ID)
 			Type.UPGRADE:
 				if(selectionArrow != null):
 					selectionArrow.queue_free()
@@ -285,12 +289,13 @@ static var pointSumTween: Tween
 static var currPointVal: int
 static var currPointSum: int
 
-func activate() -> void:
+func activate(isBigSpread: bool = true) -> void:
 	var spreadingPlayer: Player
-	if(MultiplayerHandler.players.is_empty()):
+	if(player_owner == null):
 		spreadingPlayer = GameScene.MainPlayer
 	else:
-		spreadingPlayer = MultiplayerHandler.getCurrentActivePlayer().playerSpace
+		spreadingPlayer = player_owner.playerSpace
+	
 	var pointsBubble: SparkleContainer = getPointsBubble(tile.points)
 	
 	pointsBubble.z_index = 2
@@ -308,47 +313,55 @@ func activate() -> void:
 	
 	sparkleTween.tween_property(pointsBubble, "position", size/2 + displacement, 0.3)
 	
-	await sparkleTween.finished
-	
-	if(pointSumBubble == null):
-		currPointSum = 0
-		currPointVal = 0
-		pointSumBubble = getPointsBubble(0)
-		pointSumLabel = pointSumBubble.get_child(0)
-		pointSumBubble.reparent(spreadingPlayer)
-		pointSumBubble.position = Vector2(0, -350)
-	
-	sparkleTween = create_tween()
-	sparkleTween.tween_property(pointsBubble, "global_position", pointSumBubble.global_position, 0.3).set_trans(Tween.TRANS_BACK)
-	sparkleTween.finished.connect(func() -> void:
-		if(pointSumTween != null && pointSumTween.is_running()):
-			pointSumTween.finished.emit()
-			pointSumTween.kill()
-			pointSumTween = null
+	if(isBigSpread):
+		await sparkleTween.finished
+		
+		if(pointSumBubble == null):
+			currPointSum = 0
+			currPointVal = 0
+			pointSumBubble = getPointsBubble(0)
+			pointSumLabel = pointSumBubble.get_child(0)
+			pointSumBubble.reparent(spreadingPlayer)
+			pointSumBubble.position = Vector2(0, -350)
+		
+		sparkleTween = create_tween()
+		sparkleTween.tween_property(pointsBubble, "global_position", pointSumBubble.global_position, 0.3).set_trans(Tween.TRANS_BACK)
+		sparkleTween.finished.connect(func() -> void:
+			if(pointSumTween != null && pointSumTween.is_running()):
+				pointSumTween.finished.emit()
+				pointSumTween.kill()
+				pointSumTween = null
+			
+			pointsBubble.queue_free()
+			
+			currPointSum += tile.points
+			pointSumTween = create_tween()
+			pointSumTween.tween_method(func(newVal: int) -> void:
+				currPointVal = newVal
+				pointSumBubble.size = Vector2(10+newVal, 10+newVal)
+				pointSumBubble.LowerBound_density = newVal
+				pointSumBubble.UpperBound_density = 2*newVal
+				var textFontSize: int = 1
+				var textSize: Vector2 = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize)
+				while(textSize.x <= pointSumBubble.size.x && textSize.y <= pointSumBubble.size.y):
+					textFontSize += 1
+					textSize = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize)
+				
+				textFontSize -= 1
+				textSize = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize)
+				
+				pointSumLabel.add_theme_font_size_override("font_size", textFontSize)
+				pointSumLabel.text = "+"+str(newVal)
+				pointSumLabel.position = -textSize/2, currPointVal, currPointSum, 0.7)
+			
+			pointSumTween.finished.connect(func() -> void: spreadingPlayer.spreadFinishCount += 1))
+	else:
+		sparkleTween.tween_property(pointsBubble, "global_position", spreadingPlayer.ExpBar.global_position, 0.3)
+		
+		await sparkleTween.finished
 		
 		pointsBubble.queue_free()
-		
-		currPointSum += tile.points
-		pointSumTween = create_tween()
-		pointSumTween.tween_method(func(newVal: int) -> void:
-			currPointVal = newVal
-			pointSumBubble.size = Vector2(10+newVal, 10+newVal)
-			pointSumBubble.LowerBound_density = newVal
-			pointSumBubble.UpperBound_density = 2*newVal
-			var textFontSize: int = 1
-			var textSize: Vector2 = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize)
-			while(textSize.x <= pointSumBubble.size.x && textSize.y <= pointSumBubble.size.y):
-				textFontSize += 1
-				textSize = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize)
-			
-			textFontSize -= 1
-			textSize = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize)
-			
-			pointSumLabel.add_theme_font_size_override("font_size", textFontSize)
-			pointSumLabel.text = "+"+str(newVal)
-			pointSumLabel.position = -textSize/2, currPointVal, currPointSum, 0.7)
-		
-		pointSumTween.finished.connect(func() -> void: spreadingPlayer.spreadFinishCount += 1))
+		spreadingPlayer.ExpBar.gainExperience(tile.points)
 
 func generateTitle(_TipRef: UITip) -> String:
 	var title: String = StringsManager.EffectStrings["tile"]

@@ -108,11 +108,12 @@ static func screenTransition(camera_target: Target, target_playerID: int) -> voi
 			
 			var endPos: Vector2 = -264*Vector2(-sin(playerSpace.rotation), cos(playerSpace.rotation))
 			tween.tween_property(Player.Camera, "global_position", playerSpace.PlayerSpread.global_position + endPos, 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
-			if(Player.GameBoard.endPosHighlight != null):
-				Player.GameBoard.endPosHighlight.reparent(playerSpace.PlayerSpread)
+			if(Player.SparkleHighlight != null):
+				Player.SparkleHighlight.reparent(playerSpace.PlayerSpread)
 			
 			tween.finished.connect(func() -> void:
-				TileContainer.MovingTile.reparent(playerSpace.PlayerSpread))
+				if(TileContainer.MovingTile != null):
+					TileContainer.MovingTile.reparent(playerSpace.PlayerSpread))
 		Target.BOARD:
 			Player.camera_spread_pos = false
 			var playerSpace: Player
@@ -128,9 +129,10 @@ static func screenTransition(camera_target: Target, target_playerID: int) -> voi
 			
 			var endPos: Vector2 = -264*Vector2(-sin(playerSpace.rotation), cos(playerSpace.rotation))
 			tween.tween_property(Player.Camera, "global_position", playerSpace.global_position + endPos, 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
-			if(Player.GameBoard.endPosHighlight != null):
-				Player.GameBoard.endPosHighlight.visible = true
-				Player.GameBoard.endPosHighlight.reparent(Player.GameBoard)
+			if(Player.SparkleHighlight != null):
+				Player.SparkleHighlight.visible = true
+				Player.SparkleHighlight.reparent(Player.GameBoard)
+				Player.SparkleHighlight.is_positive = true
 			
 			tween.finished.connect(func() -> void:
 				if(TileContainer.MovingTile != null):
@@ -144,9 +146,7 @@ static func screenTransition(camera_target: Target, target_playerID: int) -> voi
 			var playerSpace: Player = Player.camera_player_pos.playerSpace
 			assert(playerSpace != null, "Unkown Player ID! Screen Transition Button couldn't find Player Space.")
 			
-			print("HERE0")
 			if(TileContainer.MovingTile != null):
-				print("HERE1")
 				TileContainer.MovingTile.reparent(Player.Camera)
 			
 			var cameraRadius: float = GameScene.BoardRadius-264

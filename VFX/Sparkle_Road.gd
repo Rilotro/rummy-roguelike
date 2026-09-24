@@ -7,7 +7,7 @@ class_name SparkleContainer
 var LowerBound_density: int = 1
 var UpperBound_density: int = 10
 var rect_offset: Vector2 = Vector2(0, 0)
-var checkPolarity_atReady: bool = true
+var is_positive: bool = true
 
 var isTopLevel: bool = false
 var hole: Hole = null
@@ -49,6 +49,7 @@ func _process(_delta: float) -> void:
 							sparklePos = Vector2(randf_range(lowerBound.x, upperBound.x), randf_range(lowerBound.y, upperBound.y))
 			
 			new_Sparkle = Sparkle.new()
+			(new_Sparkle.material as ShaderMaterial).set_shader_parameter("is_positive", is_positive)
 			new_Sparkle.z_index = z_index
 			add_child(new_Sparkle)
 			new_Sparkle.top_level = isTopLevel

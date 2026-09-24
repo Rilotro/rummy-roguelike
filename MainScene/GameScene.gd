@@ -351,12 +351,7 @@ static func NextPlayer() -> void:
 		#
 		
 		if(!firstTurn):
-			Board.player_pos = nextPlayer
-			var tween: Tween = Game.create_tween()
-			tween.tween_method(func(newRot: float) -> void:
-				MainPlayer.GameBoard.rotation = newRot
-				MainPlayer.GameBoard.global_position =  Vector2(BoardRadius*sin(-newRot), BoardRadius*cos(-newRot))
-			, MainPlayer.GameBoard.rotation, MainPlayer.GameBoard.rotation-interPlayer_rotationStep, 1)
+			Player.GameBoard.moveBoard(nextPlayer)
 		else:
 			firstTurn = false
 		
@@ -392,10 +387,15 @@ func handlePlayerCommands(source: String, command: String, params: PackedByteArr
 		"ended_turn":
 			NextPlayer()
 		"draw":
-			MultiplayerHandler.getPlayer_byID(int(source)).playerSpace.receive_otherPlayer_draw(params.get_string_from_utf8())
+			var player: PlayerData = MultiplayerHandler.getPlayer_byID(int(source))
+			player.playerSpace.receive_otherPlayer_draw(params.get_string_from_utf8(), player)
 		"tile_moved":
 			Player.GameBoard.otherPlayer_movedTile(params.get_string_from_utf8())
 		"spread":
 			var spreadRow: Array[TileContainer] = Player.GameBoard.getTiles_fromMessage(params.get_string_from_utf8())
 			MainPlayer.getPlayerButton(int(source)).miniSpreadView(spreadRow)
 			MultiplayerHandler.getPlayer_byID(int(source)).playerSpace.SpreadButtonPressed(false, spreadRow)
+		"spread_row_append":
+			var params_string: String = params.get_string_from_utf8()
+			var rowOrigin: int = int(params_string.get_slice("::", 0))
+			MultiplayerHandler.getPlayer_byID(rowOrigin).playerSpace.PlayerSpread.MultiplayerAppend(params_string, rowOrigin)

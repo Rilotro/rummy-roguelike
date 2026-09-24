@@ -178,7 +178,7 @@ func reloadForesight() -> void:
 	contPos.x = ForesightControl.size.x/2
 	contPos.x += (ForesightCount-1)*(GoodButton.BASE_RESOURCE_SIZE.x/SHOP_TILE_SCALE_REDUCTOR + FORESIGHT_SEPARATION)/2
 	for i in range(ForesightCount):
-		tempCont = TileContainer.new(GameScene.MainPlayer.PlayerAtuu.Deck[deck_size-i], TileContainer.Type.FORESIGHT)
+		tempCont = TileContainer.new(GameScene.MainPlayer.PlayerAtuu.Deck[deck_size-i], MultiplayerHandler.currPlayer, TileContainer.Type.FORESIGHT)
 		tempCont.scale /= SHOP_TILE_SCALE_REDUCTOR
 		tempCont.position = contPos
 		tempCont.name = "tempCont" + str(i+1)
@@ -207,7 +207,7 @@ func addUpgrade(newUpgrade: Tile) -> void:
 		child.position = contPos
 		contPos.x += GoodButton.BASE_RESOURCE_SIZE.x/SHOP_TILE_SCALE_REDUCTOR + UPGRADE_SEPARATION
 	
-	var newUpgradeCont: TileContainer = TileContainer.new(newUpgrade, TileContainer.Type.UPGRADE)
+	var newUpgradeCont: TileContainer = TileContainer.new(newUpgrade, MultiplayerHandler.currPlayer, TileContainer.Type.UPGRADE)
 	newUpgradeCont.custom_minimum_size = TileContainer.BASE_RESOURCE_SIZE
 	newUpgradeCont.scale /= SHOP_TILE_SCALE_REDUCTOR
 	newUpgradeCont.position = contPos

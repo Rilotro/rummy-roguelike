@@ -123,7 +123,7 @@ static var currPointSum: int
 static var pointBubbleScaleFactor: float = 1
 static var activateFinished: int = 0
 
-func activate(BigBubblePos_X: float) -> void:
+func activate(isBigSpread: bool = true, BigBubblePos_X: float = 0) -> void:
 	var pointsBubble: SparkleContainer = getPointsBubble(tile.points)
 	
 	pointsBubble.z_index = 2
@@ -141,45 +141,52 @@ func activate(BigBubblePos_X: float) -> void:
 	
 	sparkleTween.tween_property(pointsBubble, "position", size/2 + displacement, 0.3)
 	
-	await sparkleTween.finished
-	
-	if(pointSumBubble == null):
-		currPointSum = 0
-		currPointVal = 0
-		pointSumBubble = getPointsBubble(0)
-		pointSumLabel = pointSumBubble.get_child(0)
-		pointSumBubble.reparent(get_parent())
-		pointSumBubble.position = Vector2(BigBubblePos_X, 100)
-	
-	sparkleTween = create_tween()
-	sparkleTween.tween_property(pointsBubble, "global_position", pointSumBubble.global_position, 0.3).set_trans(Tween.TRANS_BACK)
-	sparkleTween.finished.connect(func() -> void:
-		if(pointSumTween != null && pointSumTween.is_running()):
-			pointSumTween.finished.emit()
-			pointSumTween.kill()
-			pointSumTween = null
+	if(isBigSpread):
+		await sparkleTween.finished
+		
+		if(pointSumBubble == null):
+			currPointSum = 0
+			currPointVal = 0
+			pointSumBubble = getPointsBubble(0)
+			pointSumLabel = pointSumBubble.get_child(0)
+			pointSumBubble.reparent(get_parent())
+			pointSumBubble.position = Vector2(BigBubblePos_X, 100)
+		
+		sparkleTween = create_tween()
+		sparkleTween.tween_property(pointsBubble, "global_position", pointSumBubble.global_position, 0.3).set_trans(Tween.TRANS_BACK)
+		sparkleTween.finished.connect(func() -> void:
+			if(pointSumTween != null && pointSumTween.is_running()):
+				pointSumTween.finished.emit()
+				pointSumTween.kill()
+				pointSumTween = null
+			
+			pointsBubble.queue_free()
+			
+			currPointSum += tile.points
+			pointSumTween = create_tween()
+			pointSumTween.tween_method(func(newVal: int) -> void:
+				currPointVal = newVal
+				pointSumBubble.size = Vector2(10+newVal, 10+newVal) * 2*scale
+				pointSumBubble.LowerBound_density = newVal
+				pointSumBubble.UpperBound_density = 2*newVal
+				var textFontSize: int = 1
+				var textSize: Vector2 = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize)
+				while(textSize.x <= pointSumBubble.size.x && textSize.y <= pointSumBubble.size.y):
+					textFontSize += 1
+					textSize = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize) * pointBubbleScaleFactor*scale
+				
+				textFontSize -= 1
+				textSize = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize) * pointBubbleScaleFactor*scale
+				
+				pointSumLabel.add_theme_font_size_override("font_size", textFontSize)
+				pointSumLabel.text = "+"+str(newVal)
+				pointSumLabel.position = -textSize/2, currPointVal, currPointSum, 0.7)
+			
+			pointSumTween.finished.connect(func() -> void: activateFinished += 1))
+	else:
+		sparkleTween.tween_property(pointsBubble, "global_position", get_parent().get_parent().global_position + get_parent().get_parent().Body.region_rect.size/2, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		
+		await sparkleTween.finished
 		
 		pointsBubble.queue_free()
-		
-		currPointSum += tile.points
-		pointSumTween = create_tween()
-		pointSumTween.tween_method(func(newVal: int) -> void:
-			currPointVal = newVal
-			pointSumBubble.size = Vector2(10+newVal, 10+newVal) * 2*scale
-			pointSumBubble.LowerBound_density = newVal
-			pointSumBubble.UpperBound_density = 2*newVal
-			var textFontSize: int = 1
-			var textSize: Vector2 = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize)
-			while(textSize.x <= pointSumBubble.size.x && textSize.y <= pointSumBubble.size.y):
-				textFontSize += 1
-				textSize = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize) * pointBubbleScaleFactor*scale
-			
-			textFontSize -= 1
-			textSize = pointSumLabel.get_theme_font("font").get_string_size("+"+str(newVal), pointSumLabel.horizontal_alignment, -1, textFontSize) * pointBubbleScaleFactor*scale
-			
-			pointSumLabel.add_theme_font_size_override("font_size", textFontSize)
-			pointSumLabel.text = "+"+str(newVal)
-			pointSumLabel.position = -textSize/2, currPointVal, currPointSum, 0.7)
-		
-		pointSumTween.finished.connect(func() -> void: activateFinished += 1)
-		)
+		#spreadingPlayer.ExpBar.gainExperience(tile.points)
