@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 class_name Board
 
@@ -10,13 +10,17 @@ const BOARD_HEIGHT: float = 120
 const BOARD_WIDTH: float = ROW_TILE_SIZE*ResourceContainer.BASE_RESOURCE_SIZE.x + (ROW_TILE_SIZE+1)*SPACE_BETWEEN_TILES
 const MAX_BOARD_ROWS: int = 5
 const MOVE_TILE_DURATION: float = 0.35
-const HIGHLIGHT_THICKNESS: Vector2 = Vector2(10, 10)
 
 static var player_pos: PlayerData = null
 
 var BoardRows: Array[Array]
+var curr_lowerBorad: int = 0
 
 func _init() -> void:
+	clip_contents = true
+	
+	size = Vector2(BOARD_WIDTH, 2*BOARD_HEIGHT)
+	
 	var newBoard: Sprite2D
 	var RowArray: Array[TileContainer]
 	for i in range(STARTING_BOARD_ROWS):
@@ -24,7 +28,7 @@ func _init() -> void:
 		newBoard.texture = CanvasTexture.new()
 		newBoard.region_enabled = true
 		newBoard.region_rect = Rect2(0, 0, BOARD_WIDTH, BOARD_HEIGHT)
-		newBoard.position = Vector2(0, -BOARD_HEIGHT*i)
+		newBoard.position = Vector2(BOARD_WIDTH/2, (1.5-i)*BOARD_HEIGHT)
 		newBoard.self_modulate = BOARD_COLOR - i*BOARD_COLOR/MAX_BOARD_ROWS
 		newBoard.name = "BoardRow" + str(i+1)
 		RowArray = []
@@ -48,13 +52,28 @@ func moveBoard(nextPlayer: PlayerData) -> void:
 		global_position =  Vector2(GameScene.BoardRadius*sin(-newRot), GameScene.BoardRadius*cos(-newRot))
 	, rotation, rotation-GameScene.interPlayer_rotationStep, 1)
 
-enum TileOrigin{
-	DECK, DECK_BURNING_SHOES, RIVER, SELECTION, SHOP, OTHER_PLAYER, ATUU
+func addBoard() -> void:
+	var newBoard: Sprite2D = Sprite2D.new()
+	newBoard.texture = CanvasTexture.new()
+	newBoard.region_enabled = true
+	newBoard.region_rect = Rect2(0, 0, BOARD_WIDTH, BOARD_HEIGHT)
+	#curr_lowerBorad
+	newBoard.position = Vector2(BOARD_WIDTH/2, (1.5 - BoardRows.size() + curr_lowerBorad)*BOARD_HEIGHT)
+	newBoard.self_modulate = BOARD_COLOR - BoardRows.size()*BOARD_COLOR/MAX_BOARD_ROWS
+	newBoard.name = "BoardRow" + str(BoardRows.size())
+	var RowArray: Array[TileContainer]
+	RowArray.resize(ROW_TILE_SIZE)
+	RowArray.fill(null)
+	BoardRows.append(RowArray)
+	add_child(newBoard)
+	
+	GameScene.MainPlayer.boardRows_moveUp.visible = true
+
+enum TileOrigin{#DECK, DECK_BURNING_SHOES, RIVER, SELECTION, SHOP, 
+	OTHER_PLAYER, ATUU
 }
 
-var delayForAdditionalDraw: float = 0
-
-func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK, overridePos: Vector2i = Vector2i(-1, -1), playerOrigin: Player = GameScene.MainPlayer) -> Vector2i:
+func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.ATUU, overridePos: Vector2i = Vector2i(-1, -1), playerOrigin: Player = GameScene.MainPlayer) -> Vector2i:
 	var boardSpace: bool
 	var index: Vector2i = overridePos
 	for i in range(BoardRows.size()):
@@ -79,31 +98,43 @@ func addTile(newTile: TileContainer, tileOrigin: TileOrigin = TileOrigin.DECK, o
 	
 	newTile.name = "BoardTile" + str(index.y+1)
 	
+	while(index.x != curr_lowerBorad && index.x != curr_lowerBorad+1):
+		await moveRows(index.x < curr_lowerBorad)
+	
 	var endPos: Vector2 = Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
+	endPos += (get_child(index.x) as Sprite2D).position + position# + Vector2(0, BOARD_HEIGHT)
 	#if():
 		#get_child(index.x).add_child(newTile)
 		#newTile.position = endPos
 		
 		#return index
+	#ileOrigin == TileOrigin.DECK || tileOrigin == TileOrigin.DECK_BURNING_SHOES || 
+	#if(tileOrigin == TileOrigin.OTHER_PLAYER):
+		#get_child(index.x).add_child(newTile)
+	#else:
+		#newTile.reparent(get_child(index.x))
 	
-	if(tileOrigin == TileOrigin.DECK || tileOrigin == TileOrigin.DECK_BURNING_SHOES || tileOrigin == TileOrigin.OTHER_PLAYER):
-		get_child(index.x).add_child(newTile)
-	else:
-		newTile.reparent(get_child(index.x))
+	await get_tree().create_timer(0.1).timeout
 	
-	handleTileMovement(newTile, endPos, tileOrigin, playerOrigin)
+	handleTileMovement(newTile, endPos, index.x, tileOrigin, playerOrigin)
 	
 	return index
 
-func handleTileMovement(newTile: TileContainer, endPos: Vector2, tileOrigin: TileOrigin = TileOrigin.DECK, playerOrigin: Player = GameScene.MainPlayer) -> void:
-	delayForAdditionalDraw += 0.1
+var tileQueue: int = 0
+
+func handleTileMovement(newTile: TileContainer, endPos: Vector2, parentIndex: int, tileOrigin: TileOrigin = TileOrigin.ATUU, playerOrigin: Player = GameScene.MainPlayer) -> void:
+	tileQueue += 1
+	
+	#if(moveBoardsTween != null && moveBoardsTween.is_running()):
+		#await moveBoardsTween.finished
+	
 	match tileOrigin:
 		TileOrigin.OTHER_PLAYER:
 			newTile.modulate.a = 0
 			newTile.scale = Vector2(0.1, 0.1)
 			newTile.global_position = playerOrigin.otherPlayerDeck.global_position
 			
-			await get_tree().create_timer(delayForAdditionalDraw).timeout
+			#await get_tree().create_timer(delayForAdditionalDraw).timeout
 			
 			var displacement: Vector2 = Vector2(randf_range(0, 170), randf_range(-230, 0))
 			while(displacement.length() < 150):
@@ -121,92 +152,10 @@ func handleTileMovement(newTile: TileContainer, endPos: Vector2, tileOrigin: Til
 			
 			tween.tween_property(newTile, "position", endPos, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
 			
-			await tween.finished
-		TileOrigin.DECK:
-			newTile.modulate.a = 0
-			newTile.scale = Vector2(0.1, 0.1)
-			newTile.global_position = GameScene.MainPlayer.PlayerDeck.global_position
-			
-			await get_tree().create_timer(delayForAdditionalDraw).timeout
-			
-			var displacement: Vector2 = Vector2(randf_range(0, 170), randf_range(-230, 0))
-			while(displacement.length() < 150):
-				displacement = Vector2(randf_range(-170, 0), randf_range(-230, 0))
-			
-			var tween: Tween = create_tween()
-			tween.set_parallel()
-			tween.tween_property(newTile, "modulate:a", 1, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-			tween.tween_property(newTile, "scale", Vector2(1, 1), MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-			tween.tween_property(newTile, "position", newTile.position+displacement, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-			
-			await tween.finished
-			
-			tween = create_tween()
-			
-			tween.tween_property(newTile, "position", endPos, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
-			
-			await tween.finished
-		TileOrigin.DECK_BURNING_SHOES:
-			var BurningTile: Sprite2D = Sprite2D.new()
-			BurningTile.texture = load(BurningShoes.SPRITE_BASE_PATH + "01.png")
-			BurningTile.name = "BurningTile"
-			BurningTile.scale = Vector2(0.5, 0.5)
-			
-			newTile.modulate.a = 0
-			#newTile.scale = Vector2(0.1, 0.1)
-			
-			await get_tree().create_timer((delayForAdditionalDraw+0.5)*1.5).timeout
-			
-			add_child(BurningTile)
-			BurningTile.global_position = GameScene.MainPlayer.PlayerDeck.global_position
-			
-			var radius: float = randf_range(135, 160)
-			var angle: float = randf_range(-3.0*PI/4, -PI/6.0)
-			
-			var displacement: Vector2 = Vector2(radius*cos(angle), radius*sin(angle))
-			#while(displacement.length() < 150):
-				#displacement = Vector2(randf_range(-170, 0), randf_range(-230, 0))
-			
-			newTile.global_position = GameScene.MainPlayer.PlayerDeck.global_position + displacement
-			
-			var tween: Tween = create_tween()
-			tween.set_parallel()
-			#tween.tween_property(newTile, "modulate:a", 1, TileContainer.MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-			#tween.tween_property(newTile, "scale", Vector2(1, 1), TileContainer.MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-			
-			tween.tween_property(BurningTile, "position", BurningTile.position+displacement+ResourceContainer.BASE_RESOURCE_SIZE/2, 0.5).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-			tween.tween_method(func(index: int) -> void:
-				BurningShoes.Manage_ButningTile_Sprite(BurningTile, index),
-				1, BurningShoes.SPRITE_COUNT, 0.5).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN_OUT)
-			
-			await tween.finished
-			
-			tween = create_tween()
-			tween.set_parallel()
-			
-			tween.tween_property(newTile, "modulate:a", 1, 0.15)
-			tween.tween_property(BurningTile, "modulate:a", 0, 0.15)
-			
-			await tween.finished
-			
-			BurningTile.queue_free()
-			
-			tween = create_tween()
-			
-			tween.tween_property(newTile, "position", endPos, MOVE_TILE_DURATION).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
-			
-			await tween.finished
-		TileOrigin.RIVER, TileOrigin.SELECTION:
-			await get_tree().create_timer(delayForAdditionalDraw).timeout
-			newTile.Highlight.visible = false
-			newTile.Highlight.self_modulate = TileContainer.HIGHLIGHT_BASE_COLOR
-			var tween: Tween = create_tween()
-			
-			tween.tween_property(newTile, "position", endPos, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 			
 			await tween.finished
 		TileOrigin.ATUU:
-			await get_tree().create_timer(delayForAdditionalDraw).timeout
+			#await get_tree().create_timer(delayForAdditionalDraw).timeout
 			var tween: Tween = create_tween()
 			tween.tween_property(newTile, "position", endPos, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 			
@@ -215,21 +164,69 @@ func handleTileMovement(newTile: TileContainer, endPos: Vector2, tileOrigin: Til
 			newTile.enabled = true
 			newTile.z_index = 0
 	
-	delayForAdditionalDraw -= 0.1
+	if(tileOrigin == TileOrigin.OTHER_PLAYER):
+		get_child(parentIndex).add_child(newTile)
+	else:
+		newTile.reparent(get_child(parentIndex))
+	
+	tileQueue -= 1
 
-func addBoard() -> void:
-	var newBoard: Sprite2D = Sprite2D.new()
-	newBoard.texture = CanvasTexture.new()
-	newBoard.region_enabled = true
-	newBoard.region_rect = Rect2(0, 0, BOARD_WIDTH, BOARD_HEIGHT)
-	newBoard.position = Vector2(0, -BOARD_HEIGHT*BoardRows.size())
-	newBoard.self_modulate = BOARD_COLOR - BoardRows.size()*BOARD_COLOR/MAX_BOARD_ROWS
-	newBoard.name = "BoardRow" + str(BoardRows.size())
-	var RowArray: Array[TileContainer]
-	RowArray.resize(ROW_TILE_SIZE)
-	RowArray.fill(null)
-	BoardRows.append(RowArray)
-	add_child(newBoard)
+func moveRows(up: bool) -> void:
+	if(BoardRows.size() <= 2):
+		return
+	
+	var direction: int = -1 if(up) else 1
+	
+	curr_lowerBorad += direction
+	
+	GameScene.MainPlayer.boardRows_moveUp.enabled = false
+	GameScene.MainPlayer.boardRows_moveDown.enabled = false
+	
+	while(tileQueue > 0):
+		await get_tree().create_timer(0.001).timeout
+	
+	var moveBoardsTween: Tween = create_tween().set_parallel()
+	for i in range(BoardRows.size()):
+		moveBoardsTween.tween_property(get_child(i), "position:y", get_child(i).position.y + BOARD_HEIGHT*direction, 0.5)
+	
+	await moveBoardsTween.finished
+	
+	GameScene.MainPlayer.boardRows_moveUp.enabled = true
+	GameScene.MainPlayer.boardRows_moveDown.enabled = true
+	
+	var upVisibility: bool = curr_lowerBorad != 0
+	var downVisibility: bool = curr_lowerBorad != BoardRows.size()-2
+	
+	if(TileContainer.MovingTile != null):
+		if(GameScene.MainPlayer.boardRows_moveUp.visible != upVisibility):
+			if(upVisibility):
+				if(downVisibility):
+					Player.boardRows_UpHighlight = SparkleContainer.new(GameScene.MainPlayer.boardRows_moveUp.size+Player.HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(GameScene.MainPlayer.boardRows_moveUp.size, Vector2(), SparkleContainer.Shape.RECTANGLE))
+					Player.boardRows_UpHighlight.position = Player.boardRows_DownHighlight.position
+					GameScene.MainPlayer.add_child(Player.boardRows_UpHighlight)
+				else:
+					Player.boardRows_UpHighlight = Player.boardRows_DownHighlight
+					Player.boardRows_DownHighlight = null
+			
+				create_tween().tween_property(Player.boardRows_UpHighlight, "position", GameScene.MainPlayer.boardRows_moveUp.position + GameScene.MainPlayer.boardRows_moveUp.size/2, 0.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+			elif(GameScene.MainPlayer.boardRows_moveDown.visible):
+				Player.boardRows_UpHighlight.queue_free()
+		if(GameScene.MainPlayer.boardRows_moveDown.visible != downVisibility):
+			if(downVisibility):
+				if(upVisibility):
+					Player.boardRows_DownHighlight = SparkleContainer.new(GameScene.MainPlayer.boardRows_moveDown.size+Player.HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(GameScene.MainPlayer.boardRows_moveDown.size, Vector2(), SparkleContainer.Shape.RECTANGLE))
+					Player.boardRows_DownHighlight.position = Player.boardRows_UpHighlight.position
+					GameScene.MainPlayer.add_child(Player.boardRows_DownHighlight)
+				else:
+					Player.boardRows_DownHighlight = Player.boardRows_UpHighlight
+					Player.boardRows_UpHighlight = null
+				
+				create_tween().tween_property(Player.boardRows_DownHighlight, "position", GameScene.MainPlayer.boardRows_moveDown.position + GameScene.MainPlayer.boardRows_moveDown.size/2, 0.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+			elif(GameScene.MainPlayer.boardRows_moveUp.visible):
+				Player.boardRows_DownHighlight.queue_free()
+	
+	GameScene.MainPlayer.boardRows_moveUp.visible = upVisibility
+	GameScene.MainPlayer.boardRows_moveDown.visible = downVisibility
 
 func removeTile(tile: TileContainer) -> void:
 	for Row in BoardRows:
@@ -355,13 +352,40 @@ func changeHighlightColor(newColor: Color) -> void:
 
 #var endPosHighlight: SparkleContainer
 
+func startMovingTile(tile: TileContainer) -> void:
+	pass
+
 func handleMovingTile(tile: TileContainer) -> void:
 	#Vector2(95*index.y - 465, -ResourceContainer.BASE_RESOURCE_SIZE.y/2)
 	#print("HERE0 - " + str(tile.position) + " - " + str(tile.global_position - GameScene.MainPlayer.position + Vector2(0, BOARD_HEIGHT*getTilePos(tile).x)))
-	var tileRelPos: Vector2 = tile.position - Vector2(0, get_child(getTilePos(tile).x).position.y)
-	var endPos: Vector2 = (tileRelPos + Vector2(ResourceContainer.BASE_RESOURCE_SIZE.x, ResourceContainer.BASE_RESOURCE_SIZE.y/2 - BOARD_HEIGHT*getTilePos(tile).x)).snapped(Vector2(95, 120)) - Vector2((ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES)/2, 0)
-	var Y_BOUNDS: Vector2 = Vector2(-(BoardRows.size()-1)*BOARD_HEIGHT, 0)
-	var X_BOUNDS: Vector2 = Vector2(-((BOARD_WIDTH-ResourceContainer.BASE_RESOURCE_SIZE.x)/2 - SPACE_BETWEEN_TILES), (BOARD_WIDTH-ResourceContainer.BASE_RESOURCE_SIZE.x)/2 - SPACE_BETWEEN_TILES)
+	#var tileRelPos: Vector2 = tile.position - Vector2(0, get_child(getTilePos(tile).x).position.y)
+	#var endPos: Vector2 = (tileRelPos + Vector2(ResourceContainer.BASE_RESOURCE_SIZE.x, ResourceContainer.BASE_RESOURCE_SIZE.y/2 - BOARD_HEIGHT*getTilePos(tile).x)).snapped(Vector2(95, 120)) - Vector2((ResourceContainer.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES)/2, 0)
+	
+	var endPos: Vector2 = get_global_mouse_position() - GameScene.MainPlayer.position - position
+	
+	if(endPos.y < -50):
+		pass
+	else:
+		pass
+	
+	endPos = (endPos - Vector2(95, 120)/2).snapped(Vector2(95, 120)) + GoodButton.BASE_RESOURCE_SIZE/2# - Vector2(GoodButton.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES/2, 0)#ResourceContainer.BASE_RESOURCE_SIZE.x + 
+	endPos += Vector2(SPACE_BETWEEN_TILES, (BOARD_HEIGHT-GoodButton.BASE_RESOURCE_SIZE.y)/2)
+	
+	#if(GameScene.MainPlayer.boardRows_moveUp.visible && boardRows_UpHighlight == null):
+		#
+	#elif(!GameScene.MainPlayer.boardRows_moveUp.visible && boardRows_UpHighlight != null):
+		#boardRows_UpHighlight.queue_free()
+	
+	#if(GameScene.MainPlayer.boardRows_moveDown.visible && boardRows_DownHighlight == null):
+		#boardRows_DownHighlight = SparkleContainer.new(GameScene.MainPlayer.boardRows_moveDown.size + HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(GameScene.MainPlayer.boardRows_moveDown.size, Vector2(), SparkleContainer.Shape.RECTANGLE))
+		#boardRows_DownHighlight.position = GameScene.MainPlayer.boardRows_moveDown.position + GameScene.MainPlayer.boardRows_moveDown.size/2
+		#GameScene.MainPlayer.add_child(boardRows_DownHighlight)
+	#elif(!GameScene.MainPlayer.boardRows_moveDown.visible && boardRows_DownHighlight != null):
+		#boardRows_DownHighlight.queue_free()
+	
+	# + GoodButton.BASE_RESOURCE_SIZE/2
+	var Y_BOUNDS: Vector2 = Vector2(BOARD_HEIGHT/2, (BoardRows.size()-0.5)*BOARD_HEIGHT)
+	var X_BOUNDS: Vector2 = Vector2(SPACE_BETWEEN_TILES+GoodButton.BASE_RESOURCE_SIZE.x/2, BOARD_WIDTH-SPACE_BETWEEN_TILES-GoodButton.BASE_RESOURCE_SIZE.x/2)
 	
 	if(endPos.x > X_BOUNDS.y):
 		endPos.x = X_BOUNDS.y
@@ -375,24 +399,25 @@ func handleMovingTile(tile: TileContainer) -> void:
 	if(endPos.y < Y_BOUNDS.x):
 		endPos.y = Y_BOUNDS.x
 	
-	if(Player.SparkleHighlight == null):
-		Player.SparkleHighlight = SparkleContainer.new(GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(Vector2(75, 105), Vector2(0, 0), SparkleContainer.Shape.RECTANGLE))
-		add_child(Player.SparkleHighlight)
-		Player.SparkleHighlight.position = endPos
-	elif(Player.SparkleHighlight.position != endPos):
+	#endPos -= position
+	
+	#(1.5-i)*BOARD_HEIGHT
+	#SPACE_BETWEEN_TILES + (GoodButton.BASE_RESOURCE_SIZE.x+SPACE_BETWEEN_TILES)*i
+	
+	if(Player.SparkleHighlight.position != endPos):
 		var tween: Tween = create_tween()
 		tween.tween_property(Player.SparkleHighlight, "position", endPos, 0.1)
-		if(Player.SparkleHighlight.size != GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS):
+		if(Player.SparkleHighlight.size != GoodButton.BASE_RESOURCE_SIZE+Player.HIGHLIGHT_THICKNESS):
 			tween.tween_property(Player.SparkleHighlight.hole, "size", GoodButton.BASE_RESOURCE_SIZE, 0.1)
-			tween.tween_property(Player.SparkleHighlight, "size", GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS, 0.1)
+			tween.tween_property(Player.SparkleHighlight, "size", GoodButton.BASE_RESOURCE_SIZE+Player.HIGHLIGHT_THICKNESS, 0.1)
 			tween.tween_property(Player.SparkleHighlight, "LowerBound_density", 10, 0.1)
 			tween.tween_property(Player.SparkleHighlight, "UpperBound_density", 11, 0.1)
 
 func endMovement(tile: TileContainer) -> void:
 	assert(Player.SparkleHighlight != null)
 	
-	var rowIndex: int = round(abs(Player.SparkleHighlight.position.y/BOARD_HEIGHT))
-	var colIndex: int = round(Player.SparkleHighlight.position.x + ((BOARD_WIDTH -ResourceContainer.BASE_RESOURCE_SIZE.x)/2 - SPACE_BETWEEN_TILES))/95
+	var rowIndex: int = roundi(1.5 - Player.SparkleHighlight.position.y/BOARD_HEIGHT) + curr_lowerBorad
+	var colIndex: int = roundi((Player.SparkleHighlight.position.x - SPACE_BETWEEN_TILES - GoodButton.BASE_RESOURCE_SIZE.x/2)/(GoodButton.BASE_RESOURCE_SIZE.x+SPACE_BETWEEN_TILES))
 	
 	var startCoord: Vector2i = getTilePos(tile)
 	var endCoord: Vector2i = Vector2i(rowIndex, colIndex)
@@ -423,9 +448,11 @@ func endMovement(tile: TileContainer) -> void:
 	#if(startCoord.x != endCoord.x):
 	tile.reparent(get_child(endCoord.x))
 	
-	tileTween.tween_property(tile, "position", endPos, 0.35)
+	tileTween.tween_property(tile, "position", get_child(endCoord.x).global_position + endPos, 0.35)
 	tileTween.finished.connect(func() -> void:
-		tile.z_index = 0
+		var posAux: Vector2 = tile.global_position
+		tile.top_level = false
+		tile.global_position = posAux
 		if(BoardRows[startCoord.x][startCoord.y] != null):
 			BoardRows[startCoord.x][startCoord.y].z_index = 0)
 	

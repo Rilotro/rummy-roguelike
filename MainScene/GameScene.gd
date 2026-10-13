@@ -34,6 +34,9 @@ func _init() -> void:
 	modulate = Color(0, 0, 0)
 	Game = self
 	
+	Player.GameBoard = Board.new()
+	Player.GameBoard.name = "GameBoard"
+	
 	MainPlayer = Player.new(MultiplayerHandler.currPlayer)
 	MainPlayer.name = "MainPlayer"
 	add_child(MainPlayer)
@@ -164,7 +167,7 @@ func _ready() -> void:
 	create_tween().tween_property(self, "modulate", Color(1, 1, 1), 2)
 	
 	window_size_changed(get_tree().root.size)
-	
+	MainPlayer.handleStartGameAtuu()
 
 func _process(delta: float) -> void:
 	if(Input.is_action_just_pressed("Debug_Draw")):

@@ -431,7 +431,7 @@ func Draw(count: int = 1) -> void:
 		var index: int = 0
 		for tile in contArray:
 			tile.z_index = 1
-			tempPos = Player.GameBoard.addTile(tile, Board.TileOrigin.ATUU)
+			tempPos = await Player.GameBoard.addTile(tile, Board.TileOrigin.ATUU)
 			if(!tileStrings.is_empty()):
 				tileStrings += "::"
 			

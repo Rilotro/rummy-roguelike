@@ -111,6 +111,9 @@ static func screenTransition(camera_target: Target, target_playerID: int) -> voi
 			if(Player.SparkleHighlight != null):
 				Player.SparkleHighlight.reparent(playerSpace.PlayerSpread)
 			
+			if(Player.cameraTransitionHighlight != null):
+				tween.parallel().tween_property(Player.cameraTransitionHighlight, "position", GameScene.MainPlayer.BoardCameraTransition.position-GameScene.MainPlayer.BoardCameraTransition.size/2, 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
+			
 			tween.finished.connect(func() -> void:
 				if(TileContainer.MovingTile != null):
 					TileContainer.MovingTile.reparent(playerSpace.PlayerSpread))
@@ -133,6 +136,9 @@ static func screenTransition(camera_target: Target, target_playerID: int) -> voi
 				Player.SparkleHighlight.visible = true
 				Player.SparkleHighlight.reparent(Player.GameBoard)
 				Player.SparkleHighlight.is_positive = true
+			
+			if(Player.cameraTransitionHighlight != null):
+				tween.parallel().tween_property(Player.cameraTransitionHighlight, "position", GameScene.MainPlayer.SpreadCameraTransition.position+GameScene.MainPlayer.SpreadCameraTransition.size/2, 1).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN_OUT)
 			
 			tween.finished.connect(func() -> void:
 				if(TileContainer.MovingTile != null):

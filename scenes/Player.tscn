@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c7vjdyaj3o0p0" path="res://Player/Player.gd" id="1_hp6x6"]
 [ext_resource type="Script" uid="uid://dxpv5jxqv1c1b" path="res://Player/Board.gd" id="2_3tkgg"]
+[ext_resource type="Texture2D" uid="uid://8cb7lr5w3w76" path="res://UI/BoardArrow.png" id="2_6eyey"]
 [ext_resource type="Script" uid="uid://dy1uxtr010jum" path="res://Player/Spread.gd" id="3_l6ohk"]
 [ext_resource type="Script" uid="uid://dmmd7tkni3r7b" path="res://Player/River.gd" id="4_oudfo"]
 [ext_resource type="Script" uid="uid://dd1a04lwwm5yw" path="res://Player/Deck.gd" id="5_8g4oa"]
@@ -32,6 +33,13 @@ shader_parameter/loadingTime = 0.0
 [node name="PlayerArea" type="Node2D" unique_id=166352985]
 position = Vector2(576, 588)
 script = ExtResource("1_hp6x6")
+
+[node name="Sprite2D3" type="Sprite2D" parent="." unique_id=1930638403]
+position = Vector2(-525, -120)
+rotation = 3.1415927
+texture = ExtResource("2_6eyey")
+region_enabled = true
+region_rect = Rect2(0, 0, 60, 100)
 
 [node name="Board" type="Node2D" parent="." unique_id=1953894442]
 script = ExtResource("2_3tkgg")
@@ -158,6 +166,21 @@ bbcode_enabled = true
 text = "10"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Control2" type="Control" parent="." unique_id=988615032]
+clip_contents = true
+layout_mode = 3
+anchors_preset = 0
+offset_top = -379.0
+offset_right = 40.0
+offset_bottom = -339.0
+
+[node name="Sprite2D2" type="Sprite2D" parent="Control2" unique_id=251693717]
+top_level = true
+position = Vector2(51, 588)
+texture = ExtResource("2_6eyey")
+region_enabled = true
+region_rect = Rect2(0, 0, 60, 100)
 
 [connection signal="mouse_entered" from="PlayerDeck/DeckLabel" to="PlayerDeck" method="_mouse_entered"]
 [connection signal="mouse_exited" from="PlayerDeck/DeckLabel" to="PlayerDeck" method="_mouse_exited"]

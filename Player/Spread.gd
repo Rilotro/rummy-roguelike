@@ -42,7 +42,7 @@ func handleMovingTile(tile: TileContainer) -> void:
 			var finalSize: Vector2 = Vector2(finalSize_x, GoodButton.BASE_RESOURCE_SIZE.y)
 			var highlightTween: Tween = create_tween().set_parallel()
 			highlightTween.tween_property(Player.SparkleHighlight, "position", finalPos, 0.1)
-			highlightTween.tween_property(Player.SparkleHighlight, "size", finalSize + Board.HIGHLIGHT_THICKNESS, 0.1)
+			highlightTween.tween_property(Player.SparkleHighlight, "size", finalSize + Player.HIGHLIGHT_THICKNESS, 0.1)
 			highlightTween.tween_property(Player.SparkleHighlight.hole, "size", finalSize, 0.1)
 			highlightTween.tween_property(Player.SparkleHighlight, "LowerBound_density", 10 + 3*(SpreadRows[closestRow_index].Tiles.size()-1), 0.1)
 			highlightTween.tween_property(Player.SparkleHighlight, "UpperBound_density", 11 + 3*(SpreadRows[closestRow_index].Tiles.size()-1), 0.1)
@@ -173,6 +173,8 @@ func SpreadTiles(newRow: Array[TileContainer]) -> void:
 		endPos.x += TileContainer.BASE_RESOURCE_SIZE.x + TILE_SPACING.x
 	
 	await spreadTween.finished
+	GameScene.MainPlayer.SpreadCameraTransition.enabled = true
+	#GameScene.MainPlayer.BoardCameraTransition.enabled = true
 	
 	for tile in newRow:
 		colCount += 1

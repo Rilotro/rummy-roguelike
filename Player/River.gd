@@ -75,7 +75,7 @@ func Draw(ammount: int = 0, startingTile: TileContainer = null) -> void:
 		startingIndex = river.size()-1
 	
 	while(ammount > 0 && startingIndex >= 0 && !river.is_empty()):
-		GameScene.MainPlayer.GameBoard.addTile(river.pop_at(startingIndex), Board.TileOrigin.RIVER)
+	#	GameScene.MainPlayer.GameBoard.addTile(river.pop_at(startingIndex), Board.TileOrigin.RIVER)
 		startingIndex -= 1
 		ammount -= 1
 	

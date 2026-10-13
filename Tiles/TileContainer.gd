@@ -125,29 +125,20 @@ static var hoveredByArrow: TileContainer = null
 func pressing(delta: float) -> void:
 	super(delta)
 	
-	if(pressingTimer >= PRESSING_TIMER_THRESHOLD):
+	if(pressingTriggered):
 		match type:
 			Type.FORESIGHT:
 				return
 			Type.BOARD:
-				if(!isMoving):
-					isMoving = true
-					reparent(Player.GameBoard)
-				
-				isMoving = true
-				MovingTile = self
 				var playerRot: float = 0
 				if(Player.camera_player_pos != null):
 					playerRot = Player.camera_player_pos.playerSpace.rotation
 					if(get_parent() == Player.Camera):
 						playerRot = Player.Camera.rotation
 				
-				global_position = get_global_mouse_position() - (BASE_RESOURCE_SIZE.x*Vector2(cos(playerRot), sin(playerRot)) + BASE_RESOURCE_SIZE.y*Vector2(-sin(playerRot), cos(playerRot)))/2
-				z_index = 1
+				global_position = get_global_mouse_position() - (scale.x*BASE_RESOURCE_SIZE.x*Vector2(cos(playerRot), sin(playerRot)))/2# + BASE_RESOURCE_SIZE.y*Vector2(-sin(playerRot), cos(playerRot)))/2
 				Player.handleMovingTile(self)
 				#GameScene.MainPlayer.GameBoard.HighlightMovingTileFinalPos(self)
-				
-				mouse_filter = Control.MOUSE_FILTER_IGNORE
 			Type.UPGRADE:
 				isMoving = true
 				if(selectionArrow == null):
@@ -168,6 +159,24 @@ func pressing(delta: float) -> void:
 				selectionArrow.rotation = (global_position + size/2).angle_to_point(mousePos) + PI/2
 				selectionArrow.global_position = mousePos + (ARROW_SCALE/2)*Vector2(-sin(selectionArrow.rotation), cos(selectionArrow.rotation))
 
+const BOARD_MOVEMENT_SCALE: float = 0.5
+
+func pressingTrigger() -> void:
+	super()
+	
+	match type:
+		Type.BOARD:
+			isMoving = true
+			reparent(Player.GameBoard)
+			MovingTile = self
+			#z_index = 1
+			top_level = true
+			mouse_filter = Control.MOUSE_FILTER_IGNORE
+			
+			create_tween().tween_property(self, "scale", Vector2(BOARD_MOVEMENT_SCALE, BOARD_MOVEMENT_SCALE), 0.1)
+			
+			Player.startMovingTile(self)
+
 func lateFinalPress() -> void:
 	super()
 	
@@ -181,6 +190,7 @@ func lateFinalPress() -> void:
 				mouse_filter = Control.MOUSE_FILTER_STOP
 				
 				if(!GameScene.MainPlayer.PlayerAtuu.Discard(self)):
+					create_tween().tween_property(self, "scale", Vector2(1, 1), 0.35).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
 					Player.endMovement(self)
 				else:
 					Player.GameBoard.endPosHighlight.queue_free()

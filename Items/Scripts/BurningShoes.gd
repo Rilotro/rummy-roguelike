@@ -53,7 +53,7 @@ func effectOnDraw(fromDeck: bool):
 		for i in range(usedThisRound+1):
 			newTile = TileContainer.new(GameScene.MainPlayer.PlayerDeck.popTile(true))
 			
-			GameScene.MainPlayer.GameBoard.addTile(newTile, Board.TileOrigin.DECK_BURNING_SHOES)
+			#GameScene.MainPlayer.GameBoard.addTile(newTile, Board.TileOrigin.DECK_BURNING_SHOES)
 		
 		usedThisRound += 1
 	else:
@@ -74,7 +74,7 @@ func effectOnDraw(fromDeck: bool):
 			for i in range(drawFromDeck):
 				newTile = TileContainer.new(GameScene.MainPlayer.PlayerDeck.popTile(true))
 				
-				GameScene.MainPlayer.GameBoard.addTile(newTile, Board.TileOrigin.DECK_BURNING_SHOES)
+				#GameScene.MainPlayer.GameBoard.addTile(newTile, Board.TileOrigin.DECK_BURNING_SHOES)
 	
 	#while(Game.PB.Board.TilesCurrentlyDraw.is_empty()):
 		#await Game.get_tree().create_timer(0.01).timeout

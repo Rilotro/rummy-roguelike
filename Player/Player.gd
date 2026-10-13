@@ -6,6 +6,8 @@ const PLAYER_CONTAINER: ResourceContainer.ContainerType = ResourceContainer.Cont
 #const BOARD_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.BOARD
 #const SPREAD_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.SPREAD
 #const RIVER_SPACE: TileContainer.PlayerSpace = TileContainer.PlayerSpace.RIVER
+const BOARD_MOVE_BUTTON_SPACING: float = 10
+const HIGHLIGHT_THICKNESS: Vector2 = Vector2(10, 10)
 
 
 static var GameBoard: Board
@@ -24,13 +26,14 @@ var DiscardButton: GoodButton
 var ExpBar: ExperienceBar
 var PlayerAtuu: Atuu
 var PlayerTurnAnnouncer: Label
+var boardRows_moveUp: GoodButton
+var boardRows_moveDown: GoodButton
 
 static var selectedTiles: Array[TileContainer]
 static var isDiscarding: bool = false
 static var minMAXTilesToDiscard: Vector2i = Vector2i(1, 2)
 
 var inProximity: bool = false
-#var currentCameraPos: CameraPosition = CameraPosition.BOARD
 static var camera_player_pos: PlayerData
 static var camera_spread_pos: bool = false
 
@@ -93,14 +96,12 @@ func _init(player: PlayerData = null) -> void:
 	
 	BoardCameraTransition = Transition.new(Transition.Target.BOARD, PI, id)
 	BoardCameraTransition.name = "BoardCameraTransition"
-	BoardCameraTransition.enabled = false
+	#BoardCameraTransition.enabled = false
 	#BoardCameraTransition.visible = false
 	add_child(BoardCameraTransition)
 	
 	hasBoard = (player == null || player.order == 0)
 	if(hasBoard):
-		GameBoard = Board.new()
-		GameBoard.name = "GameBoard"
 		add_child(GameBoard)
 	
 	PlayerSpread = Spread.new()
@@ -161,6 +162,28 @@ func _init(player: PlayerData = null) -> void:
 		PlayerTurnAnnouncer.add_theme_font_size_override("font_size", 100)
 		PlayerTurnAnnouncer.name = "PlayerTurnAnnouncer"
 		Camera.add_child(PlayerTurnAnnouncer)
+		
+		var boardArrows_Image: Resource = preload("res://UI/BoardArrow.png")
+		boardRows_moveUp = GoodButton.new("", Color(1, 1, 1,), Vector2(), boardArrows_Image)
+		boardRows_moveUp.ButtonIcon.rotation = PI
+		boardRows_moveUp.visible = false#isMainPlayer
+		boardRows_moveUp.name = "boardRows_moveUp"
+		add_child(boardRows_moveUp)
+		
+		boardRows_moveDown = GoodButton.new("", Color(1, 1, 1,), Vector2(), boardArrows_Image)
+		boardRows_moveDown.visible = false#isMainPlayer
+		boardRows_moveDown.name = "boardRows_moveDown"
+		add_child(boardRows_moveDown)
+		
+		boardRows_moveUp.press.connect(GameBoard.moveRows.bind(true))
+		boardRows_moveUp.hover_triggered.connect(func() -> void:
+			if(TileContainer.MovingTile != null):
+				GameBoard.moveRows(true))
+		
+		boardRows_moveDown.press.connect(GameBoard.moveRows.bind(false))
+		boardRows_moveDown.hover_triggered.connect(func() -> void:
+			if(TileContainer.MovingTile != null):
+				GameBoard.moveRows(false))
 	else:
 		var newPlayerButton: PlayerTransition
 		newPlayerButton = PlayerTransition.new(MultiplayerHandler.currPlayer.ID)
@@ -186,12 +209,12 @@ func _init(player: PlayerData = null) -> void:
 		#SpreadTransition_ProximitySensor.mouse_entered.connect(_mouse_inProximity)
 		#SpreadTransition_ProximitySensor.mouse_exited.connect(_mouse_outsideProximity)
 	
-	SpreadAndBoard_Transition_ProximitySensor.mouse_entered.connect(func() -> void:
-		#if(TileContainer.MovingTile != null):
-		SpreadCameraTransition.enabled = true
-		BoardCameraTransition.enabled = true)
-	
-	SpreadAndBoard_Transition_ProximitySensor.mouse_exited.connect(hideTransitions)
+	#SpreadAndBoard_Transition_ProximitySensor.mouse_entered.connect(func() -> void:
+		##if(TileContainer.MovingTile != null):
+		#SpreadCameraTransition.enabled = true
+		#BoardCameraTransition.enabled = true)
+	#
+	#SpreadAndBoard_Transition_ProximitySensor.mouse_exited.connect(hideTransitions)
 
 func hideTransitions() -> void:
 	await get_tree().create_timer(0.0001).timeout
@@ -247,16 +270,23 @@ func window_size_changed() -> void:
 		var AtuuScale: float = GameScene.window_size.y/(TileContainer.BASE_RESOURCE_SIZE.y + Atuu.FRAME_EXTRA_SIZE)
 		PlayerAtuu.scale = Vector2(AtuuScale, AtuuScale)
 		PlayerAtuu.position -= AtuuScale*TileContainer.BASE_RESOURCE_SIZE/2
-		handleStartGameAtuu(GameScene.window_size)
+		
+		boardRows_moveUp.position = -Vector2(Board.BOARD_WIDTH, 3*Board.BOARD_HEIGHT)/2
+		boardRows_moveUp.position.x -= boardRows_moveUp.size.x + BOARD_MOVE_BUTTON_SPACING
+		boardRows_moveUp.position.y += (Board.BOARD_HEIGHT-boardRows_moveUp.size.y)/2
+		
+		boardRows_moveDown.position = -Vector2(Board.BOARD_WIDTH, 3*Board.BOARD_HEIGHT)/2
+		boardRows_moveDown.position.x -= boardRows_moveUp.size.x + BOARD_MOVE_BUTTON_SPACING
+		boardRows_moveDown.position.y += (Board.BOARD_HEIGHT-boardRows_moveUp.size.y)/2 + Board.BOARD_HEIGHT
 		
 		#Draw(14)
 		#PlayerDeck.DIS_ENable(true)
 	
 	if(hasBoard):
-		GameBoard.position.y = -GameScene.window_size.y
+		GameBoard.position = -Vector2(Board.BOARD_WIDTH, 3*Board.BOARD_HEIGHT)/2
 		
-		var boardTween: Tween = create_tween()
-		boardTween.tween_property(GameBoard, "position:y", 0, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT).set_delay(0.1)
+		#var boardTween: Tween = create_tween()
+		#boardTween.tween_property(GameBoard, "position:y", 0, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT).set_delay(0.1)
 		#if(isMainPlayer):
 			#boardTween.finished.connect(func() ->void:
 				#Draw(14)
@@ -269,12 +299,12 @@ func window_size_changed() -> void:
 	#print("Info on sent Tile: " + str(sentTile.number) + ", " + str(sentTile.color))
 	#LlmpTest.send_data("tile", var_to_bytes(inst_to_dict(sentTile)))
 
-func handleStartGameAtuu(screenSize: Vector2) -> void:
+func handleStartGameAtuu() -> void:#screenSize: Vector2
 	await PlayerAtuu.startGameCycle()
 	
 	var atuuScale: float = GameScene.PlayerBar.Body.region_rect.size.y/(Atuu.BASE_RESOURCE_SIZE.y+Atuu.FRAME_EXTRA_SIZE)
 	var atuuPos: Vector2 = -atuuScale*Atuu.BASE_RESOURCE_SIZE/2
-	atuuPos.y += Board.BOARD_HEIGHT/2 - screenSize.y + GameScene.PlayerBar.Body.region_rect.size.y/2
+	atuuPos.y += Board.BOARD_HEIGHT/2 - GameScene.window_size.y + GameScene.PlayerBar.Body.region_rect.size.y/2
 	
 	var startGame_endSequenceTween: Tween = create_tween().set_parallel()
 	startGame_endSequenceTween.tween_property(GameScene.bgObfuscator, "self_modulate:a", 0, 1)
@@ -316,6 +346,64 @@ func _process(delta: float) -> void:
 			#_mouse_outsideProximity()
 
 static var SparkleHighlight: SparkleContainer
+static var boardRows_UpHighlight: SparkleContainer
+static var boardRows_DownHighlight: SparkleContainer
+static var cameraTransitionHighlight: SparkleContainer
+
+static func startMovingTile(tile: TileContainer) -> void:
+	var endPos: Vector2 = GameBoard.get_global_mouse_position() - GameScene.MainPlayer.position - GameBoard.position
+	endPos = (endPos - Vector2(95, 120)/2).snapped(Vector2(95, 120)) + GoodButton.BASE_RESOURCE_SIZE/2# - Vector2(GoodButton.BASE_RESOURCE_SIZE.x + SPACE_BETWEEN_TILES/2, 0)#ResourceContainer.BASE_RESOURCE_SIZE.x + 
+	endPos += Vector2(Board.SPACE_BETWEEN_TILES, (Board.BOARD_HEIGHT-GoodButton.BASE_RESOURCE_SIZE.y)/2)
+	
+	SparkleHighlight = SparkleContainer.new(GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(Vector2(75, 105), Vector2(0, 0), SparkleContainer.Shape.RECTANGLE))
+	SparkleHighlight.position = endPos
+	GameBoard.add_child(SparkleHighlight)#GameScene.MainPlayer
+	
+	if(GameScene.MainPlayer.boardRows_moveUp.visible):
+		var upHighlightTween: Tween = GameBoard.create_tween().set_parallel().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+		#GameScene.MainPlayer.boardRows_moveUp.size + HIGHLIGHT_THICKNESS
+		#GameScene.MainPlayer.boardRows_moveUp.size
+		boardRows_UpHighlight = SparkleContainer.new(GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(GoodButton.BASE_RESOURCE_SIZE, Vector2(), SparkleContainer.Shape.RECTANGLE))
+		boardRows_UpHighlight.position = endPos + GameScene.MainPlayer.position + GameBoard.position
+		GameScene.MainPlayer.add_child(boardRows_UpHighlight)
+		
+		upHighlightTween.tween_property(boardRows_UpHighlight, "position", GameScene.MainPlayer.boardRows_moveUp.position + GameScene.MainPlayer.boardRows_moveUp.size/2, 0.5)
+		upHighlightTween.tween_property(boardRows_UpHighlight.hole, "size", GameScene.MainPlayer.boardRows_moveUp.size, 0.5)
+		upHighlightTween.tween_property(boardRows_UpHighlight, "size", GameScene.MainPlayer.boardRows_moveUp.size + HIGHLIGHT_THICKNESS, 0.5)
+		
+		#upHighlightTween.finished.connect(func() -> void:
+			#boardRows_UpHighlight = tempUpHighlight)
+		
+		#boardRows_UpHighlight = SparkleContainer.new(GameScene.MainPlayer.boardRows_moveUp.size + HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(GameScene.MainPlayer.boardRows_moveUp.size, Vector2(), SparkleContainer.Shape.RECTANGLE))
+		#boardRows_UpHighlight.position = GameScene.MainPlayer.boardRows_moveUp.position + GameScene.MainPlayer.boardRows_moveUp.size/2
+		#GameScene.MainPlayer.add_child(boardRows_UpHighlight)
+	
+	if(GameScene.MainPlayer.boardRows_moveDown.visible):
+		var downHighlightTween: Tween = GameBoard.create_tween().set_parallel().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+		#GameScene.MainPlayer.boardRows_moveUp.size + HIGHLIGHT_THICKNESS
+		#GameScene.MainPlayer.boardRows_moveUp.size
+		boardRows_DownHighlight = SparkleContainer.new(GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(GoodButton.BASE_RESOURCE_SIZE, Vector2(), SparkleContainer.Shape.RECTANGLE))
+		boardRows_DownHighlight.position = endPos + GameScene.MainPlayer.position + GameBoard.position
+		GameScene.MainPlayer.add_child(boardRows_DownHighlight)
+		
+		downHighlightTween.tween_property(boardRows_DownHighlight, "position", GameScene.MainPlayer.boardRows_moveDown.position + GameScene.MainPlayer.boardRows_moveDown.size/2, 0.5)
+		downHighlightTween.tween_property(boardRows_DownHighlight.hole, "size", GameScene.MainPlayer.boardRows_moveDown.size, 0.5)
+		downHighlightTween.tween_property(boardRows_DownHighlight, "size", GameScene.MainPlayer.boardRows_moveDown.size + HIGHLIGHT_THICKNESS, 0.5)
+		
+		#downHighlightTween.finished.connect(func() -> void:
+			#boardRows_DownHighlight = boardRows_DownHighlight)
+	
+	if(GameScene.MainPlayer.SpreadCameraTransition.enabled):
+		var cameraHighlightTween: Tween = GameBoard.create_tween().set_parallel().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUINT)
+		cameraTransitionHighlight = SparkleContainer.new(GoodButton.BASE_RESOURCE_SIZE+HIGHLIGHT_THICKNESS, Vector2(10, 11), SparkleContainer.Hole.new(GoodButton.BASE_RESOURCE_SIZE, Vector2(), SparkleContainer.Shape.RECTANGLE))
+		cameraTransitionHighlight.position = endPos + GameScene.MainPlayer.position + GameBoard.position
+		GameScene.MainPlayer.add_child(cameraTransitionHighlight)
+		
+		cameraHighlightTween.tween_property(cameraTransitionHighlight, "position", GameScene.MainPlayer.SpreadCameraTransition.position + GameScene.MainPlayer.SpreadCameraTransition.size/2, 0.5)
+		cameraHighlightTween.tween_property(cameraTransitionHighlight.hole, "size", GameScene.MainPlayer.SpreadCameraTransition.size, 0.5)
+		cameraHighlightTween.tween_property(cameraTransitionHighlight, "size", GameScene.MainPlayer.SpreadCameraTransition.size + HIGHLIGHT_THICKNESS, 0.5)
+	
+	Player.GameBoard.startMovingTile(tile)
 
 static func handleMovingTile(tile: TileContainer) -> void:
 	if(camera_spread_pos):
@@ -327,6 +415,15 @@ static func handleMovingTile(tile: TileContainer) -> void:
 		GameBoard.handleMovingTile(tile)
 
 static func endMovement(tile: TileContainer) -> void:
+	if(boardRows_UpHighlight != null):
+		boardRows_UpHighlight.queue_free()
+	
+	if(boardRows_DownHighlight != null):
+		boardRows_DownHighlight.queue_free()
+	
+	if(cameraTransitionHighlight != null):
+		cameraTransitionHighlight.queue_free()
+	
 	if(camera_spread_pos):
 		if(camera_player_pos != null):
 			camera_player_pos.playerSpace.PlayerSpread.endMovement(tile)

@@ -385,6 +385,8 @@ var mouse_inside: bool = false
 var pressStillValid: bool = false
 var hoverTimer: float = 0
 var pressingTimer: float = 0
+var pressingTriggered: bool = false
+var hoverTriggered: bool = false
 
 var TipName: Callable
 var TipKeywords: Callable
@@ -592,14 +594,23 @@ func checkHovering(delta: float) -> void:
 	if(mouse_inside && !pressStillValid):
 		hoverTimer += delta
 		
-		if(hasTip && hoverTimer >= Tip_TimerThreshold && Tip == null):
-			Tip = UITip.new(self)
-			Tip.name = "UITip"
-			Tip.visible = false
-			GameScene.Game.add_child(Tip)
+		if(hoverTimer >= Tip_TimerThreshold && !hoverTriggered):
+			hoverTrigger()
 	
 	if(Tip != null && !Tip.visible && Tip.resizeComplete):
 		Tip.visible = true
+
+signal hover_triggered()
+func hoverTrigger() -> void:
+	hoverTriggered = true
+	
+	if(hasTip && Tip == null):
+		Tip = UITip.new(self)
+		Tip.name = "UITip"
+		Tip.visible = false
+		GameScene.Game.add_child(Tip)
+	
+	hover_triggered.emit()
 
 func checkButtonAction(delta: float) -> void:
 	if(!enabled):
@@ -640,12 +651,23 @@ func initialPress() -> void:
 
 func pressing(delta: float) -> void:
 	pressingTimer += delta
+	
+	if(!pressingTriggered && pressingTimer > Press_TimerThreshold):
+		pressingTrigger()
+
+signal pressing_triggered()
+func pressingTrigger() -> void:
+	pressingTriggered = true
+	
+	pressing_triggered.emit()
 
 signal press()#button: GoodButton
 
 func finalPress() -> void:
 	if(!enabled):
 		return
+	
+	pressingTriggered = false
 	
 	if(Tip != null && enabled):
 		Tip.queue_free()
@@ -654,6 +676,8 @@ func finalPress() -> void:
 
 func lateFinalPress() -> void:
 	pressingTimer = 0
+	
+	pressingTriggered = false
 	
 	if(Tip != null && enabled):
 		Tip.queue_free()
@@ -673,6 +697,7 @@ func _mouse_exited() -> void:
 		ButtonIcon.self_modulate = color
 	
 	hoverTimer = 0
+	hoverTriggered = false
 	
 	if(Tip != null):
 		Tip.queue_free()
